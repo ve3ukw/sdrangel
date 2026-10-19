@@ -54,7 +54,7 @@ SatelliteSelectionDialog::SatelliteSelectionDialog(SatelliteTrackerSettings *set
         QString name = itr.key();
         SatNogsSatellite *sat = itr.value();
         // Don't display decayed satellites, or those without TLEs
-        if ((sat->m_status == "alive") || (sat->m_status == ""))
+        if ((sat->m_status == "alive") || (sat->m_status == "in orbit") || (sat->m_status == ""))
         {
             if (sat->m_tle != nullptr)
             {

@@ -158,7 +158,7 @@ struct SatNogsSatellite {
     QString m_name;
     QStringList m_names;        // Alterantive names - JSON "AO-10\r\nOSCAR-10"
     QString m_image;            // URL to image of satellie - JSON example: "https://db-satnogs.freetls.fastly.net/media/satellites/sigma.jpg"
-    QString m_status;           // "alive" "re-entered" "dead" "future"  or "" for TLE only sats
+    QString m_status;           // "in orbit" (formerly "alive") "re-entered" "dead" "future"  or "" for TLE only sats
     QDateTime m_decayed;        // Date of decay. JSON "2018-05-19T00:00:00Z"
     QDateTime m_launched;
     QDateTime m_deployed;
