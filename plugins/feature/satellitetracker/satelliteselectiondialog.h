@@ -42,6 +42,14 @@ public:
 
 private:
     void displaySatInfo(const QString& name);
+    bool isStale(const SatNogsSatellite *sat) const;
+    static QStringList satelliteCategories(const SatNogsSatellite *sat);
+    static const QStringList m_categories;
+    static const QString m_noGroup;
+    QStringList selectedSats() const;
+    void updateAvailableSats();
+    void updateStaleIndication(QListWidgetItem *item);
+    void addSelectedSat(const QString& name);
 
 private slots:
     void accept();
@@ -57,11 +65,17 @@ private slots:
     void on_openSatelliteWebsite_clicked();
     void on_openSatNogsObservations_clicked();
     void networkManagerFinished(QNetworkReply *reply);
+    void filterChanged();
+    void groupChanged(int index);
+    void groupAdd();
+    void groupDelete();
 
 private:
     QNetworkAccessManager *m_networkManager;
     const QHash<QString, SatNogsSatellite *>& m_satellites;
     SatNogsSatellite *m_satInfo;
+    QMap<QString, QStringList> m_groups;    // Copy of groups being edited
+    QString m_group;                        // Group being edited, or empty if none
     Ui::SatelliteSelectionDialog* ui;
 };
 

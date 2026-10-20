@@ -33,6 +33,63 @@
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_5">
       <item>
+       <layout class="QHBoxLayout" name="groupHorizontalLayout">
+        <item>
+         <widget class="QLabel" name="groupLabel">
+          <property name="text">
+           <string>Group</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QComboBox" name="group">
+          <property name="minimumSize">
+           <size>
+            <width>150</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="toolTip">
+           <string>Group of satellites to edit. Selecting a group loads its satellites into the selected list. Changes to the selected list are saved to the group</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QToolButton" name="groupAdd">
+          <property name="toolTip">
+           <string>Create a new group from the selected satellites</string>
+          </property>
+          <property name="text">
+           <string>+</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QToolButton" name="groupDelete">
+          <property name="toolTip">
+           <string>Delete the group (the selected satellites are kept)</string>
+          </property>
+          <property name="text">
+           <string>-</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="groupHorizontalSpacer">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+       </layout>
+      </item>
+      <item>
        <layout class="QHBoxLayout" name="horizontalLayout_2">
         <item>
          <widget class="QLabel" name="availableSatsLabel">
@@ -218,6 +275,52 @@
           </property>
           <property name="toolTip">
            <string>Enter name of satellite to find in the available satellites list</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="categoryLabel">
+          <property name="text">
+           <string>Show</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QComboBox" name="category">
+          <property name="toolTip">
+           <string>Only show available satellites in this category. Categories are determined from the satellite's SatNOGS transmitters and which TLE files list it</string>
+          </property>
+          <property name="sizeAdjustPolicy">
+           <enum>QComboBox::AdjustToContents</enum>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="hideStaleTLEs">
+          <property name="toolTip">
+           <string>Hide satellites whose TLE hasn't been updated recently. SatNOGS doesn't always mark satellites that have re-entered, but their TLEs stop being updated</string>
+          </property>
+          <property name="text">
+           <string>Hide if TLE older than</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QSpinBox" name="maxTLEAge">
+          <property name="toolTip">
+           <string>Age in days after which a satellite's TLE is considered stale</string>
+          </property>
+          <property name="suffix">
+           <string> days</string>
+          </property>
+          <property name="minimum">
+           <number>1</number>
+          </property>
+          <property name="maximum">
+           <number>3650</number>
+          </property>
+          <property name="value">
+           <number>30</number>
           </property>
          </widget>
         </item>

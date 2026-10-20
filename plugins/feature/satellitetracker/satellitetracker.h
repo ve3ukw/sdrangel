@@ -268,7 +268,8 @@ private:
     bool parseSatellites(const QByteArray& json);
     bool parseTransmitters(const QByteArray& json);
     bool parseSatNogsTLEs(const QByteArray& json);
-    bool parseTxtTLEs(const QByteArray& txt);
+    bool parseTxtTLEs(const QByteArray& txt, const QString& source);
+    static QString tleSourceName(const QString& url);
     bool readSatData();
     void updateSatData();
     void updateSatellitesReply(QNetworkReply *reply);

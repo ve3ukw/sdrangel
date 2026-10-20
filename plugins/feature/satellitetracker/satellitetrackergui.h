@@ -180,6 +180,7 @@ private:
     void resizeTable();
     void updateTable(SatelliteState *satState);
     void updateSelectedSats();
+    void updateSatelliteGroups();
     QAction *createCheckableItem(QString& text, int idx, bool checked);
     void updateTimeToAOS();
     QString formatDaysTime(qint64 days, QDateTime dateTime);
@@ -221,6 +222,7 @@ private slots:
     void on_viewOnMap_clicked();
     void on_updateSatData_clicked();
     void on_selectSats_clicked();
+    void on_satelliteGroup_currentIndexChanged(int index);
     void on_autoTarget_clicked(bool checked);
     void on_chartSelect_currentIndexChanged(int index);
     void on_nextPass_clicked();

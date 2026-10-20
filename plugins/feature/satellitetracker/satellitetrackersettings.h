@@ -23,6 +23,8 @@
 #include <QByteArray>
 #include <QString>
 #include <QHash>
+#include <QMap>
+#include <QStringList>
 #include <QList>
 #include <QTime>
 
@@ -92,6 +94,10 @@ struct SatelliteTrackerSettings
     QString m_mapFeature;               //!< Which feature when FROM_MAP
     QString m_fileInputDevice;          //!< Which device when FROM_FILE
     QString m_tuneChannel;              //!< Rx channel tuned from satellite table context menu, as "deviceSetIndex:channelIndex"
+    bool m_hideStaleTLEs;               //!< Hide satellites with old TLEs (which have probably re-entered) in satellite selection dialog
+    int m_maxTLEAge;                    //!< Age in days after which a TLE is considered stale
+    QMap<QString, QStringList> m_satelliteGroups;   //!< User defined groups of satellites, by name
+    QString m_satelliteGroup;           //!< Group m_satellites was selected from, or empty if none
     enum Rotators {ALL_ROTATORS, NO_ROTATORS, MATCHING_TARGET} m_drawRotators; //!< Which rotators to draw on polar chart
     double m_azimuthOffset;             //!< Offset to add to az/el sent to rotator
     double m_elevationOffset;

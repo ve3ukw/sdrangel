@@ -20,6 +20,7 @@
 
 #include <QString>
 #include <QDateTime>
+#include <QTimeZone>
 #include <QHash>
 #include <QJsonArray>
 #include <QJsonObject>
@@ -143,6 +144,28 @@ struct SatNogsTLE {
         m_tle2 = tle2;
     }
 
+    // Epoch of the TLE, from line 1 columns 19-32 (YYDDD.DDDDDDDD), or invalid if it can't be parsed
+    QDateTime epoch() const
+    {
+        bool yearOk, dayOk;
+        int year = m_tle1.mid(18, 2).toInt(&yearOk);
+        double day = m_tle1.mid(20, 12).toDouble(&dayOk);
+
+        if (!yearOk || !dayOk) {
+            return QDateTime();
+        }
+        year += (year < 57) ? 2000 : 1900;
+        QDateTime start(QDate(year, 1, 1), QTime(0, 0), QTimeZone::utc());
+        return start.addMSecs((qint64) ((day - 1.0) * 86400000.0));
+    }
+
+    // Age of the TLE in days, or -1 if unknown
+    int ageInDays() const
+    {
+        QDateTime e = epoch();
+        return e.isValid() ? e.daysTo(QDateTime::currentDateTimeUtc()) : -1;
+    }
+
     QString toString() const
     {
         return m_tle0 + "\n" + m_tle1 + "\n" + m_tle2 + "\n";
@@ -184,6 +207,7 @@ struct SatNogsSatellite {
     int m_noradCatId;
     QString m_name;
     QStringList m_names;        // Alterantive names - JSON "AO-10\r\nOSCAR-10"
+    QStringList m_tleSources;   // Names of TLE files (other than SatNOGS) that include this satellite. E.g. "weather" for CelesTrak GROUP=weather
     QString m_image;            // URL to image of satellie - JSON example: "https://db-satnogs.freetls.fastly.net/media/satellites/sigma.jpg"
     QString m_status;           // "in orbit" (formerly "alive") "re-entered" "dead" "future"  or "" for TLE only sats
     QDateTime m_decayed;        // Date of decay. JSON "2018-05-19T00:00:00Z"
@@ -264,13 +288,18 @@ struct SatNogsSatellite {
         }
     }
 
-    void addTLE(const QList<SatNogsTLE *>& tles)
+    void addTLE(const QList<SatNogsTLE *>& tles, const QString& source = "")
     {
         for (int i = 0; i < tles.size(); i++)
         {
             SatNogsTLE *tle = tles[i];
             if (tle->m_noradCatId == m_noradCatId)
+            {
                 m_tle = tle;
+                if (!source.isEmpty() && !m_tleSources.contains(source)) {
+                    m_tleSources.append(source);
+                }
+            }
         }
     }
 

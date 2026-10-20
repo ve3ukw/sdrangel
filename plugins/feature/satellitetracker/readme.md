@@ -72,6 +72,24 @@ To move satellites from side to side, either double click them, or select them a
 
 The Satellites to track list is ordered in priority for the auto target feature (3). The change the order, select a satellite in the list and press the up or down arrows to the right.
 
+The available satellites can be filtered:
+
+* Show - only lists satellites in a category: Amateur, FM voice, Linear transponder, Packet / APRS, SSTV, Weather or Navigation.
+Categories are determined from the satellite's active SatNOGS transmitters (their service, mode and description) and the TLE files that list it.
+There is also a category for each TLE file (other than SatNOGS), named after the CelesTrak group (E.g. "TLE: weather") or file name.
+* Hide if TLE older than - hides satellites whose TLE hasn't been updated for the given number of days.
+SatNOGS doesn't always mark satellites that have re-entered as such, but their TLEs stop being updated.
+Satellites in the tracked list with a stale TLE are shown in grey, and the age of a satellite's TLE is shown in the satellite information.
+
+Satellites to track can be saved in named groups (E.g. "FM voice", "Linear", "Weather"):
+
+* Press + to create a new group from the satellites currently in the list on the right.
+* Selecting a group loads its satellites into the list on the right. Changes to the list are saved to the group when OK is pressed.
+* Press - to delete the group. The satellites in the list are kept.
+* Selecting (none) keeps the current satellites, without them being associated with a group.
+
+Once groups have been created, a combo box next to the Satellite Selection button (6) allows switching between them, to change which satellites are tracked.
+
 Satellite information at the bottom of the dialog comes from the SatNogs database: https://db.satnogs.org/
 
 <h3>7: Set latitude and longitude from My Position</h3>
