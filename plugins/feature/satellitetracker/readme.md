@@ -243,7 +243,7 @@ The channel tuned depends on the transmitter's mode, and is shown after the arro
 * AFSK (E.g. APRS) - Packet demodulator (set to 1200 AFSK mode with 12.5 kHz bandwidth), otherwise NFM demodulator.
 * 9600 baud FSK or GMSK, with G3RUH or AX.25 in the description - Packet demodulator (set to 9600 G3RUH mode with 20 kHz bandwidth).
 * FM - NFM demodulator.
-* SSTV (mode SSTV, or FM with SSTV in the description, E.g. the ISS on 145.800 MHz) - [SSTV demodulator](../../channelrx/demodsstv/readme.md), which decodes the images, otherwise NFM demodulator.
+* SSTV (mode SSTV, or FM with SSTV in the description, E.g. the ISS on 145.800 MHz) - [SSTV demodulator](../../channelrx/demodsstv/readme.md), which decodes the images. An NFM demodulator is only used when the SSTV demodulator plugin isn't available.
 * USB, LSB and CW - SSB demodulator (whose sideband and filter are set to match), otherwise WDSP Rx. CW is tuned 700 Hz below the carrier, so it can be heard as a tone.
 * LoRa - ChirpChat demodulator.
 * APT - APT demodulator.

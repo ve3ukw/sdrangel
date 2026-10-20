@@ -1796,7 +1796,12 @@ QStringList SatelliteTrackerGUI::channelTypesForMode(TuneMode mode)
     case TUNE_FM:
         return {"NFMDemod"};
     case TUNE_SSTV:
-        return {"SSTVDemod", "NFMDemod"};
+        // NFM only gives the audio, so is used only when the SSTV demodulator isn't available
+        if (availableChannelType({"SSTVDemod"}).isEmpty()) {
+            return {"NFMDemod"};
+        } else {
+            return {"SSTVDemod"};
+        }
     case TUNE_USB:
     case TUNE_LSB:
     case TUNE_CW:
