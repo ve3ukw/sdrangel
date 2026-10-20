@@ -218,6 +218,9 @@ ChannelSettings:
     SSBDemodSettings:
       $ref: "http://swgserver:8081/api/swagger/include/SSBDemod.yaml#/SSBDemodSettings"
       description: "Ssb demod settings configuration for Channel."
+    SSTVDemodSettings:
+      $ref: "http://swgserver:8081/api/swagger/include/SSTVDemod.yaml#/SSTVDemodSettings"
+      description: "Sstv demod settings configuration for Channel."
     UDPSourceSettings:
       $ref: "http://swgserver:8081/api/swagger/include/UDPSource.yaml#/UDPSourceSettings"
       description: "UDP source settings configuration for Channel."

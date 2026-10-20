@@ -172,6 +172,8 @@ SWGChannelSettings::SWGChannelSettings() {
     m_ssb_mod_settings_isSet = false;
     ssb_demod_settings = nullptr;
     m_ssb_demod_settings_isSet = false;
+    sstv_demod_settings = nullptr;
+    m_sstv_demod_settings_isSet = false;
     udp_source_settings = nullptr;
     m_udp_source_settings_isSet = false;
     udp_sink_settings = nullptr;
@@ -336,6 +338,8 @@ SWGChannelSettings::init() {
     m_ssb_mod_settings_isSet = false;
     ssb_demod_settings = new SWGSSBDemodSettings();
     m_ssb_demod_settings_isSet = false;
+    sstv_demod_settings = new SWGSSTVDemodSettings();
+    m_sstv_demod_settings_isSet = false;
     udp_source_settings = new SWGUDPSourceSettings();
     m_udp_source_settings_isSet = false;
     udp_sink_settings = new SWGUDPSinkSettings();
@@ -562,6 +566,9 @@ SWGChannelSettings::cleanup() {
     if(ssb_demod_settings != nullptr) { 
         delete ssb_demod_settings;
     }
+    if(sstv_demod_settings != nullptr) { 
+        delete sstv_demod_settings;
+    }
     if(udp_source_settings != nullptr) { 
         delete udp_source_settings;
     }
@@ -732,6 +739,8 @@ SWGChannelSettings::fromJsonObject(QJsonObject &pJson) {
     ::SWGSDRangel::setValue(&ssb_mod_settings, pJson["SSBModSettings"], "SWGSSBModSettings", "SWGSSBModSettings");
     
     ::SWGSDRangel::setValue(&ssb_demod_settings, pJson["SSBDemodSettings"], "SWGSSBDemodSettings", "SWGSSBDemodSettings");
+    
+    ::SWGSDRangel::setValue(&sstv_demod_settings, pJson["SSTVDemodSettings"], "SWGSSTVDemodSettings", "SWGSSTVDemodSettings");
     
     ::SWGSDRangel::setValue(&udp_source_settings, pJson["UDPSourceSettings"], "SWGUDPSourceSettings", "SWGUDPSourceSettings");
     
@@ -976,6 +985,9 @@ SWGChannelSettings::asJsonObject() {
     }
     if((ssb_demod_settings != nullptr) && (ssb_demod_settings->isSet())){
         toJsonValue(QString("SSBDemodSettings"), ssb_demod_settings, obj, QString("SWGSSBDemodSettings"));
+    }
+    if((sstv_demod_settings != nullptr) && (sstv_demod_settings->isSet())){
+        toJsonValue(QString("SSTVDemodSettings"), sstv_demod_settings, obj, QString("SWGSSTVDemodSettings"));
     }
     if((udp_source_settings != nullptr) && (udp_source_settings->isSet())){
         toJsonValue(QString("UDPSourceSettings"), udp_source_settings, obj, QString("SWGUDPSourceSettings"));
@@ -1722,6 +1734,16 @@ SWGChannelSettings::setSsbDemodSettings(SWGSSBDemodSettings* ssb_demod_settings)
     this->m_ssb_demod_settings_isSet = true;
 }
 
+SWGSSTVDemodSettings*
+SWGChannelSettings::getSstvDemodSettings() {
+    return sstv_demod_settings;
+}
+void
+SWGChannelSettings::setSstvDemodSettings(SWGSSTVDemodSettings* sstv_demod_settings) {
+    this->sstv_demod_settings = sstv_demod_settings;
+    this->m_sstv_demod_settings_isSet = true;
+}
+
 SWGUDPSourceSettings*
 SWGChannelSettings::getUdpSourceSettings() {
     return udp_source_settings;
@@ -2001,6 +2023,9 @@ SWGChannelSettings::isSet(){
             isObjectUpdated = true; break;
         }
         if(ssb_demod_settings && ssb_demod_settings->isSet()){
+            isObjectUpdated = true; break;
+        }
+        if(sstv_demod_settings && sstv_demod_settings->isSet()){
             isObjectUpdated = true; break;
         }
         if(udp_source_settings && udp_source_settings->isSet()){

@@ -368,6 +368,8 @@
 #include "SWGSSBDemodSettings.h"
 #include "SWGSSBModReport.h"
 #include "SWGSSBModSettings.h"
+#include "SWGSSTVDemodReport.h"
+#include "SWGSSTVDemodSettings.h"
 #include "SWGSampleRate.h"
 #include "SWGSamplingDevice.h"
 #include "SWGSatelliteDeviceSettings.h"
@@ -2222,6 +2224,16 @@ namespace SWGSDRangel {
     }
     if(QString("SWGSSBModSettings").compare(type) == 0) {
       SWGSSBModSettings *obj = new SWGSSBModSettings();
+      obj->init();
+      return obj;
+    }
+    if(QString("SWGSSTVDemodReport").compare(type) == 0) {
+      SWGSSTVDemodReport *obj = new SWGSSTVDemodReport();
+      obj->init();
+      return obj;
+    }
+    if(QString("SWGSSTVDemodSettings").compare(type) == 0) {
+      SWGSSTVDemodSettings *obj = new SWGSSTVDemodSettings();
       obj->init();
       return obj;
     }

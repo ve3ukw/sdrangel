@@ -79,6 +79,7 @@
 #include "SWGRadiosondeDemodReport.h"
 #include "SWGRemoteSourceReport.h"
 #include "SWGSSBDemodReport.h"
+#include "SWGSSTVDemodReport.h"
 #include "SWGSSBModReport.h"
 #include "SWGSigMFFileSinkReport.h"
 #include "SWGUDPSinkReport.h"
@@ -249,6 +250,9 @@ public:
 
     SWGSSBDemodReport* getSsbDemodReport();
     void setSsbDemodReport(SWGSSBDemodReport* ssb_demod_report);
+
+    SWGSSTVDemodReport* getSstvDemodReport();
+    void setSstvDemodReport(SWGSSTVDemodReport* sstv_demod_report);
 
     SWGRadioAstronomyReport* getRadioAstronomyReport();
     void setRadioAstronomyReport(SWGRadioAstronomyReport* radio_astronomy_report);
@@ -453,6 +457,9 @@ private:
 
     SWGSSBDemodReport* ssb_demod_report;
     bool m_ssb_demod_report_isSet;
+
+    SWGSSTVDemodReport* sstv_demod_report;
+    bool m_sstv_demod_report_isSet;
 
     SWGRadioAstronomyReport* radio_astronomy_report;
     bool m_radio_astronomy_report_isSet;
