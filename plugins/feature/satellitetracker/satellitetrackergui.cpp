@@ -21,6 +21,7 @@
 #include <algorithm>
 #include <QMessageBox>
 #include <QActionGroup>
+#include <QSignalBlocker>
 #include <QLineEdit>
 
 #include <QtCharts/QChartView>
@@ -410,6 +411,8 @@ void SatelliteTrackerGUI::displaySettings()
     ui->latitude->setValue(m_settings.m_latitude);
     ui->longitude->setValue(m_settings.m_longitude);
 
+    updateSatelliteGroups();
+
     ui->target->blockSignals(true);
     ui->target->clear();
     for (const QString& s : m_settings.m_satellites) {
@@ -659,7 +662,12 @@ void SatelliteTrackerGUI::on_selectSats_clicked()
     if (dialog.exec() == QDialog::Accepted)
     {
         updateSelectedSats();
+        updateSatelliteGroups();
         m_settingsKeys.append("satellites");
+        m_settingsKeys.append("hideStaleTLEs");
+        m_settingsKeys.append("maxTLEAge");
+        m_settingsKeys.append("satelliteGroups");
+        m_settingsKeys.append("satelliteGroup");
         applySettings();
     }
 }
@@ -2268,8 +2276,40 @@ void SatelliteTrackerGUI::on_deviceFeatureSelect_currentIndexChanged(int index)
     applySettings();
 }
 
+// Fill satellite group combo box, which is only shown when there are groups
+void SatelliteTrackerGUI::updateSatelliteGroups()
+{
+    QSignalBlocker blocker(ui->satelliteGroup);
+    ui->satelliteGroup->clear();
+    ui->satelliteGroup->addItem("(none)");
+    ui->satelliteGroup->addItems(m_settings.m_satelliteGroups.keys());
+    int index = ui->satelliteGroup->findText(m_settings.m_satelliteGroup);
+    ui->satelliteGroup->setCurrentIndex(m_settings.m_satelliteGroup.isEmpty() || (index < 0) ? 0 : index);
+    ui->satelliteGroup->setVisible(!m_settings.m_satelliteGroups.isEmpty());
+}
+
+// Track the satellites in the selected group. "(none)" keeps the current satellites
+void SatelliteTrackerGUI::on_satelliteGroup_currentIndexChanged(int index)
+{
+    if (index > 0)
+    {
+        QString group = ui->satelliteGroup->itemText(index);
+        m_settings.m_satelliteGroup = group;
+        m_settings.m_satellites = m_settings.m_satelliteGroups.value(group);
+        m_settingsKeys.append("satellites");
+        updateSelectedSats();
+    }
+    else
+    {
+        m_settings.m_satelliteGroup = "";
+    }
+    m_settingsKeys.append("satelliteGroup");
+    applySettings();
+}
+
 void SatelliteTrackerGUI::makeUIConnections()
 {
+    QObject::connect(ui->satelliteGroup, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &SatelliteTrackerGUI::on_satelliteGroup_currentIndexChanged);
     QObject::connect(ui->startStop, &ButtonSwitch::toggled, this, &SatelliteTrackerGUI::on_startStop_toggled);
     QObject::connect(ui->useMyPosition, &QToolButton::clicked, this, &SatelliteTrackerGUI::on_useMyPosition_clicked);
     QObject::connect(ui->latitude, qOverload<double>(&QDoubleSpinBox::valueChanged), this, &SatelliteTrackerGUI::on_latitude_valueChanged);

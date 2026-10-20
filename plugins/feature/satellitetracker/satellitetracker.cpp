@@ -17,6 +17,7 @@
 ///////////////////////////////////////////////////////////////////////////////////
 
 #include <QDebug>
+#include <QUrlQuery>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QBuffer>
@@ -1003,7 +1004,7 @@ bool SatelliteTracker::readSatData()
                                 ok = parseSatNogsTLEs(tlesFile.readAll());
                             }
                             else
-                                ok = parseTxtTLEs(tlesFile.readAll());
+                                ok = parseTxtTLEs(tlesFile.readAll(), tleSourceName(m_settings.m_tles[i]));
                             if (!ok)
                             {
                                 qDebug() << "SatelliteTracker::readSatData - failed to parse: " << tlesFile.fileName();
@@ -1098,7 +1099,23 @@ bool SatelliteTracker::parseSatNogsTLEs(const QByteArray& json)
         return false;
 }
 
-bool SatelliteTracker::parseTxtTLEs(const QByteArray& txt)
+// Short name for a TLE file, used to group satellites in the selection dialog
+// E.g. "weather" for https://celestrak.org/NORAD/elements/gp.php?GROUP=weather&FORMAT=tle
+// Empty for files with a single satellite (CATNR=)
+QString SatelliteTracker::tleSourceName(const QString& url)
+{
+    QUrlQuery query(QUrl(url).query());
+
+    if (query.hasQueryItem("GROUP")) {
+        return query.queryItemValue("GROUP");
+    } else if (query.hasQueryItem("CATNR")) {
+        return "";
+    } else {
+        return QUrl(url).fileName();
+    }
+}
+
+bool SatelliteTracker::parseTxtTLEs(const QByteArray& txt, const QString& source)
 {
     QList<SatNogsTLE *> tles = SatNogsTLE::createList(txt);
 
@@ -1107,7 +1124,7 @@ bool SatelliteTracker::parseTxtTLEs(const QByteArray& txt)
     {
         i.next();
         SatNogsSatellite *sat = i.value();
-        sat->addTLE(tles);
+        sat->addTLE(tles, source);
     }
 
     // Create satellites, that we have TLEs for, but no existing entry
@@ -1116,6 +1133,9 @@ bool SatelliteTracker::parseTxtTLEs(const QByteArray& txt)
         if (!m_satellitesId.contains(tles[i]->m_noradCatId))
         {
             SatNogsSatellite *sat = new SatNogsSatellite(tles[i]);
+            if (!source.isEmpty()) {
+                sat->m_tleSources.append(source);
+            }
             m_satellites.insert(sat->m_name, sat);
             m_satellitesId.insert(sat->m_noradCatId, sat);
         }

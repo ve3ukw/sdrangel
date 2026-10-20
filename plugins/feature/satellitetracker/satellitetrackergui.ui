@@ -280,6 +280,16 @@
          </widget>
         </item>
         <item>
+         <widget class="QComboBox" name="satelliteGroup">
+          <property name="toolTip">
+           <string>Group of satellites to track. Groups are created in the satellite selection dialog</string>
+          </property>
+          <property name="sizeAdjustPolicy">
+           <enum>QComboBox::AdjustToContents</enum>
+          </property>
+         </widget>
+        </item>
+        <item>
          <widget class="QToolButton" name="useMyPosition">
           <property name="toolTip">
            <string>Set latitude, longitude and height from My Position in SDRangel preferences</string>

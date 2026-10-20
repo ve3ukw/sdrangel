@@ -74,6 +74,10 @@ void SatelliteTrackerSettings::resetToDefaults()
     m_mapFeature = "";
     m_fileInputDevice = "";
     m_tuneChannel = "";
+    m_hideStaleTLEs = true;
+    m_maxTLEAge = 30;
+    m_satelliteGroups.clear();
+    m_satelliteGroup = "";
     m_drawRotators = MATCHING_TARGET;
     m_azimuthOffset = 0.0;
     m_elevationOffset = 0.0;
@@ -144,6 +148,15 @@ QByteArray SatelliteTrackerSettings::serialize() const
     s.writeDouble(50, m_azimuthOffset);
     s.writeDouble(51, m_elevationOffset);
     s.writeString(52, m_tuneChannel);
+    s.writeBool(53, m_hideStaleTLEs);
+    s.writeS32(54, m_maxTLEAge);
+    {
+        QByteArray groups;
+        QDataStream stream(&groups, QIODevice::WriteOnly);
+        stream << m_satelliteGroups;
+        s.writeBlob(55, groups);
+    }
+    s.writeString(56, m_satelliteGroup);
 
     for (int i = 0; i < SAT_COL_COLUMNS; i++) {
         s.writeS32(100 + i, m_columnIndexes[i]);
@@ -243,6 +256,19 @@ bool SatelliteTrackerSettings::deserialize(const QByteArray& data)
         d.readDouble(50, &m_azimuthOffset, 0.0);
         d.readDouble(51, &m_elevationOffset, 0.0);
         d.readString(52, &m_tuneChannel, "");
+        d.readBool(53, &m_hideStaleTLEs, true);
+        d.readS32(54, &m_maxTLEAge, 30);
+        {
+            QByteArray groups;
+            m_satelliteGroups.clear();
+            d.readBlob(55, &groups);
+            if (!groups.isEmpty())
+            {
+                QDataStream stream(&groups, QIODevice::ReadOnly);
+                stream >> m_satelliteGroups;
+            }
+        }
+        d.readString(56, &m_satelliteGroup, "");
 
         for (int i = 0; i < SAT_COL_COLUMNS; i++) {
             d.readS32(100 + i, &m_columnIndexes[i], i);
@@ -461,6 +487,18 @@ void SatelliteTrackerSettings::applySettings(const QStringList& settingsKeys, co
     if (settingsKeys.contains("tuneChannel")) {
         m_tuneChannel = settings.m_tuneChannel;
     }
+    if (settingsKeys.contains("hideStaleTLEs")) {
+        m_hideStaleTLEs = settings.m_hideStaleTLEs;
+    }
+    if (settingsKeys.contains("maxTLEAge")) {
+        m_maxTLEAge = settings.m_maxTLEAge;
+    }
+    if (settingsKeys.contains("satelliteGroups")) {
+        m_satelliteGroups = settings.m_satelliteGroups;
+    }
+    if (settingsKeys.contains("satelliteGroup")) {
+        m_satelliteGroup = settings.m_satelliteGroup;
+    }
     if (settingsKeys.contains("drawRotators")) {
         m_drawRotators = settings.m_drawRotators;
     }
@@ -649,6 +687,18 @@ QString SatelliteTrackerSettings::getDebugString(const QStringList& settingsKeys
     }
     if (settingsKeys.contains("tuneChannel") || force) {
         ostr << " m_tuneChannel: " << m_tuneChannel.toStdString();
+    }
+    if (settingsKeys.contains("hideStaleTLEs") || force) {
+        ostr << " m_hideStaleTLEs: " << m_hideStaleTLEs;
+    }
+    if (settingsKeys.contains("maxTLEAge") || force) {
+        ostr << " m_maxTLEAge: " << m_maxTLEAge;
+    }
+    if (settingsKeys.contains("satelliteGroups") || force) {
+        ostr << " m_satelliteGroups: " << m_satelliteGroups.keys().join(",").toStdString();
+    }
+    if (settingsKeys.contains("satelliteGroup") || force) {
+        ostr << " m_satelliteGroup: " << m_satelliteGroup.toStdString();
     }
     if (settingsKeys.contains("drawRotators") || force) {
         ostr << " m_drawRotators: " << m_drawRotators;
