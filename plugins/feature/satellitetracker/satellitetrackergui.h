@@ -105,6 +105,7 @@ private:
     enum TuneMode {
         TUNE_OTHER,
         TUNE_FM,
+        TUNE_SSTV,              // SSTV images on FM
         TUNE_AFSK,              // 1200 baud AFSK (E.g. APRS)
         TUNE_G3RUH,             // 9600 baud G3RUH AX.25
         TUNE_USB,
