@@ -50,6 +50,31 @@ public:
         }
     };
 
+    // Sent from worker to GUI with frequency (without Doppler) a channel is tuned to, which changes if the user retunes the channel
+    class MsgReportTune : public Message {
+        MESSAGE_CLASS_DECLARATION
+
+    public:
+        int getTuneId() const { return m_tuneId; }
+        qint64 getFrequency() const { return m_frequency; }
+
+        static MsgReportTune* create(int tuneId, qint64 frequency)
+        {
+            return new MsgReportTune(tuneId, frequency);
+        }
+
+    private:
+        int m_tuneId;
+        qint64 m_frequency;
+
+        MsgReportTune(int tuneId, qint64 frequency) :
+            Message(),
+            m_tuneId(tuneId),
+            m_frequency(frequency)
+        {
+        }
+    };
+
     // Sent from worker to GUI to indicate AOS
     class MsgReportAOS : public Message {
         MESSAGE_CLASS_DECLARATION

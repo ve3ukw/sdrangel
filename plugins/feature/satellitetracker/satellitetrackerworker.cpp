@@ -19,6 +19,7 @@
 ///////////////////////////////////////////////////////////////////////////////////
 
 #include <cmath>
+#include <algorithm>
 
 #include <QDebug>
 #include <QAbstractSocket>
@@ -36,6 +37,8 @@
 #include "util/units.h"
 #include "device/deviceset.h"
 #include "device/deviceapi.h"
+#include "dsp/devicesamplesource.h"
+#include "dsp/devicesamplemimo.h"
 #include "channel/channelapi.h"
 #include "channel/channelwebapiutils.h"
 #include "feature/featurewebapiutils.h"
@@ -51,6 +54,7 @@ MESSAGE_CLASS_DEFINITION(SatelliteTrackerReport::MsgReportSat, Message)
 MESSAGE_CLASS_DEFINITION(SatelliteTrackerReport::MsgReportAOS, Message)
 MESSAGE_CLASS_DEFINITION(SatelliteTrackerReport::MsgReportLOS, Message)
 MESSAGE_CLASS_DEFINITION(SatelliteTrackerReport::MsgReportTarget, Message)
+MESSAGE_CLASS_DEFINITION(SatelliteTrackerReport::MsgReportTune, Message)
 
 SatelliteTrackerWorker::SatelliteTrackerWorker(SatelliteTracker* satelliteTracker, WebAPIAdapterInterface *webAPIAdapterInterface) :
     m_satelliteTracker(satelliteTracker),
@@ -60,9 +64,18 @@ SatelliteTrackerWorker::SatelliteTrackerWorker(SatelliteTracker* satelliteTracke
     m_pollTimer(this),
     m_recalculatePasses(true),
     m_flipRotation(false),
-    m_extendedAzRotation(false)
+    m_extendedAzRotation(false),
+    m_tuneTimer(this),
+    m_tuneDeviceSetIndex(-1),
+    m_tuneChannelIndex(-1),
+    m_tuneFrequency(0),
+    m_tuneFastDoppler(false),
+    m_tuneId(0),
+    m_tuneLastFrequency(-1),
+    m_tuneDeviceRetuned(false)
 {
     connect(&m_pollTimer, SIGNAL(timeout()), this, SLOT(update()));
+    connect(&m_tuneTimer, &QTimer::timeout, this, &SatelliteTrackerWorker::tuneDoppler);
 }
 
 SatelliteTrackerWorker::~SatelliteTrackerWorker()
@@ -99,6 +112,9 @@ void SatelliteTrackerWorker::startWork()
         if (satWorkerState->m_dopplerTimer.interval() > 0)
             satWorkerState->m_dopplerTimer.start();
     }
+    if (!m_tuneSatellite.isEmpty()) {
+        m_tuneTimer.start();
+    }
 
     // Handle any messages already on the queue
     handleInputMessages();
@@ -117,6 +133,7 @@ void SatelliteTrackerWorker::stopWork()
         itr.next();
         itr.value()->m_dopplerTimer.stop();
     }
+    m_tuneTimer.stop();
 }
 
 void SatelliteTrackerWorker::handleInputMessages()
@@ -147,6 +164,18 @@ bool SatelliteTrackerWorker::handleMessage(const Message& message)
         SatelliteTracker::MsgSatData& satData = (SatelliteTracker::MsgSatData&) message;
         m_satellites = satData.getSatellites();
         m_recalculatePasses = true;
+        return true;
+    }
+    else if (SatelliteTracker::MsgTuneChannel::match(message))
+    {
+        QMutexLocker mutexLocker(&m_mutex);
+        SatelliteTracker::MsgTuneChannel& tune = (SatelliteTracker::MsgTuneChannel&) message;
+
+        if (tune.getFrequency() > 0) {
+            startTune(tune.getSatellite(), tune.getDeviceSetIndex(), tune.getChannelIndex(), tune.getFrequency(), tune.getFastDoppler(), tune.getTuneId());
+        } else {
+            stopTune();
+        }
         return true;
     }
     else
@@ -246,6 +275,10 @@ void SatelliteTrackerWorker::applySettings(const SatelliteTrackerSettings& setti
         m_settings = settings;
     } else {
         m_settings.applySettings(settingsKeys, settings);
+    }
+
+    if ((settingsKeys.contains("dopplerPeriod") || force) && !m_tuneSatellite.isEmpty()) {
+        m_tuneTimer.setInterval(tuneInterval());
     }
 }
 
@@ -582,8 +615,10 @@ void SatelliteTrackerWorker::aos(SatWorkerState *satWorkerState)
         getMessageQueueToGUI()->push(SatelliteTrackerReport::MsgReportAOS::create(satWorkerState->m_name, speech));
     }
 
-    // Update target
-    if (m_settings.m_autoTarget && (satWorkerState->m_name != m_settings.m_target))
+    // Update target - but not while user is working the current target (Doppler tracking a transmitter selected from the table)
+    if (m_settings.m_autoTarget
+        && (satWorkerState->m_name != m_settings.m_target)
+        && (m_tuneSatellite != m_settings.m_target))
     {
         // Only switch if higher priority (earlier in list) or other target not in AOS
         SatWorkerState *targetSatWorkerState = m_workerState.value(m_settings.m_target);
@@ -958,6 +993,165 @@ void SatelliteTrackerWorker::doppler(SatWorkerState *satWorkerState)
             }
         }
     }
+}
+
+void SatelliteTrackerWorker::startTune(const QString& satellite, int deviceSetIndex, int channelIndex, qint64 frequency, bool fastDoppler, int tuneId)
+{
+    qDebug() << "SatelliteTrackerWorker::startTune:" << satellite << deviceSetIndex << channelIndex << frequency << fastDoppler;
+
+    m_tuneSatellite = satellite;
+    m_tuneDeviceSetIndex = deviceSetIndex;
+    m_tuneChannelIndex = channelIndex;
+    m_tuneFrequency = frequency;
+    m_tuneFastDoppler = fastDoppler;
+    m_tuneId = tuneId;
+    m_tuneLastFrequency = -1;
+    m_tuneDeviceRetuned = false;
+
+    tuneDoppler();
+    if (!m_tuneSatellite.isEmpty())
+    {
+        m_tuneTimer.setInterval(tuneInterval());
+        m_tuneTimer.start();
+    }
+}
+
+// Doppler on a LEO satellite can change by ~100Hz/s on 70cm, which is too much
+// for SSB and CW with the default Doppler period, so update at least every second
+int SatelliteTrackerWorker::tuneInterval() const
+{
+    float period = m_tuneFastDoppler ? std::min(m_settings.m_dopplerPeriod, 1.0f) : m_settings.m_dopplerPeriod;
+    return (int) round(period * 1000.0);
+}
+
+void SatelliteTrackerWorker::stopTune()
+{
+    qDebug() << "SatelliteTrackerWorker::stopTune:" << m_tuneSatellite;
+
+    // Leave channel at last Doppler corrected frequency
+    m_tuneTimer.stop();
+    m_tuneSatellite.clear();
+}
+
+// Set channel so that it receives the satellite transmitter frequency, corrected for Doppler.
+// Uses the channel offset where possible, only retuning the device when the signal would
+// fall outside of the baseband.
+void SatelliteTrackerWorker::tuneDoppler()
+{
+    SatWorkerState *satWorkerState = m_workerState.value(m_tuneSatellite);
+    std::vector<DeviceSet*>& deviceSets = MainCore::instance()->getDeviceSets();
+
+    if (!satWorkerState
+        || (m_tuneDeviceSetIndex < 0)
+        || (m_tuneDeviceSetIndex >= (int) deviceSets.size())
+        || !deviceSets[m_tuneDeviceSetIndex]->getChannelAt(m_tuneChannelIndex))
+    {
+        qDebug() << "SatelliteTrackerWorker::tuneDoppler: Satellite or channel no longer available - stopping";
+        stopTune();
+        return;
+    }
+
+    DeviceSet *deviceSet = deviceSets[m_tuneDeviceSetIndex];
+    int streamIndex = deviceSet->getChannelAt(m_tuneChannelIndex)->getStreamIndex();
+    double centerFrequency;
+    int sampleRate;
+    int offset;
+    if (!getRxCenterFrequency(deviceSet, streamIndex, centerFrequency, sampleRate)
+        || !ChannelWebAPIUtils::getFrequencyOffset(m_tuneDeviceSetIndex, m_tuneChannelIndex, offset))
+    {
+        qDebug() << "SatelliteTrackerWorker::tuneDoppler: Failed to get device or channel frequency";
+        return;
+    }
+
+    // If channel's frequency differs from what we last set it to, the user has retuned it (E.g. to a different part
+    // of a transponder's passband), so move the frequency we're tracking by the same amount
+    qint64 currentFrequency = (qint64) round(centerFrequency) + offset;
+    if (m_tuneDeviceRetuned)
+    {
+        // Device may round the center frequency we set, so don't treat that as user retuning
+        m_tuneDeviceRetuned = false;
+    }
+    else if ((m_tuneLastFrequency >= 0) && (currentFrequency != m_tuneLastFrequency))
+    {
+        qDebug() << "SatelliteTrackerWorker::tuneDoppler: Channel retuned by" << (currentFrequency - m_tuneLastFrequency) << "Hz";
+        m_tuneFrequency += currentFrequency - m_tuneLastFrequency;
+    }
+
+    // Received frequency is lower as range increases (positive range rate)
+    const double c = 299792458.0;
+    double doppler = m_tuneFrequency * satWorkerState->m_satState.m_rangeRate * 1000.0 / c;
+    qint64 rxFrequency = m_tuneFrequency - (qint64) round(doppler);
+
+    qint64 newOffset = rxFrequency - (qint64) round(centerFrequency);
+
+    if ((sampleRate > 0) && (std::abs(newOffset) < sampleRate * 0.45))
+    {
+        if (newOffset != offset)
+        {
+            if (!ChannelWebAPIUtils::setFrequencyOffset(m_tuneDeviceSetIndex, m_tuneChannelIndex, (int) newOffset)) {
+                qDebug() << "SatelliteTrackerWorker::tuneDoppler: Failed to set frequency offset";
+            }
+        }
+    }
+    else
+    {
+        // Out of band - retune device, keeping channel's current offset from centre (avoiding DC)
+        if ((sampleRate > 0) && (std::abs(offset) >= sampleRate * 0.45)) {
+            offset = 0;
+        }
+        if (!setRxCenterFrequency(deviceSet, streamIndex, rxFrequency - offset)) {
+            qDebug() << "SatelliteTrackerWorker::tuneDoppler: Failed to set center frequency";
+        }
+        if (!ChannelWebAPIUtils::setFrequencyOffset(m_tuneDeviceSetIndex, m_tuneChannelIndex, offset)) {
+            qDebug() << "SatelliteTrackerWorker::tuneDoppler: Failed to set frequency offset";
+        }
+        m_tuneDeviceRetuned = true;
+    }
+    m_tuneLastFrequency = rxFrequency;
+
+    if (getMessageQueueToGUI()) {
+        getMessageQueueToGUI()->push(SatelliteTrackerReport::MsgReportTune::create(m_tuneId, m_tuneFrequency));
+    }
+}
+
+// Get center frequency and baseband sample rate for an Rx stream of a single Rx or MIMO device
+bool SatelliteTrackerWorker::getRxCenterFrequency(DeviceSet *deviceSet, int streamIndex, double& centerFrequency, int& sampleRate)
+{
+    if (deviceSet->m_deviceSourceEngine)
+    {
+        DeviceSampleSource *source = deviceSet->m_deviceAPI->getSampleSource();
+        sampleRate = source ? source->getSampleRate() : 0;
+        return ChannelWebAPIUtils::getCenterFrequency(m_tuneDeviceSetIndex, centerFrequency);
+    }
+    else if (deviceSet->m_deviceMIMOEngine)
+    {
+        DeviceSampleMIMO *mimo = deviceSet->m_deviceAPI->getSampleMIMO();
+        if (!mimo) {
+            return false;
+        }
+        sampleRate = mimo->getSourceSampleRate(streamIndex);
+        centerFrequency = mimo->getSourceCenterFrequency(streamIndex);
+        return true;
+    }
+    return false;
+}
+
+bool SatelliteTrackerWorker::setRxCenterFrequency(DeviceSet *deviceSet, int streamIndex, qint64 centerFrequency)
+{
+    if (deviceSet->m_deviceSourceEngine)
+    {
+        return ChannelWebAPIUtils::setCenterFrequency(m_tuneDeviceSetIndex, centerFrequency);
+    }
+    else if (deviceSet->m_deviceMIMOEngine)
+    {
+        DeviceSampleMIMO *mimo = deviceSet->m_deviceAPI->getSampleMIMO();
+        if (!mimo) {
+            return false;
+        }
+        mimo->setSourceCenterFrequency(centerFrequency, streamIndex);
+        return true;
+    }
+    return false;
 }
 
 void SatelliteTrackerWorker::los(SatWorkerState *satWorkerState)

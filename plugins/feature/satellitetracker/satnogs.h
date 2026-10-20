@@ -39,6 +39,9 @@ struct SatNogsTransmitter {
     int m_baud;
     QString m_status;           // "active", "inactive", "invalid"
     QString m_service;          // "Amateur", "Earth Exploration", "Maritime", "Meteorological", "Mobile", "Space Research"
+    bool m_invert;              // Inverting transponder (uplink frequency decreases as downlink increases)
+    QString m_uplinkMode;       // E.g. "LSB" for uplink to an inverting SSB transponder
+    float m_ctcss;              // Uplink CTCSS tone frequency in Hz, from description, or 0 if none
 
     SatNogsTransmitter(const QJsonObject& obj)
     {
@@ -54,6 +57,30 @@ struct SatNogsTransmitter {
         m_baud = obj["baud"].toInt();
         m_status = obj["status"].toString();
         m_service = obj["service"].toString();
+        m_invert = obj["invert"].toBool();
+        m_uplinkMode = obj["uplink_mode"].toString();
+        m_ctcss = parseCTCSS(m_description);
+    }
+
+    // CTCSS isn't a SatNOGS field, so look for it in the description
+    // E.g. "Voice Repeater CTCSS 67.0 Hz", "FM Voice (PL 88.5Hz)" or "FM 67.0 PL"
+    static float parseCTCSS(const QString& description)
+    {
+        static const QRegularExpression before("\\b(?:CTCSS|PL)\\s*(\\d{2,3}(?:\\.\\d)?)\\s*(?:Hz)?(?![\\d.])", QRegularExpression::CaseInsensitiveOption);
+        static const QRegularExpression after("(\\d{2,3}(?:\\.\\d)?)\\s*(?:Hz)?\\s*(?:CTCSS|PL)\\b", QRegularExpression::CaseInsensitiveOption);
+
+        for (const QRegularExpression& re : {before, after})
+        {
+            QRegularExpressionMatch match = re.match(description);
+            if (match.hasMatch())
+            {
+                float tone = match.captured(1).toFloat();
+                if ((tone >= 67.0f) && (tone <= 254.1f)) {   // Range of standard CTCSS tones
+                    return tone;
+                }
+            }
+        }
+        return 0.0f;
     }
 
     static QList<SatNogsTransmitter *> createList(QJsonArray array)

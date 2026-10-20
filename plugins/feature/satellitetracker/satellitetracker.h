@@ -143,6 +143,46 @@ public:
         { }
     };
 
+    // Tune a channel to a satellite transmitter frequency and keep it Doppler corrected
+    // A frequency of 0 stops tracking
+    class MsgTuneChannel : public Message {
+        MESSAGE_CLASS_DECLARATION
+
+    public:
+        const QString& getSatellite() const { return m_satellite; }
+        int getDeviceSetIndex() const { return m_deviceSetIndex; }
+        int getChannelIndex() const { return m_channelIndex; }
+        qint64 getFrequency() const { return m_frequency; }
+        bool getFastDoppler() const { return m_fastDoppler; }
+        int getTuneId() const { return m_tuneId; }
+
+        static MsgTuneChannel* create(const QString& satellite, int deviceSetIndex, int channelIndex, qint64 frequency, bool fastDoppler, int tuneId) {
+            return new MsgTuneChannel(satellite, deviceSetIndex, channelIndex, frequency, fastDoppler, tuneId);
+        }
+
+        static MsgTuneChannel* createStop() {
+            return new MsgTuneChannel("", -1, -1, 0, false, 0);
+        }
+
+    private:
+        QString m_satellite;
+        int m_deviceSetIndex;
+        int m_channelIndex;
+        qint64 m_frequency;
+        bool m_fastDoppler;     //!< Correct at least every second, for narrowband modes such as SSB and CW
+        int m_tuneId;           //!< Identifies this tune request in MsgReportTune
+
+        MsgTuneChannel(const QString& satellite, int deviceSetIndex, int channelIndex, qint64 frequency, bool fastDoppler, int tuneId) :
+            Message(),
+            m_satellite(satellite),
+            m_deviceSetIndex(deviceSetIndex),
+            m_channelIndex(channelIndex),
+            m_frequency(frequency),
+            m_fastDoppler(fastDoppler),
+            m_tuneId(tuneId)
+        { }
+    };
+
     SatelliteTracker(WebAPIAdapterInterface *webAPIAdapterInterface);
     virtual ~SatelliteTracker();
     virtual void destroy() { delete this; }

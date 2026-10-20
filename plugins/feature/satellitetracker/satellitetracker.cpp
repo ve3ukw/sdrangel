@@ -42,6 +42,7 @@ MESSAGE_CLASS_DEFINITION(SatelliteTracker::MsgStartStop, Message)
 MESSAGE_CLASS_DEFINITION(SatelliteTracker::MsgUpdateSatData, Message)
 MESSAGE_CLASS_DEFINITION(SatelliteTracker::MsgSatData, Message)
 MESSAGE_CLASS_DEFINITION(SatelliteTracker::MsgError, Message)
+MESSAGE_CLASS_DEFINITION(SatelliteTracker::MsgTuneChannel, Message)
 
 const char* const SatelliteTracker::m_featureIdURI = "sdrangel.feature.satellitetracker";
 const char* const SatelliteTracker::m_featureId = "SatelliteTracker";
@@ -155,6 +156,17 @@ bool SatelliteTracker::handleMessage(const Message& cmd)
         }
         else
             updateSatData();
+        return true;
+    }
+    else if (MsgTuneChannel::match(cmd))
+    {
+        MsgTuneChannel& tune = (MsgTuneChannel&) cmd;
+        qDebug() << "SatelliteTracker::handleMessage: MsgTuneChannel:" << tune.getSatellite() << tune.getFrequency();
+
+        if (m_worker) {
+            m_worker->getInputMessageQueue()->push(MsgTuneChannel::create(tune.getSatellite(), tune.getDeviceSetIndex(), tune.getChannelIndex(), tune.getFrequency(), tune.getFastDoppler(), tune.getTuneId()));
+        }
+
         return true;
     }
     else if (SatelliteTrackerReport::MsgReportSat::match(cmd))
