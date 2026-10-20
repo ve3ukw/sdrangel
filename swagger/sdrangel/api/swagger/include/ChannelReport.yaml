@@ -146,6 +146,9 @@ ChannelReport:
     SSBDemodReport:
       $ref: "http://swgserver:8081/api/swagger/include/SSBDemod.yaml#/SSBDemodReport"
       description: "Ssb demod report data for Channel."
+    SSTVDemodReport:
+      $ref: "http://swgserver:8081/api/swagger/include/SSTVDemod.yaml#/SSTVDemodReport"
+      description: "Sstv demod report data for Channel."
     RadioAstronomyReport:
       $ref: "http://swgserver:8081/api/swagger/include/RadioAstronomy.yaml#/RadioAstronomyReport"
       description: "Radio astronomy report data for Channel."

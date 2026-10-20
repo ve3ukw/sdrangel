@@ -169,6 +169,12 @@ else()
     message(STATUS "Not building demodwefax (ENABLE_CHANNELRX_DEMODWEFAX=${ENABLE_CHANNELRX_DEMODWEFAX})")
 endif()
 
+if(ENABLE_CHANNELRX_DEMODSSTV)
+    add_subdirectory(demodsstv)
+else()
+    message(STATUS "Not building demodsstv (ENABLE_CHANNELRX_DEMODSSTV=${ENABLE_CHANNELRX_DEMODSSTV})")
+endif()
+
 if(ENABLE_CHANNELRX_DEMODDSD AND LIBDSDCC_FOUND AND LIBMBE_FOUND)
     add_subdirectory(demoddsd)
 else()

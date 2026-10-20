@@ -1,0 +1,131 @@
+SSTVDemodSettings:
+  description: SSTVDemod
+  properties:
+    inputFrequencyOffset:
+      description: channel center frequency shift from baseband center in Hz
+      type: integer
+      format: int64
+    rfBandwidth:
+      description: channel RF bandwidth in Hz
+      type: number
+      format: float
+    fmDeviation:
+      description: FM peak deviation in Hz. Only scales the audio output.
+      type: number
+      format: float
+    autoMode:
+      description: Select the mode from the VIS code (1 for yes, 0 for no)
+      type: integer
+      minimum: 0
+      maximum: 1
+    mode:
+      description: >
+        Mode used when autoMode is 0. Also starts an image from the sync pulses when the VIS code is missed.
+          * 0 - Robot 36
+          * 1 - Robot 72
+          * 2 - PD 50
+          * 3 - PD 90
+          * 4 - PD 120
+          * 5 - PD 160
+          * 6 - PD 180
+          * 7 - PD 240
+          * 8 - PD 290
+          * 9 - Martin 1
+          * 10 - Martin 2
+          * 11 - Scottie 1
+          * 12 - Scottie 2
+          * 13 - Scottie DX
+      type: integer
+    autoSave:
+      description: Automatically save received images (1 for yes, 0 for no)
+      type: integer
+      minimum: 0
+      maximum: 1
+    autoSavePath:
+      description: Folder for automatically saved images. Empty for the Pictures/SSTV folder.
+      type: string
+    volume:
+      type: number
+      format: float
+      description: "Audio volume multiplier."
+    audioMute:
+      type: integer
+      description: "Mute audio output (1 muted, 0 unmuted)."
+      minimum: 0
+      maximum: 1
+    audioDeviceName:
+      type: string
+      description: "Name of the audio device to use."
+    rgbColor:
+      type: integer
+      description: "Display color encoded as an RGB integer."
+    title:
+      type: string
+      description: "User-visible title."
+    streamIndex:
+      description: MIMO channel. Not relevant when connected to SI (single Rx).
+      type: integer
+    useReverseAPI:
+      description: Synchronize with reverse API (1 for yes, 0 for no)
+      type: integer
+      minimum: 0
+      maximum: 1
+    reverseAPIAddress:
+      type: string
+      description: "IPv4 address or host name of the reverse API peer."
+    reverseAPIPort:
+      type: integer
+      description: "TCP port of the reverse API peer."
+      minimum: 1
+      maximum: 65535
+    reverseAPIDeviceIndex:
+      type: integer
+      description: "Device-set index used by the reverse API peer."
+    reverseAPIChannelIndex:
+      type: integer
+      description: "Channel index used by the reverse API peer."
+    channelMarker:
+      $ref: "http://swgserver:8081/api/swagger/include/ChannelMarker.yaml#/ChannelMarker"
+      description: "Channel-marker display configuration."
+    rollupState:
+      $ref: "http://swgserver:8081/api/swagger/include/RollupState.yaml#/RollupState"
+      description: "Rollup display state."
+
+SSTVDemodReport:
+  description: SSTVDemod
+  properties:
+    channelPowerDB:
+      description: power received in channel (dB)
+      type: number
+      format: float
+    channelSampleRate:
+      type: integer
+      description: "Channel sample rate in Hz."
+    audioSampleRate:
+      type: integer
+      description: "Audio sample rate in Hz."
+    receiving:
+      description: An image is being received (1 for yes, 0 for no)
+      type: integer
+    mode:
+      description: Mode of the last image received
+      type: string
+    visCode:
+      description: VIS code of the last image received, -1 when it was started from sync pulses
+      type: integer
+    rowsDone:
+      description: Number of image rows received
+      type: integer
+    height:
+      description: Number of rows in the image
+      type: integer
+    clockErrorPpm:
+      description: Measured line rate error of the transmitter relative to the mode's nominal rate, in ppm (slant correction)
+      type: number
+      format: float
+    imagesDecoded:
+      description: Number of images received
+      type: integer
+    lastSavedFile:
+      description: Path of the last image saved
+      type: string
