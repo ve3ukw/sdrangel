@@ -38,6 +38,7 @@
 class PluginAPI;
 class FeatureUISet;
 class SatelliteTracker;
+class ChannelAPI;
 struct SatelliteState;
 
 namespace Ui {
@@ -96,6 +97,50 @@ private:
 #endif
     QMenu *menu;                        // Column select context menu
 
+    QString m_tuneSatellite;            // Satellite a channel is tuned to from the table context menu, empty if none
+    qint64 m_tuneFrequency;
+    int m_tuneDeviceSetIndex;
+    int m_tuneChannelIndex;
+
+    enum TuneMode {
+        TUNE_OTHER,
+        TUNE_FM,
+        TUNE_AFSK,              // 1200 baud AFSK (E.g. APRS)
+        TUNE_G3RUH,             // 9600 baud G3RUH AX.25
+        TUNE_USB,
+        TUNE_LSB,
+        TUNE_CW,
+        TUNE_LORA,
+        TUNE_APT,
+        TUNE_DVBS
+    };
+    TuneMode m_tuneMode;
+    ChannelAPI *m_tuneChannel;          // Channel being tracked. Index can change when other channels are removed
+    QString m_tuneChannelType;
+    ChannelAPI *m_createdChannel;       // Demodulator we created, which we remove when no longer used
+    int m_createdChannelDeviceSetIndex;
+    int m_tuneId;                       // Matches MsgReportTune to latest MsgTuneChannel
+    qint64 m_tuneBaseFrequency;         // Frequency sent to worker, before user retuning (includes CW tone offset)
+    qint64 m_tuneOffset;                // How far user has retuned the channel from the transmitter frequency
+    float m_tuneCTCSS;                  // Uplink CTCSS tone (Hz) for transmitter, or 0. For when we support Tx
+    struct PendingTune {                // Tune to perform once a new demodulator has been created
+        bool m_active;
+        QString m_satellite;
+        qint64 m_frequency;
+        TuneMode m_mode;
+        int m_deviceSetIndex;
+        QString m_type;
+    } m_pendingTune;
+    static const int m_cwToneFrequency = 700;  // CW tone in Hz, when tuning CW with an SSB demodulator
+
+    struct RxChannel {
+        int m_deviceSetIndex;
+        int m_channelIndex;
+        QString m_type;             // E.g. NFMDemod
+        QString m_label;
+        ChannelAPI *m_channel;
+    };
+
     enum SatCol {
         SAT_COL_NAME,
         SAT_COL_AZ,
@@ -145,6 +190,18 @@ private:
     void updateMapList();
     void makeUIConnections();
     void limitAzElRange(double& azimuth, double& elevation) const;
+    void tuneChannel(const QString& satellite, qint64 frequency, TuneMode mode, const RxChannel& rxChannel, qint64 offset = 0);
+    void configureChannel(const RxChannel& rxChannel, TuneMode mode);
+    void tuneNewChannel(const QString& satellite, qint64 frequency, TuneMode mode, int deviceSetIndex, const QString& type);
+    void startTune(const QString& satellite, qint64 frequency, TuneMode mode, int deviceSetIndex, ChannelAPI *channel, const QString& type, bool configure, qint64 offset);
+    void removeCreatedChannel();
+    void workSatellite(const QString& satellite);
+    void startRotators();
+    static QString availableChannelType(const QStringList& types);
+    static int channelIndex(int deviceSetIndex, const ChannelAPI *channel);
+    static TuneMode tuneMode(const SatNogsTransmitter *transmitter);
+    static QStringList channelTypesForMode(TuneMode mode);
+    static int channelForMode(TuneMode mode, const QList<RxChannel>& rxChannels, int selectedChannel);
 
 private slots:
     void onMenuDialogCalled(const QPoint &p);
@@ -174,6 +231,10 @@ private slots:
     void satTable_sectionResized(int logicalIndex, int oldSize, int newSize);
     void on_satTableHeader_sortIndicatorChanged(int logicalIndex, Qt::SortOrder order);
     void columnSelectMenu(QPoint pos);
+    void satTable_customContextMenuRequested(QPoint pos);
+    void stopTune();
+    void channelAdded(int deviceSetIndex, ChannelAPI *channel);
+    void channelRemoved(int deviceSetIndex, ChannelAPI *channel);
     void columnSelectMenuChecked(bool checked = false);
     void on_deviceFeatureSelect_currentIndexChanged(int index);
 };

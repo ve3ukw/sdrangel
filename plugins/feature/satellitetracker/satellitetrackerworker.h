@@ -41,6 +41,7 @@ class SatelliteTrackerWorker;
 class QDateTime;
 class QGeoCoordinate;
 class ObjectPipe;
+class DeviceSet;
 
 class SatWorkerState
 {
@@ -124,6 +125,17 @@ private:
     bool m_extendedAzRotation;          //!< Use 450+ degree azimuth to avoid 360/0 degree discontinuity
     QDateTime m_lastUpdateDateTime;
 
+    // Channel tuned to a satellite transmitter from the satellite table, with Doppler tracking
+    QTimer m_tuneTimer;
+    QString m_tuneSatellite;            //!< Empty when not tracking
+    int m_tuneDeviceSetIndex;
+    int m_tuneChannelIndex;
+    qint64 m_tuneFrequency;             //!< Transmitter frequency (Hz), without Doppler
+    bool m_tuneFastDoppler;             //!< Correct at least every second, for SSB/CW
+    int m_tuneId;
+    qint64 m_tuneLastFrequency;         //!< Frequency (with Doppler) we last set channel to, or -1. Used to detect user retuning
+    bool m_tuneDeviceRetuned;           //!< We changed device center frequency, which device may have rounded
+
     bool handleMessage(const Message& cmd);
     void applySettings(const SatelliteTrackerSettings& settings, const QList<QString>& settingsKeys, bool force = false);
     MessageQueue *getMessageQueueToGUI() { return m_msgQueueToGUI; }
@@ -151,6 +163,11 @@ private:
     void executeCommand(const QString &command, const QString &satelliteName);
     void enableDoppler(SatWorkerState *satWorkerState);
     void disableDoppler(SatWorkerState *satWorkerState);
+    void startTune(const QString& satellite, int deviceSetIndex, int channelIndex, qint64 frequency, bool fastDoppler, int tuneId);
+    int tuneInterval() const;
+    void stopTune();
+    bool getRxCenterFrequency(DeviceSet *deviceSet, int streamIndex, double& centerFrequency, int& sampleRate);
+    bool setRxCenterFrequency(DeviceSet *deviceSet, int streamIndex, qint64 centerFrequency);
 
 private slots:
     void stopWork();
@@ -159,6 +176,7 @@ private slots:
     void aos(SatWorkerState *satWorkerState);
     void los(SatWorkerState *satWorkerState);
     void doppler(SatWorkerState *satWorkerState);
+    void tuneDoppler();
 };
 
 #endif // INCLUDE_FEATURE_SATELLITETRACKERWORKER_H_

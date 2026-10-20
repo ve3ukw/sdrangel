@@ -202,6 +202,45 @@ The table contains:
 Rows can be ordered by left clicking column headers.
 Columns can be hidden by right clicking on the header and unchecking them.
 
+Right clicking on a satellite in the table displays a menu of the satellite's transmitters with known downlink frequencies (from the SatNOGS database).
+Selecting a transmitter also:
+
+* Makes the satellite the target. While its transmitter is being Doppler tracked, Auto target will not switch to a different satellite.
+* Enables tracking on, and starts, any Rotator Controllers whose source is this Satellite Tracker.
+If no Rotator Controller uses this Satellite Tracker, but there is a single Rotator Controller without a source, its source is set to this Satellite Tracker.
+
+Selecting a transmitter tunes an Rx channel to that frequency, and keeps it corrected for Doppler shift, updating it at the Doppler period set in the Settings dialog.
+For narrowband modes (USB, LSB, CW) or when an SSB channel is used, the Doppler correction is applied at least every second.
+For transponders, the channel is tuned to the centre of the downlink passband. Inverting transponders are received on USB, by convention.
+
+While tracking, the channel can be retuned (E.g. by dragging it in the spectrum, or by changing its frequency or the device's center frequency),
+to receive a different part of a transponder's passband. The new frequency is kept, and Doppler correction continues from there.
+The frequency currently being tracked (without Doppler) is shown in the "Stop Doppler tracking" menu item.
+
+If the transmitter's SatNOGS description specifies an uplink CTCSS tone (E.g. "CTCSS 67.0 Hz" for the ISS voice repeater), it is shown in the menu.
+CTCSS is only needed for transmitting to the satellite, so is not applied to the Rx channel.
+
+The channel tuned depends on the transmitter's mode, and is shown after the arrow in the menu:
+
+* AFSK (E.g. APRS) - Packet demodulator (set to 1200 AFSK mode with 12.5 kHz bandwidth), otherwise NFM demodulator.
+* 9600 baud FSK or GMSK, with G3RUH or AX.25 in the description - Packet demodulator (set to 9600 G3RUH mode with 20 kHz bandwidth).
+* FM and SSTV - NFM demodulator. SSTV audio can be sent to an external decoder.
+* USB, LSB and CW - SSB demodulator (whose sideband and filter are set to match), otherwise WDSP Rx. CW is tuned 700 Hz below the carrier, so it can be heard as a tone.
+* LoRa - ChirpChat demodulator.
+* APT - APT demodulator.
+* DVB-S/S2 - DATV demodulator.
+
+If the channel selected in the "Rx channel" submenu suits the mode, it is used. Otherwise, the first suitable channel is used, preferring channels on the same device.
+If there is no suitable channel, a new demodulator is created on the selected channel's device (shown as "new" in the menu), configured for the mode and tuned.
+Demodulators created this way are marked [tracker] in the "Rx channel" submenu, and are removed when a different channel is tuned,
+when "Stop Doppler tracking" is selected, or when the Satellite Tracker is stopped. Channels you have added yourself are never removed.
+If the mode is not listed above (E.g. BPSK, or FSK and GMSK telemetry that isn't G3RUH AX.25), the channel selected in the "Rx channel" submenu is used.
+The "Rx channel" submenu lists the channels on Rx and MIMO devices; the selection is saved with the feature's settings.
+Selecting a different channel while tracking moves tracking to that channel.
+The channel's frequency offset is adjusted while the signal remains within the device's baseband; otherwise the device's center frequency is retuned,
+keeping the channel's current offset from DC.
+Doppler tracking continues until "Stop Doppler tracking" is selected from the same menu, or the Satellite Tracker is stopped.
+
 <h2>Map</h2>
 
 The Satellite Tracker feature can send the overhead position of the satellite to the Map, along with a ground track.
