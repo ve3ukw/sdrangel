@@ -76,6 +76,10 @@ if(SGP4_EXTERNAL)
     add_dependencies(${TARGET_NAME} sgp4)
 endif()
 
+if(SGP4_HAS_OMM)
+    target_compile_definitions(${TARGET_NAME} PRIVATE HAS_SGP4_OMM)
+endif()
+
 target_link_libraries(${TARGET_NAME} PRIVATE
     Qt::Core
     ${TARGET_LIB}

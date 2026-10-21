@@ -1087,6 +1087,26 @@ if (LIBSIGMF_FOUND AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     add_definitions(-DHAS_LIBSIGMF)
 endif()
 
+# OMM (CelesTrak CSV) support was added to libsgp4 in version 2.
+# The external build is pinned to a commit that has it, but its headers
+# aren't downloaded until build time, so only check other installs.
+if (SGP4_FOUND)
+    if (SGP4_EXTERNAL)
+        set(SGP4_HAS_OMM ON)
+    else()
+        include(CheckCXXSourceCompiles)
+        set(CMAKE_REQUIRED_INCLUDES ${SGP4_INCLUDE_DIR})
+        check_cxx_source_compiles("
+            #include <Tle.h>
+            int main() { return sizeof(decltype(&libsgp4::Tle::FromCsv)) ? 0 : 1; }
+            " SGP4_HAS_OMM)
+        unset(CMAKE_REQUIRED_INCLUDES)
+    endif()
+    if (NOT SGP4_HAS_OMM)
+        message(STATUS "libsgp4 has no OMM support: Satellite Tracker will skip OMM (CSV) element files")
+    endif()
+endif()
+
 if(ENABLE_FUNCUBE AND LIBUSB_FOUND AND HIDAPI_FOUND)
     add_subdirectory(fcdlib)
     add_subdirectory(fcdhid)
