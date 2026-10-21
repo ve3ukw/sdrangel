@@ -269,6 +269,8 @@ private:
     bool parseTransmitters(const QByteArray& json);
     bool parseSatNogsTLEs(const QByteArray& json);
     bool parseTxtTLEs(const QByteArray& txt, const QString& source);
+    bool parseCSVOMMs(const QByteArray& csv, const QString& source);
+    bool addTLEs(const QList<SatNogsTLE *>& tles, const QString& source);
     static QString tleSourceName(const QString& url);
     bool readSatData();
     void updateSatData();

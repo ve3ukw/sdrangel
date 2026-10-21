@@ -1004,7 +1004,14 @@ bool SatelliteTracker::readSatData()
                                 ok = parseSatNogsTLEs(tlesFile.readAll());
                             }
                             else
-                                ok = parseTxtTLEs(tlesFile.readAll(), tleSourceName(m_settings.m_tles[i]));
+                            {
+                                QByteArray data = tlesFile.readAll();
+                                if (SatNogsTLE::isOMMCSV(data)) {
+                                    ok = parseCSVOMMs(data, tleSourceName(m_settings.m_tles[i]));
+                                } else {
+                                    ok = parseTxtTLEs(data, tleSourceName(m_settings.m_tles[i]));
+                                }
+                            }
                             if (!ok)
                             {
                                 qDebug() << "SatelliteTracker::readSatData - failed to parse: " << tlesFile.fileName();
@@ -1117,8 +1124,32 @@ QString SatelliteTracker::tleSourceName(const QString& url)
 
 bool SatelliteTracker::parseTxtTLEs(const QByteArray& txt, const QString& source)
 {
-    QList<SatNogsTLE *> tles = SatNogsTLE::createList(txt);
+    return addTLEs(SatNogsTLE::createList(txt), source);
+}
 
+bool SatelliteTracker::parseCSVOMMs(const QByteArray& csv, const QString& source)
+{
+    QList<SatNogsTLE *> tles = SatNogsTLE::createListFromOMM(csv);
+#ifndef HAS_SGP4_OMM
+    // Without OMM support in libsgp4, we can only use OMMs that can also be represented as TLEs
+    int unsupported = 0;
+    for (int i = tles.size() - 1; i >= 0; i--)
+    {
+        if (tles[i]->m_tle1.isEmpty())
+        {
+            delete tles.takeAt(i);
+            unsupported++;
+        }
+    }
+    if (unsupported > 0) {
+        qWarning() << "SatelliteTracker::parseCSVOMMs: Ignoring" << unsupported << "OMMs from" << source << "that libsgp4 doesn't support (catalog number > 99999)";
+    }
+#endif
+    return addTLEs(tles, source);
+}
+
+bool SatelliteTracker::addTLEs(const QList<SatNogsTLE *>& tles, const QString& source)
+{
     QHashIterator<QString, SatNogsSatellite *> i(m_satellites);
     while (i.hasNext())
     {

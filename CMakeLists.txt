@@ -1104,7 +1104,7 @@ if (SGP4_FOUND)
         unset(CMAKE_REQUIRED_INCLUDES)
     endif()
     if (NOT SGP4_HAS_OMM)
-        message(STATUS "libsgp4 has no OMM support: Satellite Tracker will skip OMM (CSV) element files")
+        message(STATUS "libsgp4 has no OMM support: Satellite Tracker will only use OMMs with catalog numbers up to 99999")
     endif()
 endif()
 

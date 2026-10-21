@@ -29,6 +29,7 @@
 
 #include "util/units.h"
 #include "satelliteselectiondialog.h"
+#include "satellitetrackersgp4.h"
 
 using namespace libsgp4;
 
@@ -496,14 +497,12 @@ void SatelliteSelectionDialog::displaySatInfo(const QString& name)
     {
         QDateTime epoch = sat->m_tle->epoch();
         if (epoch.isValid()) {
-            info.append(QString("TLE epoch: %1 (%2 days old)").arg(epoch.toString(Qt::ISODate)).arg(sat->m_tle->ageInDays()));
+            info.append(QString("%1 epoch: %2 (%3 days old)").arg(sat->m_tle->isOMM() ? "OMM" : "TLE").arg(epoch.toString(Qt::ISODate)).arg(sat->m_tle->ageInDays()));
         }
         try
         {
             info.append("Orbit:");
-            Tle tle = Tle(sat->m_tle->m_tle0.toStdString(),
-                            sat->m_tle->m_tle1.toStdString(),
-                            sat->m_tle->m_tle2.toStdString());
+            Tle tle = createTle(*sat->m_tle);
             OrbitalElements ele(tle);
             info.append(QString("  Period: %1 mins").arg(ele.Period()));
             info.append(QString("  Inclination: %1%2").arg(Units::radiansToDegrees(ele.Inclination())).arg(QChar(0xb0)));

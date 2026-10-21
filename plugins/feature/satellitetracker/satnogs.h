@@ -18,13 +18,19 @@
 #ifndef INCLUDE_SATNOGS_H_
 #define INCLUDE_SATNOGS_H_
 
+#include <cmath>
+
 #include <QString>
 #include <QDateTime>
+#include <QDebug>
+#include <QTextStream>
 #include <QTimeZone>
 #include <QHash>
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QRegularExpression>
+
+#include "util/csv.h"
 
 struct SatNogsTransmitter {
 
@@ -123,9 +129,11 @@ struct SatNogsTLE {
 
     int m_noradCatId;           // To link to which satellite this is for
     QString m_tle0;
-    QString m_tle1;
+    QString m_tle1;             // Empty for OMMs that can't be represented as a TLE (catalog number > 99999)
     QString m_tle2;
     QDateTime m_updated;
+    QString m_omm;              // For OMMs, elements as a CSV line in the column order of libsgp4's Tle::FromCsv. Empty for TLEs
+    QDateTime m_ommEpoch;
 
     SatNogsTLE(const QJsonObject &obj)
     {
@@ -144,9 +152,25 @@ struct SatNogsTLE {
         m_tle2 = tle2;
     }
 
+    SatNogsTLE(const QString& name, int noradCatId, const QDateTime& epoch, const QString& omm, const QString& tle1, const QString& tle2)
+    {
+        m_noradCatId = noradCatId;
+        m_tle0 = name;
+        m_tle1 = tle1;
+        m_tle2 = tle2;
+        m_omm = omm;
+        m_ommEpoch = epoch;
+    }
+
+    bool isOMM() const { return !m_omm.isEmpty(); }
+
     // Epoch of the TLE, from line 1 columns 19-32 (YYDDD.DDDDDDDD), or invalid if it can't be parsed
     QDateTime epoch() const
     {
+        if (isOMM()) {
+            return m_ommEpoch;
+        }
+
         bool yearOk, dayOk;
         int year = m_tle1.mid(18, 2).toInt(&yearOk);
         double day = m_tle1.mid(20, 12).toDouble(&dayOk);
@@ -166,8 +190,13 @@ struct SatNogsTLE {
         return e.isValid() ? e.daysTo(QDateTime::currentDateTimeUtc()) : -1;
     }
 
+    // TLE as text, as sent to channels on AOS
+    // OMMs that can't be represented as a TLE are sent as the name and CSV line
     QString toString() const
     {
+        if (m_tle1.isEmpty() && isOMM()) {
+            return m_tle0 + "\n" + m_omm + "\n";
+        }
         return m_tle0 + "\n" + m_tle1 + "\n" + m_tle2 + "\n";
     }
 
@@ -215,6 +244,209 @@ struct SatNogsTLE {
             }
         }
         return list;
+    }
+
+    // Check whether a file contains OMMs in CSV format (E.g. CelesTrak FORMAT=csv), rather than TLEs
+    static bool isOMMCSV(const QByteArray& array)
+    {
+        QByteArray start = array.left(64).trimmed();
+        if (start.startsWith("\xEF\xBB\xBF")) { // UTF-8 BOM
+            start = start.mid(3);
+        }
+        return start.startsWith("OBJECT_NAME,") || start.startsWith("\"OBJECT_NAME\",");
+    }
+
+    // Parse OMMs in CSV format. Columns are found by name in the header, so CelesTrak and Space-Track files can be read
+    // Rows with missing or invalid elements are skipped
+    static QList<SatNogsTLE *> createListFromOMM(const QByteArray& array)
+    {
+        QList<SatNogsTLE *> list;
+        QByteArray data(array);
+        QString error;
+        const QStringList required = {
+            "OBJECT_NAME", "EPOCH", "MEAN_MOTION", "ECCENTRICITY", "INCLINATION", "RA_OF_ASC_NODE",
+            "ARG_OF_PERICENTER", "MEAN_ANOMALY", "NORAD_CAT_ID", "BSTAR", "MEAN_MOTION_DOT", "MEAN_MOTION_DDOT"
+        };
+
+        if (data.startsWith("\xEF\xBB\xBF")) { // UTF-8 BOM
+            data = data.mid(3);
+        }
+        data.replace("\r", "");                // CelesTrak uses CRLF line endings
+        QTextStream in(&data);
+        QHash<QString, int> cols = CSV::readHeader(in, required, error);
+        if (!error.isEmpty())
+        {
+            qDebug() << "SatNogsTLE::createListFromOMM: " << error;
+            return list;
+        }
+
+        QStringList row;
+        while (CSV::readRow(in, &row))
+        {
+            for (auto& cell : row) {
+                cell = cell.trimmed();
+            }
+            auto field = [&](const QString& name, const QString& def = "") {
+                int col = cols.value(name, -1);
+                return ((col >= 0) && (col < row.size()) && !row[col].isEmpty()) ? row[col] : def;
+            };
+            bool ok[13];
+            QString name = field("OBJECT_NAME");
+            QString objectId = field("OBJECT_ID");
+            QDateTime epoch = parseOMMEpoch(field("EPOCH"));
+            double meanMotion = field("MEAN_MOTION").toDouble(&ok[0]);
+            double eccentricity = field("ECCENTRICITY").toDouble(&ok[1]);
+            double inclination = field("INCLINATION").toDouble(&ok[2]);
+            double raan = field("RA_OF_ASC_NODE").toDouble(&ok[3]);
+            double argPerigee = field("ARG_OF_PERICENTER").toDouble(&ok[4]);
+            double meanAnomaly = field("MEAN_ANOMALY").toDouble(&ok[5]);
+            int ephemerisType = field("EPHEMERIS_TYPE", "0").toInt(&ok[6]);
+            QString classification = field("CLASSIFICATION_TYPE", "U").left(1);
+            int noradCatId = field("NORAD_CAT_ID").toInt(&ok[7]);
+            int elementSetNo = field("ELEMENT_SET_NO", "999").toInt(&ok[8]);
+            int revAtEpoch = field("REV_AT_EPOCH", "0").toInt(&ok[9]);
+            double bstar = field("BSTAR").toDouble(&ok[10]);
+            double meanMotionDot = field("MEAN_MOTION_DOT").toDouble(&ok[11]);
+            double meanMotionDdot = field("MEAN_MOTION_DDOT").toDouble(&ok[12]);
+
+            bool valid = !name.isEmpty() && epoch.isValid() && (noradCatId > 0)
+                && (meanMotion > 0.0) && (eccentricity >= 0.0) && (eccentricity < 1.0)
+                && (inclination >= 0.0) && (inclination <= 180.0) && (elementSetNo >= 0) && (revAtEpoch >= 0);
+            for (int i = 0; valid && (i < 13); i++) {
+                valid = ok[i];
+            }
+            if (!valid)
+            {
+                qDebug() << "SatNogsTLE::createListFromOMM: Skipping invalid row: " << row;
+                continue;
+            }
+
+            // libsgp4's CSV parser doesn't support quoting, so remove commas from names
+            QString csvName = QString(name).replace(',', ' ');
+            QString omm = QStringList({
+                csvName, objectId, field("EPOCH"),
+                field("MEAN_MOTION"), field("ECCENTRICITY"), field("INCLINATION"), field("RA_OF_ASC_NODE"),
+                field("ARG_OF_PERICENTER"), field("MEAN_ANOMALY"), QString::number(ephemerisType), classification,
+                QString::number(noradCatId), QString::number(elementSetNo), QString::number(revAtEpoch),
+                field("BSTAR"), field("MEAN_MOTION_DOT"), field("MEAN_MOTION_DDOT")
+            }).join(',');
+
+            // Also create a TLE, if possible, so channels that receive the TLE on AOS can use it
+            QString tle1, tle2;
+            if (noradCatId <= 99999)
+            {
+                QString intDesignator;
+                if ((objectId.size() >= 9) && (objectId[4] == '-')) {
+                    intDesignator = objectId.mid(2, 2) + objectId.mid(5);   // 1998-067A -> 98067A
+                }
+                // Use the epoch string, as QDateTime only has ms resolution
+                QString epochString = field("EPOCH");
+                int dot = epochString.indexOf('.');
+                double fraction = (dot >= 0) ? ("0" + epochString.mid(dot)).toDouble() : 0.0;
+                QDate date = QDate::fromString(epochString.left(10), "yyyy-MM-dd");
+                QTime time = QTime::fromString(epochString.mid(11, 8), "HH:mm:ss");
+                double day = date.dayOfYear() + (time.msecsSinceStartOfDay() / 1000.0 + fraction) / 86400.0;
+
+                tle1 = QString("1 %1%2 %3 %4%5 %6 %7 %8 %9 %10")
+                    .arg(noradCatId, 5, 10, QChar('0'))
+                    .arg(classification)
+                    .arg(intDesignator.left(8), -8)
+                    .arg(date.year() % 100, 2, 10, QChar('0'))
+                    .arg(day, 12, 'f', 8, QChar('0'))
+                    .arg(formatTLEDecimal(meanMotionDot))
+                    .arg(formatTLEExponent(meanMotionDdot))
+                    .arg(formatTLEExponent(bstar))
+                    .arg(ephemerisType % 10)
+                    .arg(elementSetNo % 10000, 4);
+                tle2 = QString("2 %1 %2 %3 %4 %5 %6 %7%8")
+                    .arg(noradCatId, 5, 10, QChar('0'))
+                    .arg(inclination, 8, 'f', 4)
+                    .arg(std::fmod(raan, 360.0), 8, 'f', 4)
+                    .arg((int) std::floor(eccentricity * 1e7 + 1e-6), 7, 10, QChar('0'))    // Truncated, as CelesTrak does
+                    .arg(std::fmod(argPerigee, 360.0), 8, 'f', 4)
+                    .arg(std::fmod(meanAnomaly, 360.0), 8, 'f', 4)
+                    .arg(meanMotion, 11, 'f', 8)
+                    .arg(revAtEpoch % 100000, 5);
+                tle1.append(QString::number(tleChecksum(tle1)));
+                tle2.append(QString::number(tleChecksum(tle2)));
+            }
+
+            list.append(new SatNogsTLE(name, noradCatId, epoch, omm, tle1, tle2));
+        }
+        return list;
+    }
+
+private:
+
+    // Parse an OMM epoch, which is UTC, with optional fractional seconds. E.g. 2026-10-20T10:01:02.123456
+    static QDateTime parseOMMEpoch(const QString& string)
+    {
+        int dot = string.indexOf('.');
+        QDateTime dateTime = QDateTime::fromString(dot >= 0 ? string.left(dot) : string, "yyyy-MM-ddTHH:mm:ss");
+        if (!dateTime.isValid()) {
+            return dateTime;
+        }
+        dateTime.setTimeZone(QTimeZone::utc());
+        if (dot >= 0) {
+            dateTime = dateTime.addMSecs(std::round(("0" + string.mid(dot)).toDouble() * 1000.0));
+        }
+        return dateTime;
+    }
+
+    // Format a value with an assumed leading decimal point. E.g. -0.00001234 -> "-.00001234"
+    static QString formatTLEDecimal(double value)
+    {
+        QString digits = QString::number(std::abs(value), 'f', 8);
+        return (value < 0.0 ? "-" : " ") + digits.mid(digits.indexOf('.'));
+    }
+
+    // Format a value with an assumed leading decimal point and exponent. E.g. 0.00012345 -> " 12345-3"
+    static QString formatTLEExponent(double value)
+    {
+        double magnitude = std::abs(value);
+        int exponent = 0;
+        long long mantissa = 0;
+
+        if (magnitude > 0.0)
+        {
+            exponent = (int) std::floor(std::log10(magnitude)) + 1;
+            mantissa = std::llround(magnitude / std::pow(10.0, exponent) * 1e5);
+            if (mantissa >= 100000)
+            {
+                mantissa /= 10;
+                exponent++;
+            }
+            if ((exponent < -9) || (mantissa == 0))
+            {
+                mantissa = 0;
+                exponent = 0;
+            }
+            else if (exponent > 9)
+            {
+                mantissa = 99999;
+                exponent = 9;
+            }
+        }
+        return QString("%1%2%3%4")
+            .arg(((value < 0.0) && (mantissa != 0)) ? "-" : " ")
+            .arg(mantissa, 5, 10, QChar('0'))
+            .arg(exponent < 0 ? "-" : "+")
+            .arg(std::abs(exponent));
+    }
+
+    // Modulo 10 checksum of a TLE line: sum of digits, with minus signs counting as 1
+    static int tleChecksum(const QString& line)
+    {
+        int sum = 0;
+        for (QChar c : line)
+        {
+            if (c.isDigit()) {
+                sum += c.digitValue();
+            } else if (c == '-') {
+                sum++;
+            }
+        }
+        return sum % 10;
     }
 };
 
@@ -265,15 +497,16 @@ struct SatNogsSatellite {
         //   GOES 9 [-]
         QRegularExpression re("([A-Za-z0-9\\- ]+)([\\(]([A-Z0-9\\- ]+)[\\)])?");
         QRegularExpressionMatch match = re.match(tle->m_tle0);
+        m_name = tle->m_tle0.trimmed();
         if (match.hasMatch())
         {
             QStringList groups = match.capturedTexts();
             m_name = groups[1].trimmed();
             if ((groups.size() >= 4) && (groups[3] != "-") && !groups[3].isEmpty())
                 m_names = QStringList({groups[3].trimmed()});
-            m_noradCatId = tle->m_tle2.mid(2, 5).toInt();
-            m_tle = tle;
         }
+        m_noradCatId = tle->m_noradCatId;
+        m_tle = tle;
     }
 
     QString toString()
@@ -286,6 +519,9 @@ struct SatNogsSatellite {
             list.append(QString("TLE0: %1").arg(m_tle->m_tle0));
             list.append(QString("TLE1: %1").arg(m_tle->m_tle1));
             list.append(QString("TLE2: %1").arg(m_tle->m_tle2));
+            if (m_tle->isOMM()) {
+                list.append(QString("OMM: %1").arg(m_tle->m_omm));
+            }
         }
         for (int i = 0; i < m_transmitters.size(); i++)
         {
@@ -311,7 +547,23 @@ struct SatNogsSatellite {
             SatNogsTLE *tle = tles[i];
             if (tle->m_noradCatId == m_noradCatId)
             {
-                m_tle = tle;
+                // TLEs replace each other in the order the files are listed, as they always have
+                // When an OMM and a TLE are both available, use whichever has the newest epoch, preferring the TLE on a tie
+                bool replace = true;
+                if ((m_tle != nullptr) && (m_tle->isOMM() || tle->isOMM()))
+                {
+                    QDateTime oldEpoch = m_tle->epoch();
+                    QDateTime newEpoch = tle->epoch();
+                    if (oldEpoch.isValid() && newEpoch.isValid())
+                    {
+                        // TLE epochs only have a resolution of ~1ms, so allow some tolerance
+                        qint64 diff = oldEpoch.msecsTo(newEpoch);
+                        replace = (diff > 1000) || ((std::abs(diff) <= 1000) && !tle->isOMM());
+                    }
+                }
+                if (replace) {
+                    m_tle = tle;
+                }
                 if (!source.isEmpty() && !m_tleSources.contains(source)) {
                     m_tleSources.append(source);
                 }
