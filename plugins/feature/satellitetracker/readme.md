@@ -116,6 +116,8 @@ On the Settings tab, you can set:
 * A command/script to be executed on AOS. This applies to all satellites. It is also possible to set a per-satellite command in the SDRangel Control dialog. See below for a list of variable substitutions.
 * A command/script to be executed on LOS. This applies to all satellites. It is also possible to set a per-satellite command in the SDRangel Control dialog.
 * The Doppler correction period in seconds, which controls how frequently Doppler correction is applied. Which channels have Doppler correction applied is set on a per-channel basis in the SDRangel Control dialog.
+* Pre-position rotators for next pass - when the target is below the horizon, rotators are pointed at the azimuth (and 0 degrees elevation) where its next pass will start, so they are ready at AOS.
+* Update satellite data daily - satellite data and TLEs are downloaded once a day while the Satellite Tracker is running. This is useful when running unattended, particularly for satellites that manoeuvre, such as the ISS.
 
 For commands, scripts and speech, the following variables can be substituted: `${name}`, `${duration}`, `${aos}`, `${los}`, `${elevation}`, `${aosAzimuth}`, `${losAzimuth}`, `${northToSouth}`, `${latitude}`, `${longitude}`, `${altitude}`, `${azimuth}`, `${elevation}`, `${range}`, `${rangeRate}`, `${speed}` and `${period}`.
 
@@ -263,7 +265,9 @@ The "Rx channel" submenu lists the channels on Rx and MIMO devices; the selectio
 Selecting a different channel while tracking moves tracking to that channel.
 The channel's frequency offset is adjusted while the signal remains within the device's baseband; otherwise the device's center frequency is retuned,
 keeping the channel's current offset from DC.
-Doppler tracking continues until "Stop Doppler tracking" is selected from the same menu, or the Satellite Tracker is stopped.
+Doppler tracking continues over subsequent passes, until "Stop Doppler tracking" is selected from the same menu, or the Satellite Tracker is stopped.
+What is being tracked is saved in the settings, so tracking is resumed when the Satellite Tracker is restarted, including after SDRangel is restarted.
+Tracking resumes on the same channel if it still exists, otherwise on another channel of the same type on the same device, otherwise a new demodulator is created.
 
 <h2>Map</h2>
 

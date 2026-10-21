@@ -177,8 +177,12 @@ bool SatelliteTrackerGUI::handleMessage(const Message& message)
     {
         // Track how far user has retuned from the transmitter's frequency
         SatelliteTrackerReport::MsgReportTune& tuneReport = (SatelliteTrackerReport::MsgReportTune&) message;
-        if (!m_tuneSatellite.isEmpty() && (tuneReport.getTuneId() == m_tuneId)) {
+        if (!m_tuneSatellite.isEmpty() && (tuneReport.getTuneId() == m_tuneId))
+        {
             m_tuneOffset = tuneReport.getFrequency() - m_tuneBaseFrequency;
+            if (m_tuneOffset != m_settings.m_trackOffset) {
+                saveTrack();
+            }
         }
         return true;
     }
@@ -307,7 +311,8 @@ SatelliteTrackerGUI::SatelliteTrackerGUI(PluginAPI* pluginAPI, FeatureUISet *fea
     m_tuneId(0),
     m_tuneBaseFrequency(0),
     m_tuneOffset(0),
-    m_tuneCTCSS(0.0f)
+    m_tuneCTCSS(0.0f),
+    m_resumeAttempts(-1)
 {
     m_pendingTune.m_active = false;
     m_feature = feature;
@@ -577,6 +582,8 @@ void SatelliteTrackerGUI::on_displaySettings_clicked()
     {
         m_settingsKeys.append("heightAboveSeaLevel");
         m_settingsKeys.append("predictionPeriod");
+        m_settingsKeys.append("rotatorPrePosition");
+        m_settingsKeys.append("updateSatDataDaily");
         m_settingsKeys.append("passStartTime");
         m_settingsKeys.append("passFinishTime");
         m_settingsKeys.append("minAOSElevation");
@@ -715,8 +722,16 @@ void SatelliteTrackerGUI::updateFeatureState()
     updateStartStopButton(ui->startStop);
 
     // Worker, which does the Doppler tracking, is deleted when stopped
-    if (m_satelliteTracker->getState() != Feature::StRunning) {
+    // Tracking is resumed when restarted (from settings, so also after SDRangel is restarted)
+    if (m_satelliteTracker->getState() != Feature::StRunning)
+    {
+        m_resumeAttempts = -1;
         stopTune();
+    }
+    else if (m_tuneSatellite.isEmpty() && (m_resumeAttempts < 0))
+    {
+        m_resumeAttempts = 0;
+        QTimer::singleShot(1000, this, &SatelliteTrackerGUI::resumeTrack);
     }
 }
 
@@ -1580,7 +1595,10 @@ void SatelliteTrackerGUI::satTable_customContextMenuRequested(QPoint pos)
     if (!m_tuneSatellite.isEmpty())
     {
         QAction *stopAction = new QAction(QString("Stop Doppler tracking %1 (%2)").arg(m_tuneSatellite).arg(SatNogsTransmitter::getFrequencyText(m_tuneFrequency + m_tuneOffset)), tableContextMenu);
-        connect(stopAction, &QAction::triggered, this, &SatelliteTrackerGUI::stopTune);
+        connect(stopAction, &QAction::triggered, this, [this]() {
+            stopTune();
+            clearTrack();
+        });
         tableContextMenu->addAction(stopAction);
         tableContextMenu->addSeparator();
     }
@@ -2004,7 +2022,7 @@ void SatelliteTrackerGUI::tuneChannel(const QString& satellite, qint64 frequency
 }
 
 // Add a new demodulator, and tune it once it's been created (in channelAdded)
-void SatelliteTrackerGUI::tuneNewChannel(const QString& satellite, qint64 frequency, TuneMode mode, int deviceSetIndex, const QString& type)
+void SatelliteTrackerGUI::tuneNewChannel(const QString& satellite, qint64 frequency, TuneMode mode, int deviceSetIndex, const QString& type, qint64 offset)
 {
     PluginAPI::ChannelRegistrations *channelRegistrations = MainCore::instance()->getPluginManager()->getRxChannelRegistrations();
     QString uri;
@@ -2023,7 +2041,7 @@ void SatelliteTrackerGUI::tuneNewChannel(const QString& satellite, qint64 freque
     }
     removeCreatedChannel();
 
-    m_pendingTune = {true, satellite, frequency, mode, deviceSetIndex, type};
+    m_pendingTune = {true, satellite, frequency, mode, deviceSetIndex, type, offset};
     if (!ChannelWebAPIUtils::addChannel(deviceSetIndex, uri, 0)) {
         m_pendingTune.m_active = false;
     }
@@ -2041,7 +2059,7 @@ void SatelliteTrackerGUI::channelAdded(int deviceSetIndex, ChannelAPI *channel)
         m_createdChannelDeviceSetIndex = deviceSetIndex;
         // Wait for channel GUI to be created and apply its initial settings, before we configure it
         QTimer::singleShot(0, this, [this, pending, channel]() {
-            startTune(pending.m_satellite, pending.m_frequency, pending.m_mode, pending.m_deviceSetIndex, channel, pending.m_type, true, 0);
+            startTune(pending.m_satellite, pending.m_frequency, pending.m_mode, pending.m_deviceSetIndex, channel, pending.m_type, true, pending.m_offset);
         });
     }
 }
@@ -2059,9 +2077,12 @@ void SatelliteTrackerGUI::channelRemoved(int deviceSetIndex, ChannelAPI *channel
         if (!m_tuneSatellite.isEmpty())
         {
             int index = channelIndex(m_tuneDeviceSetIndex, m_tuneChannel);
-            if (index < 0) {
+            if (index < 0)
+            {
                 stopTune();
-            } else if (index != m_tuneChannelIndex) {
+                clearTrack();
+            }
+            else if (index != m_tuneChannelIndex) {
                 startTune(m_tuneSatellite, m_tuneFrequency, m_tuneMode, m_tuneDeviceSetIndex, m_tuneChannel, m_tuneChannelType, false, m_tuneOffset);
             }
         }
@@ -2104,6 +2125,115 @@ void SatelliteTrackerGUI::startTune(const QString& satellite, qint64 frequency, 
     m_tuneChannelType = type;
     if (channel == m_createdChannel) {
         m_createdChannelDeviceSetIndex = deviceSetIndex;
+    }
+    saveTrack();
+}
+
+// Save what's being tracked in settings, so it can be resumed after a restart
+void SatelliteTrackerGUI::saveTrack()
+{
+    m_settings.m_trackSatellite = m_tuneSatellite;
+    m_settings.m_trackFrequency = m_tuneFrequency;
+    m_settings.m_trackMode = (int) m_tuneMode;
+    m_settings.m_trackChannelType = m_tuneChannelType;
+    m_settings.m_trackDeviceSetIndex = m_tuneDeviceSetIndex;
+    m_settings.m_trackChannelIndex = m_tuneChannelIndex;
+    m_settings.m_trackOffset = m_tuneOffset;
+    m_settings.m_trackCTCSS = m_tuneCTCSS;
+    m_settings.m_trackCreatedChannel = m_tuneChannel && (m_tuneChannel == m_createdChannel);
+    m_settingsKeys.append("track");
+    applySettings();
+}
+
+// User has stopped tracking, so don't resume
+void SatelliteTrackerGUI::clearTrack()
+{
+    if (!m_settings.m_trackSatellite.isEmpty())
+    {
+        m_settings.m_trackSatellite = "";
+        m_settingsKeys.append("track");
+        applySettings();
+    }
+}
+
+// Resume tracking saved in settings. Retried for a while, as on startup, satellite data
+// and channels in presets may not have been loaded yet
+void SatelliteTrackerGUI::resumeTrack()
+{
+    if ((m_resumeAttempts < 0)
+        || (m_satelliteTracker->getState() != Feature::StRunning)
+        || !m_tuneSatellite.isEmpty()
+        || m_settings.m_trackSatellite.isEmpty())
+    {
+        return;
+    }
+
+    const int maxAttempts = 30;
+    m_resumeAttempts++;
+    if (m_resumeAttempts > maxAttempts)
+    {
+        qDebug() << "SatelliteTrackerGUI::resumeTrack: Giving up resuming" << m_settings.m_trackSatellite;
+        return;
+    }
+
+    QString satellite = m_settings.m_trackSatellite;
+    int deviceSetIndex = m_settings.m_trackDeviceSetIndex;
+    QString type = m_settings.m_trackChannelType;
+    std::vector<DeviceSet*>& deviceSets = MainCore::instance()->getDeviceSets();
+
+    if (!m_satellites.contains(satellite)
+        || (deviceSetIndex < 0)
+        || (deviceSetIndex >= (int) deviceSets.size())
+        || (!deviceSets[deviceSetIndex]->m_deviceSourceEngine && !deviceSets[deviceSetIndex]->m_deviceMIMOEngine))
+    {
+        QTimer::singleShot(1000, this, &SatelliteTrackerGUI::resumeTrack);
+        return;
+    }
+
+    // Use same channel if it still exists, otherwise any channel of same type on the device
+    DeviceSet *deviceSet = deviceSets[deviceSetIndex];
+    ChannelAPI *channel = deviceSet->getChannelAt(m_settings.m_trackChannelIndex);
+    if (!channel || (channel->getIdentifier() != type))
+    {
+        channel = nullptr;
+        for (int i = 0; i < deviceSet->getNumberOfChannels(); i++)
+        {
+            if (deviceSet->getChannelAt(i)->getIdentifier() == type)
+            {
+                channel = deviceSet->getChannelAt(i);
+                break;
+            }
+        }
+    }
+
+    TuneMode mode = (TuneMode) m_settings.m_trackMode;
+    qint64 frequency = m_settings.m_trackFrequency;
+    qint64 offset = m_settings.m_trackOffset;
+    m_tuneCTCSS = m_settings.m_trackCTCSS;
+
+    if (channel)
+    {
+        qDebug() << "SatelliteTrackerGUI::resumeTrack: Resuming" << satellite << frequency << "on" << type;
+        m_resumeAttempts = -1;
+        if (m_settings.m_trackCreatedChannel)
+        {
+            m_createdChannel = channel;
+            m_createdChannelDeviceSetIndex = deviceSetIndex;
+        }
+        workSatellite(satellite);
+        startTune(satellite, frequency, mode, deviceSetIndex, channel, type, true, offset);
+    }
+    else if (m_resumeAttempts >= 10)
+    {
+        // Channels in presets should have been created by now, so create one
+        qDebug() << "SatelliteTrackerGUI::resumeTrack: Resuming" << satellite << frequency << "on new" << type;
+        m_resumeAttempts = -1;
+        workSatellite(satellite);
+        tuneNewChannel(satellite, frequency, mode, deviceSetIndex, type, offset);
+    }
+    else
+    {
+        QTimer::singleShot(1000, this, &SatelliteTrackerGUI::resumeTrack);
     }
 }
 

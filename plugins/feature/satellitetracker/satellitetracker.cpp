@@ -68,6 +68,12 @@ SatelliteTracker::SatelliteTracker(WebAPIAdapterInterface *webAPIAdapterInterfac
         &SatelliteTracker::networkManagerFinished
     );
     connect(&m_dlm, &HttpDownloadManager::downloadComplete, this, &SatelliteTracker::downloadFinished);
+    // Satellites' TLEs need regular updates, particularly those that manoeuvre, such as the ISS
+    m_dailyUpdateTimer.setInterval(24 * 60 * 60 * 1000);
+    connect(&m_dailyUpdateTimer, &QTimer::timeout, this, [this]() {
+        qDebug() << "SatelliteTracker: Daily update of satellite data";
+        updateSatData();
+    });
 
     if (!readSatData())
         updateSatData();
@@ -83,6 +89,10 @@ SatelliteTracker::~SatelliteTracker()
 void SatelliteTracker::start()
 {
     qDebug("SatelliteTracker::start");
+
+    if (m_settings.m_updateSatDataDaily) {
+        m_dailyUpdateTimer.start();
+    }
 
     if (m_settings.m_replayEnabled) {
         m_startedDateTime = QDateTime::currentDateTimeUtc();
@@ -113,6 +123,7 @@ void SatelliteTracker::stop()
 {
     qDebug("SatelliteTracker::stop");
     setState(StIdle);
+    m_dailyUpdateTimer.stop();
     if (m_thread)
     {
         m_thread->quit();
@@ -238,6 +249,15 @@ void SatelliteTracker::applySettings(const SatelliteTrackerSettings& settings, c
                 settingsKeys.contains("reverseAPIFeatureSetIndex") ||
                 settingsKeys.contains("reverseAPIFeatureIndex");
         webapiReverseSendSettings(settingsKeys, settings, fullUpdate || force);
+    }
+
+    if ((settingsKeys.contains("updateSatDataDaily") || force) && (getState() == StRunning))
+    {
+        if (settings.m_updateSatDataDaily && !m_dailyUpdateTimer.isActive()) {
+            m_dailyUpdateTimer.start();
+        } else if (!settings.m_updateSatDataDaily) {
+            m_dailyUpdateTimer.stop();
+        }
     }
 
     if (force) {

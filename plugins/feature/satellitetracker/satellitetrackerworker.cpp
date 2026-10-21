@@ -257,6 +257,7 @@ void SatelliteTrackerWorker::applySettings(const SatelliteTrackerSettings& setti
 
     if (settingsKeys.contains("target") && (settings.m_target != m_settings.m_target))
     {
+        m_prePositionedAOS = QDateTime();   // So new target is pre-positioned
         if (m_workerState.contains(m_settings.m_target))
         {
             SatWorkerState *satWorkerState = m_workerState.value(m_settings.m_target);
@@ -479,31 +480,19 @@ void SatelliteTrackerWorker::update()
                 // Send Az/El of target to Rotator Controllers, if elevation above horizon
                 if ((name == m_settings.m_target) && (satWorkerState->m_satState.m_elevation >= 0))
                 {
-                    double azimuth = satWorkerState->m_satState.m_azimuth + m_settings.m_azimuthOffset;
-                    double elevation = satWorkerState->m_satState.m_elevation + m_settings.m_elevationOffset;
-                    if (m_extendedAzRotation)
-                    {
-                        if (azimuth < 180.0)
-                            azimuth += 360.0;
-                    }
-                    else if (m_flipRotation)
-                    {
-                        azimuth = std::fmod(azimuth + 180.0, 360.0);
-                        elevation = 180.0 - elevation;
-                    }
-
-                    QList<ObjectPipe*> rotatorPipes;
-                    MainCore::instance()->getMessagePipes().getMessagePipes(m_satelliteTracker, "target", rotatorPipes);
-
-                    for (const auto& pipe : rotatorPipes)
-                    {
-                        MessageQueue *messageQueue = qobject_cast<MessageQueue*>(pipe->m_element);
-                        SWGSDRangel::SWGTargetAzimuthElevation *swgTarget = new SWGSDRangel::SWGTargetAzimuthElevation();
-                        swgTarget->setName(new QString(m_settings.m_target));
-                        swgTarget->setAzimuth(azimuth);
-                        swgTarget->setElevation(elevation);
-                        messageQueue->push(MainCore::MsgTargetAzimuthElevation::create(m_satelliteTracker, swgTarget));
-                    }
+                    sendToRotators(satWorkerState->m_satState.m_azimuth, satWorkerState->m_satState.m_elevation);
+                }
+                // Otherwise, point rotators at where the next pass will start, so they're ready at AOS
+                else if ((name == m_settings.m_target)
+                    && m_settings.m_rotatorPrePosition
+                    && (m_settings.m_dateTimeSelect == SatelliteTrackerSettings::NOW)
+                    && (satWorkerState->m_satState.m_passes.size() > 0)
+                    && satWorkerState->m_satState.m_passes[0].m_aos.isValid()
+                    && (satWorkerState->m_satState.m_passes[0].m_aos != m_prePositionedAOS))
+                {
+                    qDebug() << "SatelliteTrackerWorker::update: Pre-positioning rotators for AOS of" << name << "at" << satWorkerState->m_satState.m_passes[0].m_aos;
+                    m_prePositionedAOS = satWorkerState->m_satState.m_passes[0].m_aos;
+                    sendToRotators(satWorkerState->m_satState.m_passes[0].m_aosAzimuth, 0.0);
                 }
 
                 // Send to Map
@@ -641,6 +630,36 @@ void SatelliteTrackerWorker::aos(SatWorkerState *satWorkerState)
     // TODO: Detect if different device sets are used and support multiple sats simultaneously
     if (m_settings.m_target == satWorkerState->m_name)
         applyDeviceAOSSettings(satWorkerState->m_name);
+}
+
+// Send azimuth and elevation of target to Rotator Controllers, adjusting for offsets and rotator rotation range
+void SatelliteTrackerWorker::sendToRotators(double azimuth, double elevation)
+{
+    azimuth += m_settings.m_azimuthOffset;
+    elevation += m_settings.m_elevationOffset;
+    if (m_extendedAzRotation)
+    {
+        if (azimuth < 180.0)
+            azimuth += 360.0;
+    }
+    else if (m_flipRotation)
+    {
+        azimuth = std::fmod(azimuth + 180.0, 360.0);
+        elevation = 180.0 - elevation;
+    }
+
+    QList<ObjectPipe*> rotatorPipes;
+    MainCore::instance()->getMessagePipes().getMessagePipes(m_satelliteTracker, "target", rotatorPipes);
+
+    for (const auto& pipe : rotatorPipes)
+    {
+        MessageQueue *messageQueue = qobject_cast<MessageQueue*>(pipe->m_element);
+        SWGSDRangel::SWGTargetAzimuthElevation *swgTarget = new SWGSDRangel::SWGTargetAzimuthElevation();
+        swgTarget->setName(new QString(m_settings.m_target));
+        swgTarget->setAzimuth(azimuth);
+        swgTarget->setElevation(elevation);
+        messageQueue->push(MainCore::MsgTargetAzimuthElevation::create(m_satelliteTracker, swgTarget));
+    }
 }
 
 // Determine if we need to flip rotator or use extended azimuth to avoid 360/0 discontinuity

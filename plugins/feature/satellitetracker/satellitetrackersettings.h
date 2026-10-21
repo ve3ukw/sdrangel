@@ -98,6 +98,19 @@ struct SatelliteTrackerSettings
     int m_maxTLEAge;                    //!< Age in days after which a TLE is considered stale
     QMap<QString, QStringList> m_satelliteGroups;   //!< User defined groups of satellites, by name
     QString m_satelliteGroup;           //!< Group m_satellites was selected from, or empty if none
+    bool m_rotatorPrePosition;          //!< Point rotators at AOS azimuth of target's next pass, when it's below the horizon
+    bool m_updateSatDataDaily;          //!< Update satellite data (incl. TLEs) daily while running
+
+    // Transmitter being Doppler tracked, from satellite table context menu, so tracking can be resumed after a restart
+    QString m_trackSatellite;           //!< Empty if not tracking
+    qint64 m_trackFrequency;            //!< Transmitter frequency in Hz
+    int m_trackMode;                    //!< SatelliteTrackerGUI::TuneMode
+    QString m_trackChannelType;         //!< E.g. "NFMDemod"
+    int m_trackDeviceSetIndex;
+    int m_trackChannelIndex;
+    qint64 m_trackOffset;               //!< How far user has retuned from transmitter frequency in Hz
+    float m_trackCTCSS;                 //!< Uplink CTCSS tone in Hz or 0
+    bool m_trackCreatedChannel;         //!< Channel was created by the Satellite Tracker
     enum Rotators {ALL_ROTATORS, NO_ROTATORS, MATCHING_TARGET} m_drawRotators; //!< Which rotators to draw on polar chart
     double m_azimuthOffset;             //!< Offset to add to az/el sent to rotator
     double m_elevationOffset;

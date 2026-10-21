@@ -78,6 +78,17 @@ void SatelliteTrackerSettings::resetToDefaults()
     m_maxTLEAge = 30;
     m_satelliteGroups.clear();
     m_satelliteGroup = "";
+    m_rotatorPrePosition = true;
+    m_updateSatDataDaily = true;
+    m_trackSatellite = "";
+    m_trackFrequency = 0;
+    m_trackMode = 0;
+    m_trackChannelType = "";
+    m_trackDeviceSetIndex = -1;
+    m_trackChannelIndex = -1;
+    m_trackOffset = 0;
+    m_trackCTCSS = 0.0f;
+    m_trackCreatedChannel = false;
     m_drawRotators = MATCHING_TARGET;
     m_azimuthOffset = 0.0;
     m_elevationOffset = 0.0;
@@ -157,6 +168,17 @@ QByteArray SatelliteTrackerSettings::serialize() const
         s.writeBlob(55, groups);
     }
     s.writeString(56, m_satelliteGroup);
+    s.writeBool(57, m_rotatorPrePosition);
+    s.writeBool(58, m_updateSatDataDaily);
+    s.writeString(59, m_trackSatellite);
+    s.writeS64(60, m_trackFrequency);
+    s.writeS32(61, m_trackMode);
+    s.writeString(62, m_trackChannelType);
+    s.writeS32(63, m_trackDeviceSetIndex);
+    s.writeS32(64, m_trackChannelIndex);
+    s.writeS64(65, m_trackOffset);
+    s.writeFloat(66, m_trackCTCSS);
+    s.writeBool(67, m_trackCreatedChannel);
 
     for (int i = 0; i < SAT_COL_COLUMNS; i++) {
         s.writeS32(100 + i, m_columnIndexes[i]);
@@ -269,6 +291,17 @@ bool SatelliteTrackerSettings::deserialize(const QByteArray& data)
             }
         }
         d.readString(56, &m_satelliteGroup, "");
+        d.readBool(57, &m_rotatorPrePosition, true);
+        d.readBool(58, &m_updateSatDataDaily, true);
+        d.readString(59, &m_trackSatellite, "");
+        d.readS64(60, &m_trackFrequency, 0);
+        d.readS32(61, &m_trackMode, 0);
+        d.readString(62, &m_trackChannelType, "");
+        d.readS32(63, &m_trackDeviceSetIndex, -1);
+        d.readS32(64, &m_trackChannelIndex, -1);
+        d.readS64(65, &m_trackOffset, 0);
+        d.readFloat(66, &m_trackCTCSS, 0.0f);
+        d.readBool(67, &m_trackCreatedChannel, false);
 
         for (int i = 0; i < SAT_COL_COLUMNS; i++) {
             d.readS32(100 + i, &m_columnIndexes[i], i);
@@ -499,6 +532,24 @@ void SatelliteTrackerSettings::applySettings(const QStringList& settingsKeys, co
     if (settingsKeys.contains("satelliteGroup")) {
         m_satelliteGroup = settings.m_satelliteGroup;
     }
+    if (settingsKeys.contains("rotatorPrePosition")) {
+        m_rotatorPrePosition = settings.m_rotatorPrePosition;
+    }
+    if (settingsKeys.contains("updateSatDataDaily")) {
+        m_updateSatDataDaily = settings.m_updateSatDataDaily;
+    }
+    if (settingsKeys.contains("track"))
+    {
+        m_trackSatellite = settings.m_trackSatellite;
+        m_trackFrequency = settings.m_trackFrequency;
+        m_trackMode = settings.m_trackMode;
+        m_trackChannelType = settings.m_trackChannelType;
+        m_trackDeviceSetIndex = settings.m_trackDeviceSetIndex;
+        m_trackChannelIndex = settings.m_trackChannelIndex;
+        m_trackOffset = settings.m_trackOffset;
+        m_trackCTCSS = settings.m_trackCTCSS;
+        m_trackCreatedChannel = settings.m_trackCreatedChannel;
+    }
     if (settingsKeys.contains("drawRotators")) {
         m_drawRotators = settings.m_drawRotators;
     }
@@ -699,6 +750,16 @@ QString SatelliteTrackerSettings::getDebugString(const QStringList& settingsKeys
     }
     if (settingsKeys.contains("satelliteGroup") || force) {
         ostr << " m_satelliteGroup: " << m_satelliteGroup.toStdString();
+    }
+    if (settingsKeys.contains("rotatorPrePosition") || force) {
+        ostr << " m_rotatorPrePosition: " << m_rotatorPrePosition;
+    }
+    if (settingsKeys.contains("updateSatDataDaily") || force) {
+        ostr << " m_updateSatDataDaily: " << m_updateSatDataDaily;
+    }
+    if (settingsKeys.contains("track") || force) {
+        ostr << " m_trackSatellite: " << m_trackSatellite.toStdString() << " m_trackFrequency: " << m_trackFrequency
+            << " m_trackChannelType: " << m_trackChannelType.toStdString() << " m_trackOffset: " << m_trackOffset;
     }
     if (settingsKeys.contains("drawRotators") || force) {
         ostr << " m_drawRotators: " << m_drawRotators;

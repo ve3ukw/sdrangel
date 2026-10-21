@@ -131,7 +131,9 @@ private:
         TuneMode m_mode;
         int m_deviceSetIndex;
         QString m_type;
+        qint64 m_offset;
     } m_pendingTune;
+    int m_resumeAttempts;               // Attempts to resume tracking from settings, or -1 if not resuming
     static const int m_cwToneFrequency = 700;  // CW tone in Hz, when tuning CW with an SSB demodulator
 
     struct RxChannel {
@@ -194,7 +196,9 @@ private:
     void limitAzElRange(double& azimuth, double& elevation) const;
     void tuneChannel(const QString& satellite, qint64 frequency, TuneMode mode, const RxChannel& rxChannel, qint64 offset = 0);
     void configureChannel(const RxChannel& rxChannel, TuneMode mode);
-    void tuneNewChannel(const QString& satellite, qint64 frequency, TuneMode mode, int deviceSetIndex, const QString& type);
+    void tuneNewChannel(const QString& satellite, qint64 frequency, TuneMode mode, int deviceSetIndex, const QString& type, qint64 offset = 0);
+    void saveTrack();
+    void clearTrack();
     void startTune(const QString& satellite, qint64 frequency, TuneMode mode, int deviceSetIndex, ChannelAPI *channel, const QString& type, bool configure, qint64 offset);
     void removeCreatedChannel();
     void workSatellite(const QString& satellite);
@@ -236,6 +240,7 @@ private slots:
     void columnSelectMenu(QPoint pos);
     void satTable_customContextMenuRequested(QPoint pos);
     void stopTune();
+    void resumeTrack();
     void channelAdded(int deviceSetIndex, ChannelAPI *channel);
     void channelRemoved(int deviceSetIndex, ChannelAPI *channel);
     void columnSelectMenuChecked(bool checked = false);

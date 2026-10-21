@@ -258,7 +258,27 @@
             </property>
            </widget>
           </item>
-          <item row="15" column="0">
+          <item row="15" column="0" colspan="2">
+           <widget class="QCheckBox" name="rotatorPrePosition">
+            <property name="toolTip">
+             <string>When the target is below the horizon, point rotators at the azimuth where its next pass will start</string>
+            </property>
+            <property name="text">
+             <string>Pre-position rotators for next pass</string>
+            </property>
+           </widget>
+          </item>
+          <item row="16" column="0" colspan="2">
+           <widget class="QCheckBox" name="updateSatDataDaily">
+            <property name="toolTip">
+             <string>Download updated satellite data and TLEs once a day while the Satellite Tracker is running</string>
+            </property>
+            <property name="text">
+             <string>Update satellite data daily</string>
+            </property>
+           </widget>
+          </item>
+          <item row="17" column="0">
            <spacer name="verticalSpacer">
             <property name="orientation">
              <enum>Qt::Vertical</enum>

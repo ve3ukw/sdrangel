@@ -21,6 +21,7 @@
 #define INCLUDE_FEATURE_SATELLITETRACKER_H_
 
 #include <QThread>
+#include <QTimer>
 #include <QNetworkRequest>
 
 #include "feature/feature.h"
@@ -243,6 +244,7 @@ private:
     QNetworkAccessManager *m_networkManager;
     QNetworkRequest m_networkRequest;
     HttpDownloadManager m_dlm;
+    QTimer m_dailyUpdateTimer;
     bool m_updatingSatData;
     int m_tleIndex;
     QMutex m_mutex;

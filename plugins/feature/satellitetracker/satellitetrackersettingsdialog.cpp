@@ -43,6 +43,8 @@ SatelliteTrackerSettingsDialog::SatelliteTrackerSettingsDialog(SatelliteTrackerS
     ui->losCommand->setText(settings->m_losCommand);
     ui->updatePeriod->setValue(settings->m_updatePeriod);
     ui->dopplerPeriod->setValue(settings->m_dopplerPeriod);
+    ui->rotatorPrePosition->setChecked(settings->m_rotatorPrePosition);
+    ui->updateSatDataDaily->setChecked(settings->m_updateSatDataDaily);
     ui->defaultFrequency->setValue(settings->m_defaultFrequency / 1000000.0);
     ui->azElUnits->setCurrentIndex((int)settings->m_azElUnits);
     ui->groundTrackPoints->setValue(settings->m_groundTrackPoints);
@@ -113,6 +115,8 @@ void SatelliteTrackerSettingsDialog::accept()
     m_settings->m_losCommand = ui->losCommand->text();
     m_settings->m_updatePeriod = (float)ui->updatePeriod->value();
     m_settings->m_dopplerPeriod = (float)ui->dopplerPeriod->value();
+    m_settings->m_rotatorPrePosition = ui->rotatorPrePosition->isChecked();
+    m_settings->m_updateSatDataDaily = ui->updateSatDataDaily->isChecked();
     m_settings->m_defaultFrequency = (float)(ui->defaultFrequency->value() * 1000000.0);
     m_settings->m_azElUnits = (SatelliteTrackerSettings::AzElUnits)ui->azElUnits->currentIndex();
     m_settings->m_groundTrackPoints = ui->groundTrackPoints->value();
