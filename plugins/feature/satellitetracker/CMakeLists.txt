@@ -37,12 +37,14 @@ if(NOT SERVER_MODE)
         satelliteradiocontroldialog.cpp
         satelliteradiocontroldialog.ui
         satellitedevicesettingsgui.cpp
+        amsatstatus.cpp
     )
     set(satellitetracker_HEADERS
         ${satellitetracker_HEADERS}
         satellitetrackergui.h
         satellitetrackersettingsdialog.h
         satelliteselectiondialog.h
+        amsatstatus.h
         satelliteradiocontroldialog.h
         satellitedevicesettingsgui.h
     )

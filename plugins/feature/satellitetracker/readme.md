@@ -118,6 +118,7 @@ On the Settings tab, you can set:
 * The Doppler correction period in seconds, which controls how frequently Doppler correction is applied. Which channels have Doppler correction applied is set on a per-channel basis in the SDRangel Control dialog.
 * Pre-position rotators for next pass - when the target is below the horizon, rotators are pointed at the azimuth (and 0 degrees elevation) where its next pass will start, so they are ready at AOS.
 * Update satellite data daily - satellite data and TLEs are downloaded once a day while the Satellite Tracker is running. This is useful when running unattended, particularly for satellites that manoeuvre, such as the ISS.
+* Show AMSAT status - whether to get status reports for the tracked satellites from the AMSAT status page, and how many hours of reports to get.
 
 For commands, scripts and speech, the following variables can be substituted: `${name}`, `${duration}`, `${aos}`, `${los}`, `${elevation}`, `${aosAzimuth}`, `${losAzimuth}`, `${northToSouth}`, `${latitude}`, `${longitude}`, `${altitude}`, `${azimuth}`, `${elevation}`, `${range}`, `${rangeRate}`, `${speed}` and `${period}`.
 
@@ -223,6 +224,11 @@ The table contains:
 * The free space path loss to the satellite, at the default frequency.
 * The one-way propagation delay to the satellite from the antenna location in milliseconds.
 * The NORAD catalogue identifier for the satellite.
+* The latest report from the AMSAT status page (https://www.amsat.org/status/) and how long ago it was made, coloured as on the AMSAT page:
+Heard (blue), Telemetry Only (yellow), Not Heard (red), Conflicting reports (orange) and Crew Active (purple).
+AMSAT has separate entries for each of a satellite's modes (E.g. ISS FM, SSTV and Crew). The tooltip shows the latest report for each mode,
+which are also shown at the top of the context menu. AMSAT names are matched to SatNOGS names, alternative names and TLE names.
+Reports are only requested for the satellites being tracked, every 30 minutes.
 
 Rows can be ordered by left clicking column headers.
 Columns can be hidden by right clicking on the header and unchecking them.

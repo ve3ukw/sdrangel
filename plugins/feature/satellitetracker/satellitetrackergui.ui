@@ -726,6 +726,14 @@
         <string>Norad catalog identifier for the satellite</string>
        </property>
       </column>
+      <column>
+       <property name="text">
+        <string>AMSAT</string>
+       </property>
+       <property name="toolTip">
+        <string>Latest status report from the AMSAT status page (https://www.amsat.org/status/) and how long ago it was</string>
+       </property>
+      </column>
      </widget>
     </item>
    </layout>

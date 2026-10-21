@@ -80,6 +80,8 @@ void SatelliteTrackerSettings::resetToDefaults()
     m_satelliteGroup = "";
     m_rotatorPrePosition = true;
     m_updateSatDataDaily = true;
+    m_amsatStatus = true;
+    m_amsatStatusHours = 24;
     m_trackSatellite = "";
     m_trackFrequency = 0;
     m_trackMode = 0;
@@ -179,6 +181,8 @@ QByteArray SatelliteTrackerSettings::serialize() const
     s.writeS64(65, m_trackOffset);
     s.writeFloat(66, m_trackCTCSS);
     s.writeBool(67, m_trackCreatedChannel);
+    s.writeBool(68, m_amsatStatus);
+    s.writeS32(69, m_amsatStatusHours);
 
     for (int i = 0; i < SAT_COL_COLUMNS; i++) {
         s.writeS32(100 + i, m_columnIndexes[i]);
@@ -302,6 +306,8 @@ bool SatelliteTrackerSettings::deserialize(const QByteArray& data)
         d.readS64(65, &m_trackOffset, 0);
         d.readFloat(66, &m_trackCTCSS, 0.0f);
         d.readBool(67, &m_trackCreatedChannel, false);
+        d.readBool(68, &m_amsatStatus, true);
+        d.readS32(69, &m_amsatStatusHours, 24);
 
         for (int i = 0; i < SAT_COL_COLUMNS; i++) {
             d.readS32(100 + i, &m_columnIndexes[i], i);
@@ -538,6 +544,12 @@ void SatelliteTrackerSettings::applySettings(const QStringList& settingsKeys, co
     if (settingsKeys.contains("updateSatDataDaily")) {
         m_updateSatDataDaily = settings.m_updateSatDataDaily;
     }
+    if (settingsKeys.contains("amsatStatus")) {
+        m_amsatStatus = settings.m_amsatStatus;
+    }
+    if (settingsKeys.contains("amsatStatusHours")) {
+        m_amsatStatusHours = settings.m_amsatStatusHours;
+    }
     if (settingsKeys.contains("track"))
     {
         m_trackSatellite = settings.m_trackSatellite;
@@ -756,6 +768,12 @@ QString SatelliteTrackerSettings::getDebugString(const QStringList& settingsKeys
     }
     if (settingsKeys.contains("updateSatDataDaily") || force) {
         ostr << " m_updateSatDataDaily: " << m_updateSatDataDaily;
+    }
+    if (settingsKeys.contains("amsatStatus") || force) {
+        ostr << " m_amsatStatus: " << m_amsatStatus;
+    }
+    if (settingsKeys.contains("amsatStatusHours") || force) {
+        ostr << " m_amsatStatusHours: " << m_amsatStatusHours;
     }
     if (settingsKeys.contains("track") || force) {
         ostr << " m_trackSatellite: " << m_trackSatellite.toStdString() << " m_trackFrequency: " << m_trackFrequency

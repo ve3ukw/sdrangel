@@ -36,7 +36,7 @@ class Serializable;
 #define DEFAULT_AOS_SPEECH              "${name} is visible for ${duration} minutes. Max elevation, ${elevation} degrees."
 #define DEFAULT_LOS_SPEECH              "${name} is no longer visible."
 
-#define SAT_COL_COLUMNS 18
+#define SAT_COL_COLUMNS 19
 
 struct SatelliteTrackerSettings
 {
@@ -100,6 +100,8 @@ struct SatelliteTrackerSettings
     QString m_satelliteGroup;           //!< Group m_satellites was selected from, or empty if none
     bool m_rotatorPrePosition;          //!< Point rotators at AOS azimuth of target's next pass, when it's below the horizon
     bool m_updateSatDataDaily;          //!< Update satellite data (incl. TLEs) daily while running
+    bool m_amsatStatus;                 //!< Show status reports from AMSAT status page
+    int m_amsatStatusHours;             //!< How many hours of AMSAT status reports to get
 
     // Transmitter being Doppler tracked, from satellite table context menu, so tracking can be resumed after a restart
     QString m_trackSatellite;           //!< Empty if not tracking

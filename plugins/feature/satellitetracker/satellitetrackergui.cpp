@@ -257,6 +257,8 @@ void SatelliteTrackerGUI::updateSelectedSats()
             ui->target->addItem(m_settings.m_satellites[i]);
         }
     }
+    updateAMSATSatellites();
+
     // Select current target, if it still exists
     int idx = ui->target->findText(m_settings.m_target);
 
@@ -312,8 +314,11 @@ SatelliteTrackerGUI::SatelliteTrackerGUI(PluginAPI* pluginAPI, FeatureUISet *fea
     m_tuneBaseFrequency(0),
     m_tuneOffset(0),
     m_tuneCTCSS(0.0f),
-    m_resumeAttempts(-1)
+    m_resumeAttempts(-1),
+    m_amsatStatus(nullptr)
 {
+    m_amsatStatus = new AMSATStatus(this);
+    connect(m_amsatStatus, &AMSATStatus::statusUpdated, this, &SatelliteTrackerGUI::amsatStatusUpdated);
     m_pendingTune.m_active = false;
     m_feature = feature;
     setAttribute(Qt::WA_DeleteOnClose, true);
@@ -417,6 +422,7 @@ void SatelliteTrackerGUI::displaySettings()
     ui->longitude->setValue(m_settings.m_longitude);
 
     updateSatelliteGroups();
+    applyAMSATSettings();
 
     ui->target->blockSignals(true);
     ui->target->clear();
@@ -584,6 +590,9 @@ void SatelliteTrackerGUI::on_displaySettings_clicked()
         m_settingsKeys.append("predictionPeriod");
         m_settingsKeys.append("rotatorPrePosition");
         m_settingsKeys.append("updateSatDataDaily");
+        m_settingsKeys.append("amsatStatus");
+        m_settingsKeys.append("amsatStatusHours");
+        applyAMSATSettings();
         m_settingsKeys.append("passStartTime");
         m_settingsKeys.append("passFinishTime");
         m_settingsKeys.append("minAOSElevation");
@@ -1343,6 +1352,7 @@ void SatelliteTrackerGUI::resizeTable()
     ui->satTable->setItem(row, SAT_COL_DOPPLER, new QTableWidgetItem("10000"));
     ui->satTable->setItem(row, SAT_COL_PATH_LOSS, new QTableWidgetItem("100"));
     ui->satTable->setItem(row, SAT_COL_NORAD_ID, new QTableWidgetItem("123456"));
+    ui->satTable->setItem(row, SAT_COL_AMSAT, new QTableWidgetItem("Telemetry Only 23h"));
     ui->satTable->resizeColumnsToContents();
     ui->satTable->setRowCount(row);
 }
@@ -1481,7 +1491,7 @@ void SatelliteTrackerGUI::updateTable(SatelliteState *satState)
         {
             if ((i == SAT_COL_AOS) || (i == SAT_COL_LOS)) {
                 items[i] = new DateTimeSortedTableWidgetItem();
-            } else if ((i == SAT_COL_NAME) || (i == SAT_COL_NORAD_ID)) {
+            } else if ((i == SAT_COL_NAME) || (i == SAT_COL_NORAD_ID) || (i == SAT_COL_AMSAT)) {
                 items[i] = new QTableWidgetItem();
             } else if (i == SAT_COL_TNE) {
                 items[i] = new NextEventTableWidgetItem();
@@ -1522,6 +1532,7 @@ void SatelliteTrackerGUI::updateTable(SatelliteState *satState)
         }
     }
 
+    updateAMSATItem(items[SAT_COL_AMSAT], satState->m_name);
     items[SAT_COL_AZ]->setData(Qt::DisplayRole, (int)round(satState->m_azimuth));
     items[SAT_COL_EL]->setData(Qt::DisplayRole, (int)round(satState->m_elevation));
 
@@ -1600,6 +1611,25 @@ void SatelliteTrackerGUI::satTable_customContextMenuRequested(QPoint pos)
             clearTrack();
         });
         tableContextMenu->addAction(stopAction);
+        tableContextMenu->addSeparator();
+    }
+
+    // Status of satellite's modes from AMSAT status page
+    QList<AMSATStatus::EntryStatus> amsatStatus = m_amsatStatus->getStatus(name);
+    for (const AMSATStatus::EntryStatus& status : amsatStatus)
+    {
+        QString text = QString("AMSAT %1: %2").arg(status.m_mode).arg(status.m_status);
+        if (status.m_time.isValid()) {
+            text.append(QString(" %1 ago by %2 (%3)").arg(AMSATStatus::formatAge(status.m_time)).arg(status.m_callsign).arg(status.m_grid));
+        }
+        QPixmap pixmap(12, 12);
+        QColor color = AMSATStatus::backgroundColor(status.m_status);
+        pixmap.fill(color.isValid() ? color : Qt::transparent);
+        QAction *statusAction = new QAction(QIcon(pixmap), text, tableContextMenu);
+        statusAction->setEnabled(false);
+        tableContextMenu->addAction(statusAction);
+    }
+    if (!amsatStatus.isEmpty()) {
         tableContextMenu->addSeparator();
     }
 
@@ -2403,6 +2433,77 @@ void SatelliteTrackerGUI::on_deviceFeatureSelect_currentIndexChanged(int index)
     }
 
     applySettings();
+}
+
+void SatelliteTrackerGUI::applyAMSATSettings()
+{
+    m_amsatStatus->setHours(m_settings.m_amsatStatusHours);
+    m_amsatStatus->setEnabled(m_settings.m_amsatStatus);
+}
+
+// Get AMSAT status for the satellites we're tracking
+void SatelliteTrackerGUI::updateAMSATSatellites()
+{
+    QList<SatNogsSatellite *> satellites;
+
+    for (const QString& name : m_settings.m_satellites)
+    {
+        if (m_satellites.contains(name)) {
+            satellites.append(m_satellites.value(name));
+        }
+    }
+    m_amsatStatus->setSatellites(satellites);
+}
+
+void SatelliteTrackerGUI::amsatStatusUpdated()
+{
+    for (int row = 0; row < ui->satTable->rowCount(); row++)
+    {
+        QTableWidgetItem *nameItem = ui->satTable->item(row, SAT_COL_NAME);
+        QTableWidgetItem *amsatItem = ui->satTable->item(row, SAT_COL_AMSAT);
+        if (nameItem && amsatItem) {
+            updateAMSATItem(amsatItem, nameItem->text());
+        }
+    }
+}
+
+// Display most recent AMSAT status of a satellite, with status of each mode in tooltip
+void SatelliteTrackerGUI::updateAMSATItem(QTableWidgetItem *item, const QString& satellite)
+{
+    QList<AMSATStatus::EntryStatus> statuses = m_amsatStatus->getStatus(satellite);
+    const AMSATStatus::EntryStatus *latest = nullptr;
+    QStringList tip;
+
+    for (const AMSATStatus::EntryStatus& status : statuses)
+    {
+        if (status.m_time.isValid() && (!latest || (status.m_time > latest->m_time))) {
+            latest = &status;
+        }
+        if (status.m_time.isValid())
+        {
+            tip.append(QString("%1: %2 %3 ago by %4 (%5) - %6 reports in last %7h")
+                .arg(status.m_mode).arg(status.m_status).arg(AMSATStatus::formatAge(status.m_time))
+                .arg(status.m_callsign).arg(status.m_grid).arg(status.m_reports).arg(m_settings.m_amsatStatusHours));
+        }
+        else
+        {
+            tip.append(QString("%1: No reports in last %2h").arg(status.m_mode).arg(m_settings.m_amsatStatusHours));
+        }
+    }
+
+    if (latest)
+    {
+        item->setText(QString("%1 %2").arg(latest->m_status).arg(AMSATStatus::formatAge(latest->m_time)));
+        item->setBackground(AMSATStatus::backgroundColor(latest->m_status));
+        item->setForeground(AMSATStatus::textColor(latest->m_status));
+    }
+    else
+    {
+        item->setText(statuses.isEmpty() ? "" : "No reports");
+        item->setData(Qt::BackgroundRole, QVariant());
+        item->setData(Qt::ForegroundRole, QVariant());
+    }
+    item->setToolTip(tip.isEmpty() ? ui->satTable->horizontalHeaderItem(SAT_COL_AMSAT)->toolTip() : tip.join("\n"));
 }
 
 // Fill satellite group combo box, which is only shown when there are groups

@@ -34,6 +34,7 @@
 
 #include "satellitetrackersettings.h"
 #include "satnogs.h"
+#include "amsatstatus.h"
 
 class PluginAPI;
 class FeatureUISet;
@@ -133,7 +134,8 @@ private:
         QString m_type;
         qint64 m_offset;
     } m_pendingTune;
-    int m_resumeAttempts;               // Attempts to resume tracking from settings, or -1 if not resuming
+    int m_resumeAttempts;
+    AMSATStatus *m_amsatStatus;               // Attempts to resume tracking from settings, or -1 if not resuming
     static const int m_cwToneFrequency = 700;  // CW tone in Hz, when tuning CW with an SSB demodulator
 
     struct RxChannel {
@@ -162,7 +164,8 @@ private:
         SAT_COL_DOPPLER,
         SAT_COL_PATH_LOSS,
         SAT_COL_DELAY,
-        SAT_COL_NORAD_ID
+        SAT_COL_NORAD_ID,
+        SAT_COL_AMSAT
     };
 
     explicit SatelliteTrackerGUI(PluginAPI* pluginAPI, FeatureUISet *featureUISet, Feature *feature, QWidget* parent = nullptr);
@@ -184,6 +187,9 @@ private:
     void updateTable(SatelliteState *satState);
     void updateSelectedSats();
     void updateSatelliteGroups();
+    void updateAMSATSatellites();
+    void updateAMSATItem(QTableWidgetItem *item, const QString& satellite);
+    void applyAMSATSettings();
     QAction *createCheckableItem(QString& text, int idx, bool checked);
     void updateTimeToAOS();
     QString formatDaysTime(qint64 days, QDateTime dateTime);
@@ -241,6 +247,7 @@ private slots:
     void satTable_customContextMenuRequested(QPoint pos);
     void stopTune();
     void resumeTrack();
+    void amsatStatusUpdated();
     void channelAdded(int deviceSetIndex, ChannelAPI *channel);
     void channelRemoved(int deviceSetIndex, ChannelAPI *channel);
     void columnSelectMenuChecked(bool checked = false);
