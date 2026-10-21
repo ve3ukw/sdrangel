@@ -23,6 +23,12 @@
 #include <QGeoCoordinate>
 #include <QtCharts/QLineSeries>
 
+#include "satnogs.h"
+
+namespace libsgp4 {
+    class Tle;
+}
+
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 using namespace QtCharts;
 #endif
@@ -58,19 +64,21 @@ void getGroundTrack(QDateTime dateTime,
                         const QString& tle0, const QString& tle1, const QString& tle2,
                         int steps, QList<QGeoCoordinate>& coordinates);
 
+libsgp4::Tle createTle(const SatNogsTLE& satTle);
+
 void getSatelliteState(QDateTime dateTime,
-                        const QString& tle0, const QString& tle1, const QString& tle2,
+                        const SatNogsTLE& satTle,
                         double latitude, double longitude, double altitude,
                         int predictionPeriod, int minAOSElevationDeg, int minPassElevationDeg,
                         QTime passStartTime, QTime passFinishTime, bool utc,
                         int noOfPasses, int groundTrackSteps, SatelliteState *satState);
 
 void getPassAzEl(QLineSeries *azimuth, QLineSeries *elevation, QLineSeries *polar,
-                        const QString& tle0, const QString& tle1, const QString& tle2,
+                        const SatNogsTLE& satTle,
                         double latitude, double longitude, double altitude,
                         const QDateTime& aos, const QDateTime& los);
 
-bool getPassesThrough0Deg(const QString& tle0, const QString& tle1, const QString& tle2,
+bool getPassesThrough0Deg(const SatNogsTLE& satTle,
                           double latitude, double longitude, double altitude,
                           QDateTime& aos, QDateTime& los);
 

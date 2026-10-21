@@ -48,15 +48,28 @@ static DateTime qDateTimeToDateTime(QDateTime qdt)
     return dt;
 }
 
+// Create SGP4 TLE from a TLE or OMM
+// OMMs are used directly when libsgp4 supports them, for full precision, otherwise via the TLE created from them
+// Throws TleException
+Tle createTle(const SatNogsTLE& satTle)
+{
+#ifdef HAS_SGP4_OMM
+    if (satTle.isOMM()) {
+        return Tle::FromCsv(satTle.m_omm.toStdString());
+    }
+#endif
+    return Tle(satTle.m_tle0.toStdString(), satTle.m_tle1.toStdString(), satTle.m_tle2.toStdString());
+}
+
 // Get ground track
 // Throws SatelliteException, DecayedException and TleException
 void getGroundTrack(QDateTime dateTime,
-                        const QString& tle0, const QString& tle1, const QString& tle2,
+                        const SatNogsTLE& satTle,
                         int steps, bool forward,
                         QList<QGeoCoordinate *>& coordinates,
                         QList<QDateTime *>& coordinateDateTimes)
 {
-    Tle tle = Tle(tle0.toStdString(), tle1.toStdString(), tle2.toStdString());
+    Tle tle = createTle(satTle);
     SGP4 sgp4(tle);
     OrbitalElements ele(tle);
     double periodMins;
@@ -124,13 +137,13 @@ void getGroundTrack(QDateTime dateTime,
 
 // Find azimuth and elevation points during a pass
 void getPassAzEl(QLineSeries* azimuth, QLineSeries* elevation, QLineSeries* polar,
-                        const QString& tle0, const QString& tle1, const QString& tle2,
+                        const SatNogsTLE& satTle,
                         double latitude, double longitude, double altitude,
                         const QDateTime& aos, const QDateTime& los)
 {
     try
     {
-        Tle tle = Tle(tle0.toStdString(), tle1.toStdString(), tle2.toStdString());
+        Tle tle = createTle(satTle);
         SGP4 sgp4(tle);
         Observer obs(latitude, longitude, altitude);
 
@@ -181,13 +194,13 @@ void getPassAzEl(QLineSeries* azimuth, QLineSeries* elevation, QLineSeries* pola
 }
 
 // Get whether a pass passes through 0 degrees
-bool getPassesThrough0Deg(const QString& tle0, const QString& tle1, const QString& tle2,
+bool getPassesThrough0Deg(const SatNogsTLE& satTle,
                           double latitude, double longitude, double altitude,
                           QDateTime& aos, QDateTime& los)
 {
     try
     {
-        Tle tle = Tle(tle0.toStdString(), tle1.toStdString(), tle2.toStdString());
+        Tle tle = createTle(satTle);
         SGP4 sgp4(tle);
         Observer obs(latitude, longitude, altitude);
 
@@ -470,7 +483,7 @@ static QList<SatellitePass> createPassList(Observer& obs, SGP4& sgp4, DateTime& 
 }
 
 void getSatelliteState(QDateTime dateTime,
-                        const QString& tle0, const QString& tle1, const QString& tle2,
+                        const SatNogsTLE& satTle,
                         double latitude, double longitude, double altitude,
                         int predictionPeriod, int minAOSElevationDeg, int minPassElevationDeg,
                         QTime passStartTime, QTime passFinishTime, bool utc,
@@ -478,7 +491,7 @@ void getSatelliteState(QDateTime dateTime,
 {
     try
     {
-        Tle tle = Tle(tle0.toStdString(), tle1.toStdString(), tle2.toStdString());
+        Tle tle = createTle(satTle);
         SGP4 sgp4(tle);
         Observer obs(latitude, longitude, altitude);
 
@@ -521,8 +534,8 @@ void getSatelliteState(QDateTime dateTime,
         satState->m_predictedGroundTrack.clear();
         qDeleteAll(satState->m_predictedGroundTrackDateTime);
         satState->m_predictedGroundTrackDateTime.clear();
-        getGroundTrack(dateTime, tle0, tle1, tle2, groundTrackSteps, false, satState->m_groundTrack, satState->m_groundTrackDateTime);
-        getGroundTrack(dateTime, tle0, tle1, tle2, groundTrackSteps, true, satState->m_predictedGroundTrack, satState->m_predictedGroundTrackDateTime);
+        getGroundTrack(dateTime, satTle, groundTrackSteps, false, satState->m_groundTrack, satState->m_groundTrackDateTime);
+        getGroundTrack(dateTime, satTle, groundTrackSteps, true, satState->m_predictedGroundTrack, satState->m_predictedGroundTrackDateTime);
     }
     catch (SatelliteException& se)
     {
@@ -534,6 +547,6 @@ void getSatelliteState(QDateTime dateTime,
     }
     catch (TleException& tlee)
     {
-        qDebug() << "getSatelliteState:TleException " << satState->m_name << ": " << tlee.what() << "\n" << tle0 << "\n" << tle1 << "\n" << tle2;
+        qDebug() << "getSatelliteState:TleException " << satState->m_name << ": " << tlee.what() << "\n" << satTle.toString();
     }
 }

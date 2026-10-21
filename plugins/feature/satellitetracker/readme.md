@@ -127,6 +127,11 @@ TLE files contain the orbital parameters for a satellite and are required in ord
 TLEs for may satellites can be obtained from https://www.celestrak.com/NORAD/elements/
 To use a TLE file on a local disk, use a URL such as file:my_tle.txt
 
+Files of Orbit Mean-Elements Messages (OMMs) in CSV format can be used instead of TLEs. E.g. https://celestrak.org/NORAD/elements/gp.php?GROUP=weather&FORMAT=csv
+OMMs are required for satellites with catalog numbers greater than 99999, which can't be represented as TLEs, and so are not included in TLE files.
+The format of each file is detected from its contents, so TLE and OMM URLs can be mixed in the list.
+When a satellite is in both a TLE and an OMM file, the one with the most recent epoch is used.
+
 ![Satellite tracker settings dialog](../../../doc/img/SatelliteTracker_plugin_settingsdialog3.png)
 
 On the Display tab, you can set:

@@ -392,7 +392,7 @@ void SatelliteTrackerWorker::update()
                     noOfPasses = (name == m_settings.m_target) ? 99 : 1;
                 else
                     noOfPasses = 0;
-                getSatelliteState(qdt, sat->m_tle->m_tle0, sat->m_tle->m_tle1, sat->m_tle->m_tle2,
+                getSatelliteState(qdt, *sat->m_tle,
                                     m_settings.m_latitude, m_settings.m_longitude, m_settings.m_heightAboveSeaLevel/1000.0,
                                     m_settings.m_predictionPeriod, m_settings.m_minAOSElevation, m_settings.m_minPassElevation,
                                     m_settings.m_passStartTime, m_settings.m_passFinishTime, m_settings.m_utc,
@@ -651,7 +651,7 @@ void SatelliteTrackerWorker::calculateRotation(SatWorkerState *satWorkerState)
     if (satWorkerState->m_satState.m_passes.size() > 0)
     {
         SatNogsSatellite *sat = m_satellites.value(satWorkerState->m_name);
-        bool passes0 = getPassesThrough0Deg(sat->m_tle->m_tle0, sat->m_tle->m_tle1, sat->m_tle->m_tle2,
+        bool passes0 = getPassesThrough0Deg(*sat->m_tle,
                                             m_settings.m_latitude, m_settings.m_longitude, m_settings.m_heightAboveSeaLevel/1000.0,
                                             satWorkerState->m_satState.m_passes[0].m_aos, satWorkerState->m_satState.m_passes[0].m_los);
         if (passes0)
