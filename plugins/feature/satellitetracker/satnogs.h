@@ -472,9 +472,16 @@ struct SatNogsSatellite {
     {
         m_noradCatId = obj["norad_cat_id"].toInt();
         m_name = obj["name"].toString();
-        m_names = obj["names"].toString().split("\r\n");
-        if ((m_names.size() == 1) && m_names[0].isEmpty())
-            m_names = QStringList();
+        // Alternative names are separated by commas (E.g. "AO-91, RADFXSAT"), or in older data, CR LF
+        static const QRegularExpression separators("[,\\r\\n]+");
+        m_names.clear();
+        for (const QString& name : obj["names"].toString().split(separators, Qt::SkipEmptyParts))
+        {
+            QString trimmed = name.trimmed();
+            if (!trimmed.isEmpty()) {
+                m_names.append(trimmed);
+            }
+        }
         m_image = obj["image"].toString();
         m_status = obj["status"].toString();
         if (!obj["decayed"].isNull())
