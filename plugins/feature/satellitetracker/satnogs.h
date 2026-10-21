@@ -184,18 +184,34 @@ struct SatNogsTLE {
         return list;
     }
 
+    // Check a pair of lines look like TLE lines 1 and 2 for the same satellite
+    static bool isValidTLE(const QString& tle1, const QString& tle2)
+    {
+        return (tle1.size() >= 69) && (tle2.size() >= 69)
+            && tle1.startsWith("1 ") && tle2.startsWith("2 ")
+            && (tle1.mid(2, 5) == tle2.mid(2, 5));
+    }
+
+    // Parse a text file of 3-line TLEs (name, line 1, line 2)
+    // Lines that aren't part of a valid TLE (E.g. an HTML error page or another file format) are skipped
     static QList<SatNogsTLE *> createList(const QByteArray& array)
     {
         QList<SatNogsTLE *> list;
         QList<QByteArray> lines = array.split('\n');
-        for (int i = 0; i < lines.size(); i += 3)
+        int i = 0;
+        while (i + 2 < lines.size())
         {
-            if (i + 3 < lines.size())
+            QString tle0 = QString(lines[i]).trimmed();
+            QString tle1 = QString(lines[i+1]).trimmed();
+            QString tle2 = QString(lines[i+2]).trimmed();
+            if (!tle0.isEmpty() && isValidTLE(tle1, tle2))
             {
-                QString tle0(lines[i]);
-                QString tle1(lines[i+1]);
-                QString tle2(lines[i+2]);
-                list.append(new SatNogsTLE(tle0.trimmed(), tle1.trimmed(), tle2.trimmed()));
+                list.append(new SatNogsTLE(tle0, tle1, tle2));
+                i += 3;
+            }
+            else
+            {
+                i++;
             }
         }
         return list;
