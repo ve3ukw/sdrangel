@@ -91,6 +91,7 @@ void SatelliteTrackerSettings::resetToDefaults()
     m_trackOffset = 0;
     m_trackCTCSS = 0.0f;
     m_trackCreatedChannel = false;
+    m_satelliteTransmitters.clear();
     m_drawRotators = MATCHING_TARGET;
     m_azimuthOffset = 0.0;
     m_elevationOffset = 0.0;
@@ -183,6 +184,15 @@ QByteArray SatelliteTrackerSettings::serialize() const
     s.writeBool(67, m_trackCreatedChannel);
     s.writeBool(68, m_amsatStatus);
     s.writeS32(69, m_amsatStatusHours);
+    {
+        QByteArray transmitters;
+        QDataStream stream(&transmitters, QIODevice::WriteOnly);
+        stream << (qint32) m_satelliteTransmitters.size();
+        for (auto it = m_satelliteTransmitters.cbegin(); it != m_satelliteTransmitters.cend(); ++it) {
+            stream << it.key() << it.value().m_frequency << (qint32) it.value().m_mode << it.value().m_channelType << it.value().m_offset << it.value().m_ctcss;
+        }
+        s.writeBlob(70, transmitters);
+    }
 
     for (int i = 0; i < SAT_COL_COLUMNS; i++) {
         s.writeS32(100 + i, m_columnIndexes[i]);
@@ -308,6 +318,28 @@ bool SatelliteTrackerSettings::deserialize(const QByteArray& data)
         d.readBool(67, &m_trackCreatedChannel, false);
         d.readBool(68, &m_amsatStatus, true);
         d.readS32(69, &m_amsatStatusHours, 24);
+        {
+            QByteArray transmitters;
+            m_satelliteTransmitters.clear();
+            d.readBlob(70, &transmitters);
+            if (!transmitters.isEmpty())
+            {
+                QDataStream stream(&transmitters, QIODevice::ReadOnly);
+                qint32 count;
+                stream >> count;
+                for (int i = 0; (i < count) && (stream.status() == QDataStream::Ok); i++)
+                {
+                    QString name;
+                    SatelliteTransmitter transmitter;
+                    qint32 mode;
+                    stream >> name >> transmitter.m_frequency >> mode >> transmitter.m_channelType >> transmitter.m_offset >> transmitter.m_ctcss;
+                    transmitter.m_mode = mode;
+                    if (stream.status() == QDataStream::Ok) {
+                        m_satelliteTransmitters.insert(name, transmitter);
+                    }
+                }
+            }
+        }
 
         for (int i = 0; i < SAT_COL_COLUMNS; i++) {
             d.readS32(100 + i, &m_columnIndexes[i], i);
@@ -562,6 +594,9 @@ void SatelliteTrackerSettings::applySettings(const QStringList& settingsKeys, co
         m_trackCTCSS = settings.m_trackCTCSS;
         m_trackCreatedChannel = settings.m_trackCreatedChannel;
     }
+    if (settingsKeys.contains("satelliteTransmitters")) {
+        m_satelliteTransmitters = settings.m_satelliteTransmitters;
+    }
     if (settingsKeys.contains("drawRotators")) {
         m_drawRotators = settings.m_drawRotators;
     }
@@ -778,6 +813,9 @@ QString SatelliteTrackerSettings::getDebugString(const QStringList& settingsKeys
     if (settingsKeys.contains("track") || force) {
         ostr << " m_trackSatellite: " << m_trackSatellite.toStdString() << " m_trackFrequency: " << m_trackFrequency
             << " m_trackChannelType: " << m_trackChannelType.toStdString() << " m_trackOffset: " << m_trackOffset;
+    }
+    if (settingsKeys.contains("satelliteTransmitters") || force) {
+        ostr << " m_satelliteTransmitters: " << QStringList(m_satelliteTransmitters.keys()).join(",").toStdString();
     }
     if (settingsKeys.contains("drawRotators") || force) {
         ostr << " m_drawRotators: " << m_drawRotators;

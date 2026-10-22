@@ -58,6 +58,16 @@ struct SatelliteTrackerSettings
         void getDebugString(std::ostringstream& ostr);
     };
 
+    // Transmitter last Doppler tracked for a satellite, so it can be tracked again when the satellite next becomes the target
+    struct SatelliteTransmitter
+    {
+        qint64 m_frequency;             //!< Transmitter frequency in Hz
+        int m_mode;                     //!< SatelliteTrackerGUI::TuneMode
+        QString m_channelType;          //!< E.g. "SSTVDemod"
+        qint64 m_offset;                //!< How far user had retuned from transmitter frequency in Hz
+        float m_ctcss;                  //!< Uplink CTCSS tone in Hz or 0
+    };
+
     double m_latitude;                  //!< Antenna location, degrees
     double m_longitude;
     double m_heightAboveSeaLevel;       //!< In metres
@@ -113,6 +123,7 @@ struct SatelliteTrackerSettings
     qint64 m_trackOffset;               //!< How far user has retuned from transmitter frequency in Hz
     float m_trackCTCSS;                 //!< Uplink CTCSS tone in Hz or 0
     bool m_trackCreatedChannel;         //!< Channel was created by the Satellite Tracker
+    QMap<QString, SatelliteTransmitter> m_satelliteTransmitters; //!< Transmitter last tracked, by satellite name
     enum Rotators {ALL_ROTATORS, NO_ROTATORS, MATCHING_TARGET} m_drawRotators; //!< Which rotators to draw on polar chart
     double m_azimuthOffset;             //!< Offset to add to az/el sent to rotator
     double m_elevationOffset;

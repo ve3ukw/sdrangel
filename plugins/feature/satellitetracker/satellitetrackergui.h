@@ -208,12 +208,15 @@ private:
     void startTune(const QString& satellite, qint64 frequency, TuneMode mode, int deviceSetIndex, ChannelAPI *channel, const QString& type, bool configure, qint64 offset);
     void removeCreatedChannel();
     void workSatellite(const QString& satellite);
+    void trackTarget(const QString& satellite);
+    void getRxChannels(QList<RxChannel>& rxChannels, QList<int>& rxDeviceSets, int& selectedChannel);
     void startRotators();
     static QString availableChannelType(const QStringList& types);
     static int channelIndex(int deviceSetIndex, const ChannelAPI *channel);
     static TuneMode tuneMode(const SatNogsTransmitter *transmitter);
     static QStringList channelTypesForMode(TuneMode mode);
     static int channelForMode(TuneMode mode, const QList<RxChannel>& rxChannels, int selectedChannel);
+    static int channelForTypes(const QStringList& types, const QList<RxChannel>& rxChannels, int selectedChannel);
 
 private slots:
     void onMenuDialogCalled(const QPoint &p);
@@ -224,6 +227,7 @@ private slots:
     void on_latitude_valueChanged(double value);
     void on_longitude_valueChanged(double value);
     void on_target_currentTextChanged(const QString &text);
+    void on_target_textActivated(const QString &text);
     void on_displaySettings_clicked();
     void on_radioControl_clicked();
     void on_dateTimeSelect_currentIndexChanged(int index);

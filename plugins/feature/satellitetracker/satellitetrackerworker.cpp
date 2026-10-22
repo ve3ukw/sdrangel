@@ -604,16 +604,16 @@ void SatelliteTrackerWorker::aos(SatWorkerState *satWorkerState)
         getMessageQueueToGUI()->push(SatelliteTrackerReport::MsgReportAOS::create(satWorkerState->m_name, speech));
     }
 
-    // Update target - but not while user is working the current target (Doppler tracking a transmitter selected from the table)
-    if (m_settings.m_autoTarget
-        && (satWorkerState->m_name != m_settings.m_target)
-        && (m_tuneSatellite != m_settings.m_target))
+    // Update target - but not while user is working the current target (Doppler tracking it during a pass)
+    if (m_settings.m_autoTarget && (satWorkerState->m_name != m_settings.m_target))
     {
         // Only switch if higher priority (earlier in list) or other target not in AOS
         SatWorkerState *targetSatWorkerState = m_workerState.value(m_settings.m_target);
+        bool targetHasAOS = targetSatWorkerState && targetSatWorkerState->hasAOS(m_satelliteTracker->currentDateTimeUtc());
+        bool working = targetHasAOS && (m_tuneSatellite == m_settings.m_target);
         int currentTargetIdx = m_settings.m_satellites.indexOf(m_settings.m_target);
         int newTargetIdx = m_settings.m_satellites.indexOf(satWorkerState->m_name);
-        if ((newTargetIdx < currentTargetIdx) || !targetSatWorkerState->hasAOS(m_satelliteTracker->currentDateTimeUtc()))
+        if (!working && ((newTargetIdx < currentTargetIdx) || !targetHasAOS))
         {
             // Stop doppler correction for current target
             if (m_workerState.contains(m_settings.m_target))

@@ -171,6 +171,7 @@ bool SatelliteTrackerGUI::handleMessage(const Message& message)
     {
         SatelliteTrackerReport::MsgReportTarget& targetReport = (SatelliteTrackerReport::MsgReportTarget&) message;
         setTarget(targetReport.getName());
+        trackTarget(targetReport.getName());
         return true;
     }
     else if (SatelliteTrackerReport::MsgReportTune::match(message))
@@ -562,6 +563,12 @@ void SatelliteTrackerGUI::setTarget(const QString& target)
 void SatelliteTrackerGUI::on_target_currentTextChanged(const QString &text)
 {
     setTarget(text);
+}
+
+// Only called when the user selects a target, not when it's set programmatically
+void SatelliteTrackerGUI::on_target_textActivated(const QString &text)
+{
+    trackTarget(text);
 }
 
 void SatelliteTrackerGUI::on_useMyPosition_clicked(bool checked)
@@ -1633,33 +1640,12 @@ void SatelliteTrackerGUI::satTable_customContextMenuRequested(QPoint pos)
         tableContextMenu->addSeparator();
     }
 
-    // Get list of Rx channels that can be tuned
+    // Get list of Rx channels that can be tuned, and the one selected in the Rx channel submenu
     QList<RxChannel> rxChannels;
     QList<int> rxDeviceSets;
+    int selectedChannel;
+    getRxChannels(rxChannels, rxDeviceSets, selectedChannel);
     std::vector<DeviceSet*>& deviceSets = MainCore::instance()->getDeviceSets();
-    for (int i = 0; i < (int) deviceSets.size(); i++)
-    {
-        // Single Rx device sets, or Rx streams of MIMO device sets
-        DeviceSet *deviceSet = deviceSets[i];
-        if (!deviceSet->m_deviceSourceEngine && !deviceSet->m_deviceMIMOEngine) {
-            continue;
-        }
-        rxDeviceSets.append(i);
-        for (int j = 0; j < deviceSet->getNumberOfChannels(); j++)
-        {
-            ChannelAPI *channel = deviceSet->getChannelAt(j);
-            if (channel && (channel->getStreamType() == ChannelAPI::StreamSingleSink))
-            {
-                QString label = deviceSet->m_deviceMIMOEngine
-                    ? QString("M%1:%2 %3 (Rx%4)").arg(i).arg(j).arg(channel->getIdentifier()).arg(channel->getStreamIndex())
-                    : QString("R%1:%2 %3").arg(i).arg(j).arg(channel->getIdentifier());
-                if (channel == m_createdChannel) {
-                    label.append(" [tracker]");
-                }
-                rxChannels.append({i, j, channel->getIdentifier(), label, channel});
-            }
-        }
-    }
 
     // Add transmitters with a downlink frequency
     QList<SatNogsTransmitter *> transmitters;
@@ -1675,15 +1661,6 @@ void SatelliteTrackerGUI::satTable_customContextMenuRequested(QPoint pos)
     std::sort(transmitters.begin(), transmitters.end(), [](const SatNogsTransmitter *a, const SatNogsTransmitter *b) {
         return a->m_downlinkLow < b->m_downlinkLow;
     });
-
-    // Channel to tune, as selected in Rx channel submenu, defaulting to first available
-    int selectedChannel = rxChannels.isEmpty() ? -1 : 0;
-    for (int i = 0; i < rxChannels.size(); i++)
-    {
-        if (QString("%1:%2").arg(rxChannels[i].m_deviceSetIndex).arg(rxChannels[i].m_channelIndex) == m_settings.m_tuneChannel) {
-            selectedChannel = i;
-        }
-    }
 
     if (m_satelliteTracker->getState() != Feature::StRunning)
     {
@@ -1863,11 +1840,15 @@ QStringList SatelliteTrackerGUI::channelTypesForMode(TuneMode mode)
 // first suitable channel (preferring the selected channel's device set), otherwise the selected channel
 int SatelliteTrackerGUI::channelForMode(TuneMode mode, const QList<RxChannel>& rxChannels, int selectedChannel)
 {
+    return channelForTypes(channelTypesForMode(mode), rxChannels, selectedChannel);
+}
+
+// As channelForMode, for a list of channel types in order of preference
+int SatelliteTrackerGUI::channelForTypes(const QStringList& types, const QList<RxChannel>& rxChannels, int selectedChannel)
+{
     if (selectedChannel < 0) {
         return -1;
     }
-
-    const QStringList types = channelTypesForMode(mode);
 
     if (types.isEmpty() || types.contains(rxChannels[selectedChannel].m_type)) {
         return selectedChannel;
@@ -1894,6 +1875,46 @@ int SatelliteTrackerGUI::channelForMode(TuneMode mode, const QList<RxChannel>& r
     }
 
     return selectedChannel;
+}
+
+// Get list of Rx channels that can be tuned, and the channel selected in the Rx channel submenu (defaulting to the first)
+void SatelliteTrackerGUI::getRxChannels(QList<RxChannel>& rxChannels, QList<int>& rxDeviceSets, int& selectedChannel)
+{
+    rxChannels.clear();
+    rxDeviceSets.clear();
+    std::vector<DeviceSet*>& deviceSets = MainCore::instance()->getDeviceSets();
+    for (int i = 0; i < (int) deviceSets.size(); i++)
+    {
+        // Single Rx device sets, or Rx streams of MIMO device sets
+        DeviceSet *deviceSet = deviceSets[i];
+        if (!deviceSet->m_deviceSourceEngine && !deviceSet->m_deviceMIMOEngine) {
+            continue;
+        }
+        rxDeviceSets.append(i);
+        for (int j = 0; j < deviceSet->getNumberOfChannels(); j++)
+        {
+            ChannelAPI *channel = deviceSet->getChannelAt(j);
+            if (channel && (channel->getStreamType() == ChannelAPI::StreamSingleSink))
+            {
+                QString label = deviceSet->m_deviceMIMOEngine
+                    ? QString("M%1:%2 %3 (Rx%4)").arg(i).arg(j).arg(channel->getIdentifier()).arg(channel->getStreamIndex())
+                    : QString("R%1:%2 %3").arg(i).arg(j).arg(channel->getIdentifier());
+                if (channel == m_createdChannel) {
+                    label.append(" [tracker]");
+                }
+                rxChannels.append({i, j, channel->getIdentifier(), label, channel});
+            }
+        }
+    }
+
+    // Channel to tune, as selected in Rx channel submenu, defaulting to first available
+    selectedChannel = rxChannels.isEmpty() ? -1 : 0;
+    for (int i = 0; i < rxChannels.size(); i++)
+    {
+        if (QString("%1:%2").arg(rxChannels[i].m_deviceSetIndex).arg(rxChannels[i].m_channelIndex) == m_settings.m_tuneChannel) {
+            selectedChannel = i;
+        }
+    }
 }
 
 // Set demodulator settings to suit the mode
@@ -1933,6 +1954,83 @@ void SatelliteTrackerGUI::workSatellite(const QString& satellite)
 {
     setTarget(satellite);
     startRotators();
+}
+
+// When a satellite becomes the target (automatically or selected by the user), Doppler track the transmitter
+// last tracked for it. If there isn't one, stop tracking, so a channel isn't left tracking the previous target
+void SatelliteTrackerGUI::trackTarget(const QString& satellite)
+{
+    // Don't interfere with tracking being resumed after a restart, or a channel being created
+    if ((m_satelliteTracker->getState() != Feature::StRunning)
+        || (satellite == m_tuneSatellite)
+        || (m_resumeAttempts >= 0)
+        || m_pendingTune.m_active)
+    {
+        return;
+    }
+
+    if (!m_settings.m_satelliteTransmitters.contains(satellite) || !m_satellites.contains(satellite))
+    {
+        if (!m_tuneSatellite.isEmpty())
+        {
+            qDebug() << "SatelliteTrackerGUI::trackTarget: No transmitter for" << satellite << "- stopping tracking" << m_tuneSatellite;
+            stopTune();
+            clearTrack();
+        }
+        return;
+    }
+
+    const SatelliteTrackerSettings::SatelliteTransmitter transmitter = m_settings.m_satelliteTransmitters.value(satellite);
+    TuneMode mode = (TuneMode) transmitter.m_mode;
+    QList<RxChannel> rxChannels;
+    QList<int> rxDeviceSets;
+    int selectedChannel;
+    getRxChannels(rxChannels, rxDeviceSets, selectedChannel);
+
+    // Prefer the type of channel used last time, if it still suits the mode
+    QStringList types = channelTypesForMode(mode);
+    if (types.removeOne(transmitter.m_channelType)) {
+        types.prepend(transmitter.m_channelType);
+    }
+
+    // Keep using the channel being tracked if it suits, otherwise as for the table context menu
+    int channel = -1;
+    for (int i = 0; i < rxChannels.size(); i++)
+    {
+        if ((rxChannels[i].m_channel == m_tuneChannel) && types.contains(rxChannels[i].m_type)) {
+            channel = i;
+        }
+    }
+    if (channel < 0) {
+        channel = channelForTypes(types, rxChannels, selectedChannel);
+    }
+
+    qDebug() << "SatelliteTrackerGUI::trackTarget:" << satellite << transmitter.m_frequency << transmitter.m_channelType;
+    m_tuneCTCSS = transmitter.m_ctcss;
+
+    if ((channel >= 0) && (types.isEmpty() || types.contains(rxChannels[channel].m_type)))
+    {
+        tuneChannel(satellite, transmitter.m_frequency, mode, rxChannels[channel], transmitter.m_offset);
+    }
+    else
+    {
+        QString newChannelType = availableChannelType(types);
+        int deviceSetIndex = selectedChannel >= 0 ? rxChannels[selectedChannel].m_deviceSetIndex : (rxDeviceSets.isEmpty() ? -1 : rxDeviceSets[0]);
+
+        if (!newChannelType.isEmpty() && (deviceSetIndex >= 0))
+        {
+            tuneNewChannel(satellite, transmitter.m_frequency, mode, deviceSetIndex, newChannelType, transmitter.m_offset);
+        }
+        else if (channel >= 0)
+        {
+            tuneChannel(satellite, transmitter.m_frequency, mode, rxChannels[channel], transmitter.m_offset);
+        }
+        else
+        {
+            stopTune();
+            clearTrack();
+        }
+    }
 }
 
 // Enable tracking on and start rotator controllers that use this Satellite Tracker as their source
@@ -2172,6 +2270,12 @@ void SatelliteTrackerGUI::saveTrack()
     m_settings.m_trackCTCSS = m_tuneCTCSS;
     m_settings.m_trackCreatedChannel = m_tuneChannel && (m_tuneChannel == m_createdChannel);
     m_settingsKeys.append("track");
+    // Remember the transmitter for this satellite, to track it again when it next becomes the target
+    if (!m_tuneSatellite.isEmpty())
+    {
+        m_settings.m_satelliteTransmitters.insert(m_tuneSatellite, {m_tuneFrequency, (int) m_tuneMode, m_tuneChannelType, m_tuneOffset, m_tuneCTCSS});
+        m_settingsKeys.append("satelliteTransmitters");
+    }
     applySettings();
 }
 
@@ -2195,6 +2299,7 @@ void SatelliteTrackerGUI::resumeTrack()
         || !m_tuneSatellite.isEmpty()
         || m_settings.m_trackSatellite.isEmpty())
     {
+        m_resumeAttempts = -1; // Nothing (more) to resume
         return;
     }
 
@@ -2203,6 +2308,7 @@ void SatelliteTrackerGUI::resumeTrack()
     if (m_resumeAttempts > maxAttempts)
     {
         qDebug() << "SatelliteTrackerGUI::resumeTrack: Giving up resuming" << m_settings.m_trackSatellite;
+        m_resumeAttempts = -1;
         return;
     }
 
@@ -2545,6 +2651,7 @@ void SatelliteTrackerGUI::makeUIConnections()
     QObject::connect(ui->latitude, qOverload<double>(&QDoubleSpinBox::valueChanged), this, &SatelliteTrackerGUI::on_latitude_valueChanged);
     QObject::connect(ui->longitude, qOverload<double>(&QDoubleSpinBox::valueChanged), this, &SatelliteTrackerGUI::on_longitude_valueChanged);
     QObject::connect(ui->target, &QComboBox::currentTextChanged, this, &SatelliteTrackerGUI::on_target_currentTextChanged);
+    QObject::connect(ui->target, &QComboBox::textActivated, this, &SatelliteTrackerGUI::on_target_textActivated);
     QObject::connect(ui->displaySettings, &QToolButton::clicked, this, &SatelliteTrackerGUI::on_displaySettings_clicked);
     QObject::connect(ui->radioControl, &QToolButton::clicked, this, &SatelliteTrackerGUI::on_radioControl_clicked);
     QObject::connect(ui->dateTimeSelect, qOverload<int>(&QComboBox::currentIndexChanged), this, &SatelliteTrackerGUI::on_dateTimeSelect_currentIndexChanged);

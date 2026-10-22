@@ -29,6 +29,9 @@ Pressing this button centres the Map Feature (if open) on the target satellite.
 
 When checked, the target satellite will be automatically changed on any selected satellite's AOS, if it is a higher priority than the current target or if the current target satellite is not visible.
 Priority is determined by the order the satellites appear in the Satellite Selection dialog.
+The target is not changed during a pass of a satellite whose transmitter is being Doppler tracked.
+When the target changes, the transmitter last tracked for the new target is tracked (see the satellite table's context menu below).
+Uncheck this to stay on the current target and transmitter.
 
 <h3>4: Update satellite data</h3>
 
@@ -236,7 +239,7 @@ Columns can be hidden by right clicking on the header and unchecking them.
 Right clicking on a satellite in the table displays a menu of the satellite's transmitters with known downlink frequencies (from the SatNOGS database).
 Selecting a transmitter also:
 
-* Makes the satellite the target. While its transmitter is being Doppler tracked, Auto target will not switch to a different satellite.
+* Makes the satellite the target. While its transmitter is being Doppler tracked during a pass, Auto target will not switch to a different satellite.
 * Enables tracking on, and starts, any Rotator Controllers whose source is this Satellite Tracker.
 If no Rotator Controller uses this Satellite Tracker, but there is a single Rotator Controller without a source, its source is set to this Satellite Tracker.
 
@@ -256,7 +259,7 @@ The channel tuned depends on the transmitter's mode, and is shown after the arro
 * AFSK (E.g. APRS) - Packet demodulator (set to 1200 AFSK mode with 12.5 kHz bandwidth), otherwise NFM demodulator.
 * 9600 baud FSK or GMSK, with G3RUH or AX.25 in the description - Packet demodulator (set to 9600 G3RUH mode with 20 kHz bandwidth).
 * FM - NFM demodulator.
-* SSTV (mode SSTV, or FM with SSTV in the description, E.g. the ISS on 145.800 MHz) - [SSTV demodulator](../../channelrx/demodsstv/readme.md), which decodes the images. An NFM demodulator is only used when the SSTV demodulator plugin isn't available.
+* SSTV (mode SSTV, or FM with SSTV in the description, E.g. ARISS events from the ISS on 437.550 MHz) - [SSTV demodulator](../../channelrx/demodsstv/readme.md), which decodes the images. An NFM demodulator is only used when the SSTV demodulator plugin isn't available.
 * USB, LSB and CW - SSB demodulator (whose sideband and filter are set to match), otherwise WDSP Rx. CW is tuned 700 Hz below the carrier, so it can be heard as a tone.
 * LoRa - ChirpChat demodulator.
 * APT - APT demodulator.
@@ -274,6 +277,12 @@ keeping the channel's current offset from DC.
 Doppler tracking continues over subsequent passes, until "Stop Doppler tracking" is selected from the same menu, or the Satellite Tracker is stopped.
 What is being tracked is saved in the settings, so tracking is resumed when the Satellite Tracker is restarted, including after SDRangel is restarted.
 Tracking resumes on the same channel if it still exists, otherwise on another channel of the same type on the same device, otherwise a new demodulator is created.
+
+The transmitter last tracked for each satellite (and any retune from its frequency) is remembered.
+When a satellite becomes the target, either by Auto target (3) or by selecting it as the target, its remembered transmitter is tracked, so the mode selected last time is used for subsequent passes.
+The channel being tracked is kept if it suits the transmitter's mode, otherwise a channel is chosen (or created) as described above.
+If no transmitter has been tracked for the new target, Doppler tracking of the previous target is stopped.
+Transmitters are remembered per satellite, so a satellite that is in several satellite groups uses the same transmitter in each.
 
 <h2>Map</h2>
 
