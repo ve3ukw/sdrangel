@@ -46,6 +46,7 @@ MESSAGE_CLASS_DEFINITION(GS232Controller::MsgReportWorker, Message)
 MESSAGE_CLASS_DEFINITION(GS232Controller::MsgReportAvailableChannelOrFeatures, Message)
 MESSAGE_CLASS_DEFINITION(GS232Controller::MsgScanAvailableChannelOrFeatures, Message)
 MESSAGE_CLASS_DEFINITION(GS232Controller::MsgReportSerialPorts, Message)
+MESSAGE_CLASS_DEFINITION(GS232Controller::MsgGoTo, Message)
 
 const char* const GS232Controller::m_featureIdURI = "sdrangel.feature.gs232controller";
 const char* const GS232Controller::m_featureId = "GS232Controller";
@@ -57,7 +58,10 @@ GS232Controller::GS232Controller(WebAPIAdapterInterface *webAPIAdapterInterface)
     m_availableChannelOrFeatureHandler(GS232ControllerSettings::m_pipeURIs),
     m_selectedPipe(nullptr),
     m_currentAzimuth(0.0f),
-    m_currentElevation(0.0f)
+    m_currentElevation(0.0f),
+    m_goToActive(false),
+    m_goToAzimuth(0.0f),
+    m_goToElevation(0.0f)
 {
     qDebug("GS232Controller::GS232Controller: webAPIAdapterInterface: %p", webAPIAdapterInterface);
     setObjectName(m_featureId);
@@ -139,6 +143,7 @@ void GS232Controller::stop()
 {
     qDebug("GS232Controller::stop");
     setState(StIdle);
+    m_goToActive = false;
     if (m_thread)
     {
         m_thread->quit();
@@ -182,6 +187,22 @@ bool GS232Controller::handleMessage(const Message& cmd)
         {
             m_errorMessage = report.getMessage();
             setState(StError);
+        }
+        return true;
+    }
+    else if (MsgGoTo::match(cmd))
+    {
+        MsgGoTo& goTo = (MsgGoTo&) cmd;
+        if (m_worker)
+        {
+            m_settings.calcGoToAzEl(goTo.getAzimuth(), goTo.getElevation(), goTo.getApplyOffset(), m_goToAzimuth, m_goToElevation);
+            m_goToActive = true;
+            qDebug() << "GS232Controller::handleMessage: MsgGoTo: az:" << m_goToAzimuth << "el:" << m_goToElevation;
+            m_worker->getInputMessageQueue()->push(MsgGoTo::create(goTo.getAzimuth(), goTo.getElevation(), goTo.getApplyOffset()));
+        }
+        else
+        {
+            qDebug() << "GS232Controller::handleMessage: MsgGoTo: ignored as not running";
         }
         return true;
     }
@@ -244,13 +265,28 @@ bool GS232Controller::handleMessage(const Message& cmd)
     }
 }
 
+// Position currently being sent to the rotator
+void GS232Controller::getTargetAzEl(float& azimuth, float& elevation) const
+{
+    if (m_goToActive)
+    {
+        azimuth = m_goToAzimuth;
+        elevation = m_goToElevation;
+    }
+    else
+    {
+        m_settings.calcTargetAzEl(azimuth, elevation);
+    }
+}
+
 // Calculate whether last received az/el was on target
 bool GS232Controller::getOnTarget() const
 {
     float targetAziumth, targetElevation;
-    m_settings.calcTargetAzEl(targetAziumth, targetElevation);
+    getTargetAzEl(targetAziumth, targetElevation);
     float readTolerance = m_settings.m_tolerance + 0.0f;
-    bool onTarget =   (std::fabs(m_currentAzimuth - targetAziumth) <= readTolerance)
+    // Compare azimuth modulo 360, as some controllers report e.g. 370 as 10
+    bool onTarget =   (std::fabs(GS232ControllerSettings::azimuthDifference(m_currentAzimuth, targetAziumth)) <= readTolerance)
                    && (std::fabs(m_currentElevation - targetElevation) <= readTolerance);
     return onTarget;
 }
@@ -287,6 +323,10 @@ void GS232Controller::applySettings(const GS232ControllerSettings& settings, con
     {
         m_availableChannelOrFeatureHandler.deregisterPipes(m_selectedPipe, {"target"});
         m_selectedPipe = m_availableChannelOrFeatureHandler.registerPipes(settings.m_source, {"target"});
+    }
+
+    if (GS232ControllerSettings::affectsTarget(settingsKeys) || force) {
+        m_goToActive = false;
     }
 
     if (m_worker) {
@@ -679,7 +719,7 @@ void GS232Controller::webapiFormatFeatureReport(SWGSDRangel::SWGFeatureReport& r
     }
 
     float azimuth, elevation;
-    m_settings.calcTargetAzEl(azimuth, elevation);
+    getTargetAzEl(azimuth, elevation);
     response.getGs232ControllerReport()->setTargetAzimuth(azimuth);
     response.getGs232ControllerReport()->setTargetElevation(elevation);
     response.getGs232ControllerReport()->setCurrentAzimuth(m_currentAzimuth);

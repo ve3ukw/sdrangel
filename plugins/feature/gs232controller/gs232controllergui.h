@@ -130,6 +130,7 @@ private slots:
     void on_dfmBrakes_clicked(bool checked=false);
     void on_dfmDrives_clicked(bool checked=false);
     void on_dfmShowStatus_clicked();
+    void on_goTo_clicked();
     void updateStatus();
     void updateFeatureState();
     void on_inputController_currentIndexChanged(int index);

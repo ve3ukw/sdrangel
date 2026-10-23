@@ -46,6 +46,7 @@ GS232ControllerWorker::GS232ControllerWorker(GS232Controller *controller) :
     m_pollTimer(this),
     m_lastAzimuth(-1.0f),
     m_lastElevation(-1.0f),
+    m_goToActive(false),
     m_controllerProtocol(nullptr)
 //    m_spidSetOutstanding(false),
 //    m_spidSetSent(false),
@@ -116,6 +117,22 @@ bool GS232ControllerWorker::handleMessage(const Message& cmd)
         applySettings(cfg.getSettings(), cfg.getSettingsKeys(), cfg.getForce());
         return true;
     }
+    else if (GS232Controller::MsgGoTo::match(cmd))
+    {
+        GS232Controller::MsgGoTo& goTo = (GS232Controller::MsgGoTo&) cmd;
+        float azimuth, elevation;
+
+        m_settings.calcGoToAzEl(goTo.getAzimuth(), goTo.getElevation(), goTo.getApplyOffset(), azimuth, elevation);
+        qDebug() << "GS232ControllerWorker::handleMessage: MsgGoTo: az:" << azimuth << "el:" << elevation;
+        m_goToActive = true;
+        if (m_device != nullptr)
+        {
+            // Always send, even if within tolerance of the last position, so small calibration steps work
+            sendAzEl(azimuth, elevation, true);
+            sendToSkyMap(azimuth, elevation);
+        }
+        return true;
+    }
     else
     {
         return false;
@@ -181,27 +198,37 @@ void GS232ControllerWorker::applySettings(const GS232ControllerSettings& setting
         m_controllerProtocol->applySettings(settings, settingsKeys, force);
     }
 
-    if (m_device != nullptr)
+    // A Go to position is held until a setting that changes the target is modified
+    if (GS232ControllerSettings::affectsTarget(settingsKeys) || force) {
+        m_goToActive = false;
+    }
+
+    if ((m_device != nullptr) && !m_goToActive)
     {
-        // Apply offset then clamp
+        // Apply offset then fit to rotator range
+        // Use m_settings, as settings may only be partially valid when force is false
 
         float azimuth, elevation;
-        settings.calcTargetAzEl(azimuth, elevation);
+        m_settings.calcTargetAzEl(azimuth, elevation);
 
-        // Don't set if within tolerance of last setting
-        float azDiff = std::abs(azimuth - m_lastAzimuth);
-        float elDiff = std::abs(elevation - m_lastElevation);
-
-        if (((elDiff > settings.m_tolerance) || (m_lastElevation == -1) || force) && (settings.m_elevationMax != 0))
-        {
-            setAzimuthElevation(azimuth, elevation);
-        }
-        else if ((azDiff > settings.m_tolerance) || (m_lastAzimuth == -1) || force)
-        {
-            setAzimuth(azimuth);
-        }
-
+        sendAzEl(azimuth, elevation, force);
         sendToSkyMap(azimuth, elevation);
+    }
+}
+
+void GS232ControllerWorker::sendAzEl(float azimuth, float elevation, bool force)
+{
+    // Don't set if within tolerance of last setting
+    float azDiff = std::abs(azimuth - m_lastAzimuth);
+    float elDiff = std::abs(elevation - m_lastElevation);
+
+    if (((elDiff > m_settings.m_tolerance) || (m_lastElevation == -1) || force) && (m_settings.m_elevationMax != 0))
+    {
+        setAzimuthElevation(azimuth, elevation);
+    }
+    else if ((azDiff > m_settings.m_tolerance) || (m_lastAzimuth == -1) || force)
+    {
+        setAzimuth(azimuth);
     }
 }
 

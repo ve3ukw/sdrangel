@@ -235,6 +235,70 @@
         </property>
        </widget>
       </item>
+      <item row="1" column="0">
+       <widget class="QPushButton" name="goTo">
+        <property name="toolTip">
+         <string>Command the rotator to the given azimuth and elevation now (for testing and calibration). Held until the target, offsets, limits or tracking are changed. Not available while tracking.</string>
+        </property>
+        <property name="text">
+         <string>Go to</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QDoubleSpinBox" name="goToAzimuth">
+        <property name="toolTip">
+         <string>Azimuth in degrees to send to the rotator. Values within the azimuth min/max are sent as is (E.g. 400 for the overlap region), otherwise they are wrapped by 360 degrees</string>
+        </property>
+        <property name="prefix">
+         <string>Az </string>
+        </property>
+        <property name="suffix">
+         <string>°</string>
+        </property>
+        <property name="decimals">
+         <number>1</number>
+        </property>
+        <property name="minimum">
+         <double>-360.000000000000000</double>
+        </property>
+        <property name="maximum">
+         <double>540.000000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="2">
+       <widget class="QDoubleSpinBox" name="goToElevation">
+        <property name="toolTip">
+         <string>Elevation in degrees to send to the rotator. Clamped to the elevation min/max</string>
+        </property>
+        <property name="prefix">
+         <string>El </string>
+        </property>
+        <property name="suffix">
+         <string>°</string>
+        </property>
+        <property name="decimals">
+         <number>1</number>
+        </property>
+        <property name="minimum">
+         <double>-90.000000000000000</double>
+        </property>
+        <property name="maximum">
+         <double>180.000000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="3">
+       <widget class="QCheckBox" name="goToApplyOffset">
+        <property name="toolTip">
+         <string>When checked, the azimuth and elevation offsets are added before sending. When unchecked, the raw position is sent to the rotator</string>
+        </property>
+        <property name="text">
+         <string>Apply offset</string>
+        </property>
+       </widget>
+      </item>
      </layout>
     </item>
     <item>

@@ -78,6 +78,11 @@ struct GS232ControllerSettings
     bool deserialize(const QByteArray& data);
     void setRollupState(Serializable *rollupState) { m_rollupState = rollupState; }
     void calcTargetAzEl(float& targetAz, float& targetEl) const;
+    void calcGoToAzEl(float azimuth, float elevation, bool applyOffset, float& targetAz, float& targetEl) const;
+    float fitAzimuth(float azimuth) const;
+    float clampElevation(float elevation) const;
+    static float azimuthDifference(float az1, float az2);
+    static bool affectsTarget(const QStringList& settingsKeys);
     void applySettings(const QStringList& settingsKeys, const GS232ControllerSettings& settings);
     QString getDebugString(const QStringList& settingsKeys, bool force=false) const;
 

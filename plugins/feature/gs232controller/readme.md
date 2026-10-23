@@ -41,6 +41,14 @@ Specify the SDRangel Channel or Feature that will control the target azimuth and
 When tracking is enabled, this field will display a name for the target being tracked, as indicated by the selected Source plugin (5).
 For example, the ADS-B plugin will display the flight number of the target aircraft. The Star Tracker plugin will display Sun, Moon or Star.
 
+<h3>Go to</h3>
+
+For testing and calibration, the rotator can be commanded to a specific position, by entering an azimuth and elevation and pressing Go to.
+When Apply offset is unchecked, the position is sent to the rotator as is (other than the min/max limits), so the rotator's own readout can be checked.
+When checked, the azimuth and elevation offsets are added first, so the alignment of the antenna can be checked against a known landmark.
+The position is always sent, even if within the tolerance of the previous position, so small steps can be made.
+The position is held until the target, offsets, limits or tracking settings are changed. Go to is not available while tracking.
+
 <h3>7: Protocol</h3>
 
 Selects which protocol to use. This can be GS-232, SPID (rot2prog) or rotctld.
@@ -76,6 +84,8 @@ The elevation offset specifies an angle in degrees that is added to the target e
 <h3>15 and 16: Azimuth Min and Max</h3>
 
 The azimuth min and max values specify the minimum and maximum azimuth values (after offset has been applied), that will be sent to the rotator.
+If an azimuth (after offset has been applied) is outside of this range, the equivalent angle +/- 360 degrees is used if that is within the range
+(E.g. a target of 10 with an offset of -30 is sent as 340, not 0). Only if no equivalent angle is in range is the azimuth limited to the nearest of min or max.
 These values can be used to prevent the rotator from rotating an antenna in to an obstacle.
 
 <h3>17 and 18: Elevation Min and Max</h3>

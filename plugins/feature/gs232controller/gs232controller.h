@@ -166,6 +166,33 @@ public:
         {}
     };
 
+    // Command the rotator to a fixed position, overriding the target until a target related setting changes.
+    // Used for testing and calibration
+    class MsgGoTo : public Message {
+        MESSAGE_CLASS_DECLARATION
+
+    public:
+        float getAzimuth() const { return m_azimuth; }
+        float getElevation() const { return m_elevation; }
+        bool getApplyOffset() const { return m_applyOffset; }
+
+        static MsgGoTo* create(float azimuth, float elevation, bool applyOffset) {
+            return new MsgGoTo(azimuth, elevation, applyOffset);
+        }
+
+    private:
+        float m_azimuth;
+        float m_elevation;
+        bool m_applyOffset;
+
+        MsgGoTo(float azimuth, float elevation, bool applyOffset) :
+            Message(),
+            m_azimuth(azimuth),
+            m_elevation(elevation),
+            m_applyOffset(applyOffset)
+        {}
+    };
+
     GS232Controller(WebAPIAdapterInterface *webAPIAdapterInterface);
     virtual ~GS232Controller();
     virtual void destroy() { delete this; }
@@ -231,6 +258,11 @@ private:
 
     float m_currentAzimuth;
     float m_currentElevation;
+    bool m_goToActive;
+    float m_goToAzimuth;
+    float m_goToElevation;
+
+    void getTargetAzEl(float& azimuth, float& elevation) const;
 
     void start();
     void stop();

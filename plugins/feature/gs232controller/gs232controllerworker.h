@@ -86,6 +86,7 @@ private:
 
     float m_lastAzimuth;
     float m_lastElevation;
+    bool m_goToActive;
 
     ControllerProtocol *m_controllerProtocol;
 
@@ -95,6 +96,7 @@ private:
     QIODevice *openSocket(const GS232ControllerSettings& settings);
     void setAzimuth(float azimuth);
     void setAzimuthElevation(float azimuth, float elevation);
+    void sendAzEl(float azimuth, float elevation, bool force);
     void sendToSkyMap(float azimuth, float elevation);
 
 private slots:

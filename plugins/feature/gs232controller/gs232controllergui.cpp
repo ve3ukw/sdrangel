@@ -481,6 +481,7 @@ void GS232ControllerGUI::displaySettings()
     ui->host->setText(m_settings.m_host);
     ui->port->setValue(m_settings.m_port);
     ui->track->setChecked(m_settings.m_track);
+    ui->goTo->setEnabled(!m_settings.m_track); // Also set here, as stateChanged isn't connected when first displayed
     ui->sources->setCurrentIndex(ui->sources->findText(m_settings.m_source));
     ui->azimuthOffset->setValue(m_settings.m_azimuthOffset);
     ui->elevationOffset->setValue(m_settings.m_elevationOffset);
@@ -859,6 +860,8 @@ void GS232ControllerGUI::on_track_stateChanged(int state)
     m_settings.m_track = state == Qt::Checked;
     ui->targetName->setEnabled(m_settings.m_track);
     ui->sources->setEnabled(m_settings.m_track);
+    // Tracking would immediately override a Go to position
+    ui->goTo->setEnabled(!m_settings.m_track);
 
     if (!m_settings.m_track) {
         ui->targetName->setText("");
@@ -903,6 +906,16 @@ void GS232ControllerGUI::on_dfmDrives_clicked(bool checked)
 {
     m_settings.m_dfmDrivesOn = checked;
     applySetting("dfmDrivesOn");
+}
+
+void GS232ControllerGUI::on_goTo_clicked()
+{
+    GS232Controller::MsgGoTo *msg = GS232Controller::MsgGoTo::create(
+        ui->goToAzimuth->value(),
+        ui->goToElevation->value(),
+        ui->goToApplyOffset->isChecked()
+    );
+    m_gs232Controller->getInputMessageQueue()->push(msg);
 }
 
 void GS232ControllerGUI::on_dfmShowStatus_clicked()
@@ -996,5 +1009,6 @@ void GS232ControllerGUI::makeUIConnections()
     QObject::connect(ui->dfmBrakes, &QToolButton::toggled, this, &GS232ControllerGUI::on_dfmBrakes_clicked);
     QObject::connect(ui->dfmDrives, &QToolButton::toggled, this, &GS232ControllerGUI::on_dfmDrives_clicked);
     QObject::connect(ui->dfmShowStatus, &QToolButton::clicked, this, &GS232ControllerGUI::on_dfmShowStatus_clicked);
+    QObject::connect(ui->goTo, &QPushButton::clicked, this, &GS232ControllerGUI::on_goTo_clicked);
 }
 

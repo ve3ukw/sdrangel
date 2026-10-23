@@ -18,6 +18,9 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.          //
 ///////////////////////////////////////////////////////////////////////////////////
 
+#include <cmath>
+#include <algorithm>
+
 #include <QColor>
 
 #include "util/simpleserializer.h"
@@ -228,17 +231,81 @@ bool GS232ControllerSettings::deserialize(const QByteArray& data)
 
 void GS232ControllerSettings::calcTargetAzEl(float& targetAz, float& targetEl) const
 {
-    // Apply offset then clamp
+    // Apply offset then fit to rotator range
+    targetAz = fitAzimuth(m_azimuth + m_azimuthOffset);
+    targetEl = clampElevation(m_elevation + m_elevationOffset);
+}
 
-    targetAz = m_azimuth;
-    targetAz += m_azimuthOffset;
-    targetAz = std::max(targetAz, (float)m_azimuthMin);
-    targetAz = std::min(targetAz, (float)m_azimuthMax);
+// Position to send for a one-off "Go to" command, optionally applying the offsets
+void GS232ControllerSettings::calcGoToAzEl(float azimuth, float elevation, bool applyOffset, float& targetAz, float& targetEl) const
+{
+    if (applyOffset)
+    {
+        azimuth += m_azimuthOffset;
+        elevation += m_elevationOffset;
+    }
+    targetAz = fitAzimuth(azimuth);
+    targetEl = clampElevation(elevation);
+}
 
-    targetEl = m_elevation;
-    targetEl += m_elevationOffset;
-    targetEl = std::max(targetEl, (float)m_elevationMin);
-    targetEl = std::min(targetEl, (float)m_elevationMax);
+// Map an azimuth to an equivalent angle (+/- multiples of 360) within the rotator's azimuth range.
+// An azimuth already in range is used as is, so explicit overlap positions (E.g. 400) are kept.
+// If no equivalent angle is reachable, the angularly nearest limit is used.
+// Previously the azimuth was simply clamped, so e.g. a target of 10 with an offset of -30 was
+// sent as 0 rather than 340, leaving the antenna 20 degrees clockwise of the target.
+float GS232ControllerSettings::fitAzimuth(float azimuth) const
+{
+    const float min = (float) m_azimuthMin;
+    const float max = (float) m_azimuthMax;
+
+    if ((azimuth >= min) && (azimuth <= max)) {
+        return azimuth;
+    }
+
+    // Smallest equivalent angle >= min
+    float az = azimuth - 360.0f * std::floor((azimuth - min) / 360.0f);
+    if (az <= max) {
+        return az;
+    }
+
+    if (std::fabs(azimuthDifference(azimuth, min)) <= std::fabs(azimuthDifference(azimuth, max))) {
+        return min;
+    } else {
+        return max;
+    }
+}
+
+float GS232ControllerSettings::clampElevation(float elevation) const
+{
+    elevation = std::max(elevation, (float)m_elevationMin);
+    elevation = std::min(elevation, (float)m_elevationMax);
+    return elevation;
+}
+
+// Signed difference az1 - az2, in the range [-180, 180)
+float GS232ControllerSettings::azimuthDifference(float az1, float az2)
+{
+    float diff = std::fmod(az1 - az2 + 180.0f, 360.0f);
+    if (diff < 0.0f) {
+        diff += 360.0f;
+    }
+    return diff - 180.0f;
+}
+
+// Whether changing any of these settings changes the position sent to the rotator
+bool GS232ControllerSettings::affectsTarget(const QStringList& settingsKeys)
+{
+    static const QStringList keys = {
+        "azimuth", "elevation", "azimuthOffset", "elevationOffset",
+        "azimuthMin", "azimuthMax", "elevationMin", "elevationMax", "track", "source"
+    };
+    for (const auto& key : keys)
+    {
+        if (settingsKeys.contains(key)) {
+            return true;
+        }
+    }
+    return false;
 }
 
 void GS232ControllerSettings::applySettings(const QStringList& settingsKeys, const GS232ControllerSettings& settings)
