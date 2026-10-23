@@ -172,7 +172,7 @@ bool SatelliteTrackerWorker::handleMessage(const Message& message)
         SatelliteTracker::MsgTuneChannel& tune = (SatelliteTracker::MsgTuneChannel&) message;
 
         if (tune.getFrequency() > 0) {
-            startTune(tune.getSatellite(), tune.getDeviceSetIndex(), tune.getChannelIndex(), tune.getFrequency(), tune.getFastDoppler(), tune.getTuneId());
+            startTune(tune.getSatellite(), tune.getDeviceSetIndex(), tune.getChannelIndex(), tune.getFrequency(), tune.getFastDoppler(), tune.getTuneId(), tune.getCompanionChannelIndexes());
         } else {
             stopTune();
         }
@@ -1014,9 +1014,10 @@ void SatelliteTrackerWorker::doppler(SatWorkerState *satWorkerState)
     }
 }
 
-void SatelliteTrackerWorker::startTune(const QString& satellite, int deviceSetIndex, int channelIndex, qint64 frequency, bool fastDoppler, int tuneId)
+void SatelliteTrackerWorker::startTune(const QString& satellite, int deviceSetIndex, int channelIndex, qint64 frequency, bool fastDoppler, int tuneId,
+    const QList<int>& companionChannelIndexes)
 {
-    qDebug() << "SatelliteTrackerWorker::startTune:" << satellite << deviceSetIndex << channelIndex << frequency << fastDoppler;
+    qDebug() << "SatelliteTrackerWorker::startTune:" << satellite << deviceSetIndex << channelIndex << frequency << fastDoppler << companionChannelIndexes;
 
     m_tuneSatellite = satellite;
     m_tuneDeviceSetIndex = deviceSetIndex;
@@ -1026,12 +1027,28 @@ void SatelliteTrackerWorker::startTune(const QString& satellite, int deviceSetIn
     m_tuneId = tuneId;
     m_tuneLastFrequency = -1;
     m_tuneDeviceRetuned = false;
+    m_tuneCompanionChannelIndexes = companionChannelIndexes;
 
     tuneDoppler();
     if (!m_tuneSatellite.isEmpty())
     {
         m_tuneTimer.setInterval(tuneInterval());
         m_tuneTimer.start();
+    }
+}
+
+// Keep other channels on the device (E.g. a Packet demodulator for telemetry sent with SSTV) at the tracked channel's frequency
+void SatelliteTrackerWorker::tuneCompanionChannels(int offset)
+{
+    for (int channelIndex : m_tuneCompanionChannelIndexes)
+    {
+        int companionOffset;
+        if (ChannelWebAPIUtils::getFrequencyOffset(m_tuneDeviceSetIndex, channelIndex, companionOffset)
+            && (companionOffset != offset)
+            && !ChannelWebAPIUtils::setFrequencyOffset(m_tuneDeviceSetIndex, channelIndex, offset))
+        {
+            qDebug() << "SatelliteTrackerWorker::tuneCompanionChannels: Failed to set frequency offset of channel" << channelIndex;
+        }
     }
 }
 
@@ -1111,6 +1128,7 @@ void SatelliteTrackerWorker::tuneDoppler()
                 qDebug() << "SatelliteTrackerWorker::tuneDoppler: Failed to set frequency offset";
             }
         }
+        tuneCompanionChannels((int) newOffset);
     }
     else
     {
@@ -1124,6 +1142,7 @@ void SatelliteTrackerWorker::tuneDoppler()
         if (!ChannelWebAPIUtils::setFrequencyOffset(m_tuneDeviceSetIndex, m_tuneChannelIndex, offset)) {
             qDebug() << "SatelliteTrackerWorker::tuneDoppler: Failed to set frequency offset";
         }
+        tuneCompanionChannels(offset);
         m_tuneDeviceRetuned = true;
     }
     m_tuneLastFrequency = rxFrequency;

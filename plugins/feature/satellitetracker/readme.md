@@ -260,6 +260,9 @@ The channel tuned depends on the transmitter's mode, and is shown after the arro
 * 9600 baud FSK or GMSK, with G3RUH or AX.25 in the description - Packet demodulator (set to 9600 G3RUH mode with 20 kHz bandwidth).
 * FM - NFM demodulator.
 * SSTV (mode SSTV, or FM with SSTV in the description, E.g. ARISS events from the ISS on 437.550 MHz) - [SSTV demodulator](../../channelrx/demodsstv/readme.md), which decodes the images. An NFM demodulator is only used when the SSTV demodulator plugin isn't available.
+A Packet demodulator (set to 1200 AFSK) is also kept on the same frequency, with the same Doppler correction, to receive telemetry packets sent with the images (shown as "+ PacketDemod" in the menu).
+An existing Packet demodulator on the same device is used, otherwise one is created, which is removed when tracking stops or a non-SSTV transmitter is tuned.
+If you remove the Packet demodulator, another isn't created until a transmitter is selected again.
 * USB, LSB and CW - SSB demodulator (whose sideband and filter are set to match), otherwise WDSP Rx. CW is tuned 700 Hz below the carrier, so it can be heard as a tone.
 * LoRa - ChirpChat demodulator.
 * APT - APT demodulator.

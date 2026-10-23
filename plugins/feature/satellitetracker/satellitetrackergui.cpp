@@ -311,6 +311,13 @@ SatelliteTrackerGUI::SatelliteTrackerGUI(PluginAPI* pluginAPI, FeatureUISet *fea
     m_tuneChannel(nullptr),
     m_createdChannel(nullptr),
     m_createdChannelDeviceSetIndex(-1),
+    m_companionChannel(nullptr),
+    m_companionChannelIndex(-1),
+    m_createdCompanion(nullptr),
+    m_createdCompanionDeviceSetIndex(-1),
+    m_pendingCompanion(false),
+    m_pendingCompanionDeviceSetIndex(-1),
+    m_companionRemoved(false),
     m_tuneId(0),
     m_tuneBaseFrequency(0),
     m_tuneOffset(0),
@@ -1715,6 +1722,9 @@ void SatelliteTrackerGUI::satTable_customContextMenuRequested(QPoint pos)
             {
                 text.append(QString("  →  %1").arg(rxChannels[channel].m_label));
             }
+            if ((mode == TUNE_SSTV) && !availableChannelType({"PacketDemod"}).isEmpty()) {
+                text.append(" + PacketDemod");
+            }
 
             QAction *tuneAction = new QAction(text, tableContextMenu);
             tuneAction->setCheckable(true);
@@ -2190,6 +2200,20 @@ void SatelliteTrackerGUI::channelAdded(int deviceSetIndex, ChannelAPI *channel)
             startTune(pending.m_satellite, pending.m_frequency, pending.m_mode, pending.m_deviceSetIndex, channel, pending.m_type, true, pending.m_offset);
         });
     }
+    else if (m_pendingCompanion
+        && (deviceSetIndex == m_pendingCompanionDeviceSetIndex)
+        && (channel->getIdentifier() == "PacketDemod"))
+    {
+        m_pendingCompanion = false;
+        m_createdCompanion = channel;
+        m_createdCompanionDeviceSetIndex = deviceSetIndex;
+        // Once its GUI has applied its initial settings, configure it and add it to the tracking
+        QTimer::singleShot(0, this, [this]() {
+            if (!m_tuneSatellite.isEmpty() && m_tuneChannel) {
+                startTune(m_tuneSatellite, m_tuneFrequency, m_tuneMode, m_tuneDeviceSetIndex, m_tuneChannel, m_tuneChannelType, false, m_tuneOffset);
+            }
+        });
+    }
 }
 
 // Channel indices may have changed, or the channel we're tracking may have been removed
@@ -2202,6 +2226,25 @@ void SatelliteTrackerGUI::channelRemoved(int deviceSetIndex, ChannelAPI *channel
         if (m_createdChannel && (channelIndex(m_createdChannelDeviceSetIndex, m_createdChannel) < 0)) {
             m_createdChannel = nullptr;
         }
+        if (m_createdCompanion && (channelIndex(m_createdCompanionDeviceSetIndex, m_createdCompanion) < 0)) {
+            m_createdCompanion = nullptr;
+        }
+        bool companionChanged = false;
+        if (m_companionChannel)
+        {
+            int companionIndex = channelIndex(m_tuneDeviceSetIndex, m_companionChannel);
+            if (companionIndex < 0)
+            {
+                // User removed it, so don't replace it
+                m_companionChannel = nullptr;
+                m_companionRemoved = true;
+                companionChanged = true;
+            }
+            else
+            {
+                companionChanged = companionIndex != m_companionChannelIndex;
+            }
+        }
         if (!m_tuneSatellite.isEmpty())
         {
             int index = channelIndex(m_tuneDeviceSetIndex, m_tuneChannel);
@@ -2210,7 +2253,9 @@ void SatelliteTrackerGUI::channelRemoved(int deviceSetIndex, ChannelAPI *channel
                 stopTune();
                 clearTrack();
             }
-            else if (index != m_tuneChannelIndex) {
+            else if ((index != m_tuneChannelIndex) || companionChanged)
+            {
+                // Indices of the tracked channel or its companion have changed
                 startTune(m_tuneSatellite, m_tuneFrequency, m_tuneMode, m_tuneDeviceSetIndex, m_tuneChannel, m_tuneChannelType, false, m_tuneOffset);
             }
         }
@@ -2230,9 +2275,12 @@ void SatelliteTrackerGUI::startTune(const QString& satellite, qint64 frequency, 
     bool sidebandChannel = (type == "SSBDemod") || (type == "WDSPRx");
     qint64 tuneFrequency = frequency;
 
-    if (configure) {
+    if (configure)
+    {
         configureChannel(rxChannel, mode);
+        m_companionRemoved = false;
     }
+    QList<int> companions = companionChannels(mode, deviceSetIndex, configure);
 
     // Tune CW carrier to be heard as a tone in USB
     if ((mode == TUNE_CW) && sidebandChannel) {
@@ -2243,7 +2291,7 @@ void SatelliteTrackerGUI::startTune(const QString& satellite, qint64 frequency, 
     m_tuneBaseFrequency = tuneFrequency;
     m_tuneOffset = offset;
     m_satelliteTracker->getInputMessageQueue()->push(SatelliteTracker::MsgTuneChannel::create(
-        satellite, deviceSetIndex, index, tuneFrequency + offset, sidebandMode || sidebandChannel, m_tuneId));
+        satellite, deviceSetIndex, index, tuneFrequency + offset, sidebandMode || sidebandChannel, m_tuneId, companions));
     m_tuneSatellite = satellite;
     m_tuneFrequency = frequency;
     m_tuneMode = mode;
@@ -2269,6 +2317,7 @@ void SatelliteTrackerGUI::saveTrack()
     m_settings.m_trackOffset = m_tuneOffset;
     m_settings.m_trackCTCSS = m_tuneCTCSS;
     m_settings.m_trackCreatedChannel = m_tuneChannel && (m_tuneChannel == m_createdChannel);
+    m_settings.m_trackCreatedCompanion = m_companionChannel && (m_companionChannel == m_createdCompanion);
     m_settingsKeys.append("track");
     // Remember the transmitter for this satellite, to track it again when it next becomes the target
     if (!m_tuneSatellite.isEmpty())
@@ -2356,6 +2405,19 @@ void SatelliteTrackerGUI::resumeTrack()
             m_createdChannel = channel;
             m_createdChannelDeviceSetIndex = deviceSetIndex;
         }
+        if (m_settings.m_trackCreatedCompanion)
+        {
+            // Packet demodulator we created for SSTV telemetry, so it's removed when no longer used
+            for (int i = 0; i < deviceSet->getNumberOfChannels(); i++)
+            {
+                if (deviceSet->getChannelAt(i)->getIdentifier() == "PacketDemod")
+                {
+                    m_createdCompanion = deviceSet->getChannelAt(i);
+                    m_createdCompanionDeviceSetIndex = deviceSetIndex;
+                    break;
+                }
+            }
+        }
         workSatellite(satellite);
         startTune(satellite, frequency, mode, deviceSetIndex, channel, type, true, offset);
     }
@@ -2382,6 +2444,100 @@ void SatelliteTrackerGUI::stopTune()
     m_tuneSatellite.clear();
     m_tuneChannel = nullptr;
     removeCreatedChannel();
+    m_pendingCompanion = false;
+    removeCreatedCompanion();
+}
+
+// Other channels to keep at the tracked channel's frequency: for SSTV, a Packet demodulator to receive the
+// telemetry packets the ISS sends with its images. An existing one on the device is used, otherwise one is created
+QList<int> SatelliteTrackerGUI::companionChannels(TuneMode mode, int deviceSetIndex, bool configure)
+{
+    QList<int> indexes;
+    std::vector<DeviceSet*>& deviceSets = MainCore::instance()->getDeviceSets();
+
+    if ((mode != TUNE_SSTV)
+        || availableChannelType({"PacketDemod"}).isEmpty()
+        || (deviceSetIndex < 0)
+        || (deviceSetIndex >= (int) deviceSets.size()))
+    {
+        m_pendingCompanion = false;
+        removeCreatedCompanion();
+        m_companionChannel = nullptr;
+        return indexes;
+    }
+
+    // A companion we created on a different device isn't any use
+    if (m_createdCompanion && (m_createdCompanionDeviceSetIndex != deviceSetIndex)) {
+        removeCreatedCompanion();
+    }
+
+    DeviceSet *deviceSet = deviceSets[deviceSetIndex];
+    ChannelAPI *companion = nullptr;
+    int companionIndex = m_createdCompanion ? channelIndex(deviceSetIndex, m_createdCompanion) : -1;
+
+    if (companionIndex >= 0)
+    {
+        companion = m_createdCompanion;
+    }
+    else
+    {
+        for (int i = 0; i < deviceSet->getNumberOfChannels(); i++)
+        {
+            if (deviceSet->getChannelAt(i)->getIdentifier() == "PacketDemod")
+            {
+                companion = deviceSet->getChannelAt(i);
+                companionIndex = i;
+                break;
+            }
+        }
+    }
+
+    if (companion)
+    {
+        // A channel we've just created needs configuring too
+        if (configure || ((companion == m_createdCompanion) && (companion != m_companionChannel)))
+        {
+            RxChannel rxChannel = {deviceSetIndex, companionIndex, "PacketDemod", "", companion};
+            configureChannel(rxChannel, TUNE_AFSK);
+        }
+        m_companionChannel = companion;
+        m_companionChannelIndex = companionIndex;
+        indexes.append(companionIndex);
+    }
+    else if (!m_pendingCompanion && !m_companionRemoved)
+    {
+        PluginAPI::ChannelRegistrations *channelRegistrations = MainCore::instance()->getPluginManager()->getRxChannelRegistrations();
+        for (const PluginAPI::ChannelRegistration& registration : *channelRegistrations)
+        {
+            if (registration.m_channelId == "PacketDemod")
+            {
+                m_pendingCompanion = true;
+                m_pendingCompanionDeviceSetIndex = deviceSetIndex;
+                if (!ChannelWebAPIUtils::addChannel(deviceSetIndex, registration.m_channelIdURI, 0)) {
+                    m_pendingCompanion = false;
+                }
+                break;
+            }
+        }
+    }
+
+    return indexes;
+}
+
+// Remove companion demodulator that we created
+void SatelliteTrackerGUI::removeCreatedCompanion()
+{
+    if (m_createdCompanion)
+    {
+        int index = channelIndex(m_createdCompanionDeviceSetIndex, m_createdCompanion);
+        if (m_companionChannel == m_createdCompanion) {
+            m_companionChannel = nullptr;   // So it isn't treated as removed by the user
+        }
+        m_createdCompanion = nullptr;
+        if (index >= 0) {
+            MainCore::instance()->getMainMessageQueue()->push(MainCore::MsgDeleteChannel::create(m_createdCompanionDeviceSetIndex, index));
+        }
+    }
 }
 
 // Remove demodulator that we created

@@ -91,6 +91,7 @@ void SatelliteTrackerSettings::resetToDefaults()
     m_trackOffset = 0;
     m_trackCTCSS = 0.0f;
     m_trackCreatedChannel = false;
+    m_trackCreatedCompanion = false;
     m_satelliteTransmitters.clear();
     m_drawRotators = MATCHING_TARGET;
     m_azimuthOffset = 0.0;
@@ -193,6 +194,7 @@ QByteArray SatelliteTrackerSettings::serialize() const
         }
         s.writeBlob(70, transmitters);
     }
+    s.writeBool(71, m_trackCreatedCompanion);
 
     for (int i = 0; i < SAT_COL_COLUMNS; i++) {
         s.writeS32(100 + i, m_columnIndexes[i]);
@@ -316,6 +318,7 @@ bool SatelliteTrackerSettings::deserialize(const QByteArray& data)
         d.readS64(65, &m_trackOffset, 0);
         d.readFloat(66, &m_trackCTCSS, 0.0f);
         d.readBool(67, &m_trackCreatedChannel, false);
+        d.readBool(71, &m_trackCreatedCompanion, false);
         d.readBool(68, &m_amsatStatus, true);
         d.readS32(69, &m_amsatStatusHours, 24);
         {
@@ -593,6 +596,7 @@ void SatelliteTrackerSettings::applySettings(const QStringList& settingsKeys, co
         m_trackOffset = settings.m_trackOffset;
         m_trackCTCSS = settings.m_trackCTCSS;
         m_trackCreatedChannel = settings.m_trackCreatedChannel;
+        m_trackCreatedCompanion = settings.m_trackCreatedCompanion;
     }
     if (settingsKeys.contains("satelliteTransmitters")) {
         m_satelliteTransmitters = settings.m_satelliteTransmitters;

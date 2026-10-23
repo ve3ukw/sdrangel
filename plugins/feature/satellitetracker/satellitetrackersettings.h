@@ -123,6 +123,7 @@ struct SatelliteTrackerSettings
     qint64 m_trackOffset;               //!< How far user has retuned from transmitter frequency in Hz
     float m_trackCTCSS;                 //!< Uplink CTCSS tone in Hz or 0
     bool m_trackCreatedChannel;         //!< Channel was created by the Satellite Tracker
+    bool m_trackCreatedCompanion;       //!< Companion channel (Packet demod for SSTV) was created by the Satellite Tracker
     QMap<QString, SatelliteTransmitter> m_satelliteTransmitters; //!< Transmitter last tracked, by satellite name
     enum Rotators {ALL_ROTATORS, NO_ROTATORS, MATCHING_TARGET} m_drawRotators; //!< Which rotators to draw on polar chart
     double m_azimuthOffset;             //!< Offset to add to az/el sent to rotator

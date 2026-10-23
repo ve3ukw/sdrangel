@@ -121,6 +121,13 @@ private:
     QString m_tuneChannelType;
     ChannelAPI *m_createdChannel;       // Demodulator we created, which we remove when no longer used
     int m_createdChannelDeviceSetIndex;
+    ChannelAPI *m_companionChannel;     // Channel kept at the tracked channel's frequency (Packet demod for telemetry sent with SSTV)
+    int m_companionChannelIndex;        // Its index when last sent to the worker
+    ChannelAPI *m_createdCompanion;     // Companion channel we created, which we remove when no longer used
+    int m_createdCompanionDeviceSetIndex;
+    bool m_pendingCompanion;            // Waiting for a companion channel to be created
+    int m_pendingCompanionDeviceSetIndex;
+    bool m_companionRemoved;            // User removed the companion channel, so don't create another until a new tune
     int m_tuneId;                       // Matches MsgReportTune to latest MsgTuneChannel
     qint64 m_tuneBaseFrequency;         // Frequency sent to worker, before user retuning (includes CW tone offset)
     qint64 m_tuneOffset;                // How far user has retuned the channel from the transmitter frequency
@@ -207,6 +214,8 @@ private:
     void clearTrack();
     void startTune(const QString& satellite, qint64 frequency, TuneMode mode, int deviceSetIndex, ChannelAPI *channel, const QString& type, bool configure, qint64 offset);
     void removeCreatedChannel();
+    QList<int> companionChannels(TuneMode mode, int deviceSetIndex, bool configure);
+    void removeCreatedCompanion();
     void workSatellite(const QString& satellite);
     void trackTarget(const QString& satellite);
     void getRxChannels(QList<RxChannel>& rxChannels, QList<int>& rxDeviceSets, int& selectedChannel);

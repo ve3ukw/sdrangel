@@ -156,13 +156,16 @@ public:
         qint64 getFrequency() const { return m_frequency; }
         bool getFastDoppler() const { return m_fastDoppler; }
         int getTuneId() const { return m_tuneId; }
+        const QList<int>& getCompanionChannelIndexes() const { return m_companionChannelIndexes; }
 
-        static MsgTuneChannel* create(const QString& satellite, int deviceSetIndex, int channelIndex, qint64 frequency, bool fastDoppler, int tuneId) {
-            return new MsgTuneChannel(satellite, deviceSetIndex, channelIndex, frequency, fastDoppler, tuneId);
+        static MsgTuneChannel* create(const QString& satellite, int deviceSetIndex, int channelIndex, qint64 frequency, bool fastDoppler, int tuneId,
+            const QList<int>& companionChannelIndexes = QList<int>())
+        {
+            return new MsgTuneChannel(satellite, deviceSetIndex, channelIndex, frequency, fastDoppler, tuneId, companionChannelIndexes);
         }
 
         static MsgTuneChannel* createStop() {
-            return new MsgTuneChannel("", -1, -1, 0, false, 0);
+            return new MsgTuneChannel("", -1, -1, 0, false, 0, QList<int>());
         }
 
     private:
@@ -172,15 +175,18 @@ public:
         qint64 m_frequency;
         bool m_fastDoppler;     //!< Correct at least every second, for narrowband modes such as SSB and CW
         int m_tuneId;           //!< Identifies this tune request in MsgReportTune
+        QList<int> m_companionChannelIndexes; //!< Other channels on the same device set, set to the same frequency (E.g. Packet demod for SSTV telemetry)
 
-        MsgTuneChannel(const QString& satellite, int deviceSetIndex, int channelIndex, qint64 frequency, bool fastDoppler, int tuneId) :
+        MsgTuneChannel(const QString& satellite, int deviceSetIndex, int channelIndex, qint64 frequency, bool fastDoppler, int tuneId,
+            const QList<int>& companionChannelIndexes) :
             Message(),
             m_satellite(satellite),
             m_deviceSetIndex(deviceSetIndex),
             m_channelIndex(channelIndex),
             m_frequency(frequency),
             m_fastDoppler(fastDoppler),
-            m_tuneId(tuneId)
+            m_tuneId(tuneId),
+            m_companionChannelIndexes(companionChannelIndexes)
         { }
     };
 

@@ -176,7 +176,7 @@ bool SatelliteTracker::handleMessage(const Message& cmd)
         qDebug() << "SatelliteTracker::handleMessage: MsgTuneChannel:" << tune.getSatellite() << tune.getFrequency();
 
         if (m_worker) {
-            m_worker->getInputMessageQueue()->push(MsgTuneChannel::create(tune.getSatellite(), tune.getDeviceSetIndex(), tune.getChannelIndex(), tune.getFrequency(), tune.getFastDoppler(), tune.getTuneId()));
+            m_worker->getInputMessageQueue()->push(MsgTuneChannel::create(tune.getSatellite(), tune.getDeviceSetIndex(), tune.getChannelIndex(), tune.getFrequency(), tune.getFastDoppler(), tune.getTuneId(), tune.getCompanionChannelIndexes()));
         }
 
         return true;

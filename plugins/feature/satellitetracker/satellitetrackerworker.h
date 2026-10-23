@@ -136,6 +136,7 @@ private:
     int m_tuneId;
     qint64 m_tuneLastFrequency;         //!< Frequency (with Doppler) we last set channel to, or -1. Used to detect user retuning
     bool m_tuneDeviceRetuned;           //!< We changed device center frequency, which device may have rounded
+    QList<int> m_tuneCompanionChannelIndexes; //!< Other channels on the same device set, kept at the same frequency
 
     bool handleMessage(const Message& cmd);
     void applySettings(const SatelliteTrackerSettings& settings, const QList<QString>& settingsKeys, bool force = false);
@@ -165,7 +166,8 @@ private:
     void executeCommand(const QString &command, const QString &satelliteName);
     void enableDoppler(SatWorkerState *satWorkerState);
     void disableDoppler(SatWorkerState *satWorkerState);
-    void startTune(const QString& satellite, int deviceSetIndex, int channelIndex, qint64 frequency, bool fastDoppler, int tuneId);
+    void startTune(const QString& satellite, int deviceSetIndex, int channelIndex, qint64 frequency, bool fastDoppler, int tuneId, const QList<int>& companionChannelIndexes);
+    void tuneCompanionChannels(int offset);
     int tuneInterval() const;
     void stopTune();
     bool getRxCenterFrequency(DeviceSet *deviceSet, int streamIndex, double& centerFrequency, int& sampleRate);
