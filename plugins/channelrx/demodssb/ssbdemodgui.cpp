@@ -917,7 +917,7 @@ void SSBDemodGUI::makeUIConnections()
     QObject::connect(ui->agcPowerThreshold, &QDial::valueChanged, this, &SSBDemodGUI::on_agcPowerThreshold_valueChanged);
     QObject::connect(ui->agcThresholdGate, &QDial::valueChanged, this, &SSBDemodGUI::on_agcThresholdGate_valueChanged);
     QObject::connect(ui->audioMute, &QToolButton::toggled, this, &SSBDemodGUI::on_audioMute_toggled);
-    QObject::connect(ui->linkFrequencyOffset, &QToolButton::toggled, this, &SSBDemodGUI::on_linkFrequencyOffset_toggled);
+    QObject::connect(ui->linkFrequencyOffset, &ButtonSwitch::toggled, this, &SSBDemodGUI::on_linkFrequencyOffset_toggled);
     QObject::connect(ui->spanLog2, &QSlider::valueChanged, this, &SSBDemodGUI::on_spanLog2_valueChanged);
     QObject::connect(ui->flipSidebands, &QPushButton::clicked, this, &SSBDemodGUI::on_flipSidebands_clicked);
     QObject::connect(ui->fftWindow, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &SSBDemodGUI::on_fftWindow_currentIndexChanged);

@@ -124,7 +124,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QToolButton" name="linkFrequencyOffset">
+         <widget class="ButtonSwitch" name="linkFrequencyOffset">
           <property name="toolTip">
            <string>Keep frequency offset in sync with other linked SSB modulators and demodulators</string>
           </property>

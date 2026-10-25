@@ -916,7 +916,7 @@ void SSBModGUI::makeUIConnections()
     QObject::connect(ui->lowCut, &TickedSlider::valueChanged, this, &SSBModGUI::on_lowCut_valueChanged);
     QObject::connect(ui->volume, &QDial::valueChanged, this, &SSBModGUI::on_volume_valueChanged);
     QObject::connect(ui->audioMute, &QToolButton::toggled, this, &SSBModGUI::on_audioMute_toggled);
-    QObject::connect(ui->linkFrequencyOffset, &QToolButton::toggled, this, &SSBModGUI::on_linkFrequencyOffset_toggled);
+    QObject::connect(ui->linkFrequencyOffset, &ButtonSwitch::toggled, this, &SSBModGUI::on_linkFrequencyOffset_toggled);
     QObject::connect(ui->tone, &ButtonSwitch::toggled, this, &SSBModGUI::on_tone_toggled);
     QObject::connect(ui->toneFrequency, &QDial::valueChanged, this, &SSBModGUI::on_toneFrequency_valueChanged);
     QObject::connect(ui->mic, &ButtonSwitch::toggled, this, &SSBModGUI::on_mic_toggled);
