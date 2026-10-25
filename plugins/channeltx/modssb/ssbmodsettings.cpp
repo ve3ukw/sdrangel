@@ -59,6 +59,7 @@ void SSBModSettings::resetToDefaults()
     m_audioFlipChannels = false;
     m_dsb = false;
     m_audioMute = false;
+    m_linkFrequencyOffset = false;
     m_playLoop = false;
     m_agc = false;
     m_cmpPreGainDB = -10;
@@ -133,6 +134,7 @@ QByteArray SSBModSettings::serialize() const
     s.writeS32(32, m_workspaceIndex);
     s.writeBlob(33, m_geometryBytes);
     s.writeBool(34, m_hidden);
+    s.writeBool(35, m_linkFrequencyOffset);
 
     return s.final();
 }
@@ -229,6 +231,7 @@ bool SSBModSettings::deserialize(const QByteArray& data)
         d.readS32(32, &m_workspaceIndex, 0);
         d.readBlob(33, &m_geometryBytes);
         d.readBool(34, &m_hidden, false);
+        d.readBool(35, &m_linkFrequencyOffset, false);
 
         return true;
     }
@@ -273,6 +276,9 @@ void SSBModSettings::applySettings(const QStringList& settingsKeys, const SSBMod
     }
     if (settingsKeys.contains("audioMute")) {
         m_audioMute = settings.m_audioMute;
+    }
+    if (settingsKeys.contains("linkFrequencyOffset")) {
+        m_linkFrequencyOffset = settings.m_linkFrequencyOffset;
     }
     if (settingsKeys.contains("playLoop")) {
         m_playLoop = settings.m_playLoop;
@@ -375,6 +381,9 @@ QString SSBModSettings::getDebugString(const QStringList& settingsKeys, bool for
     }
     if (settingsKeys.contains("audioMute") || force) {
         ostr << " m_audioMute: " << m_audioMute;
+    }
+    if (settingsKeys.contains("linkFrequencyOffset") || force) {
+        ostr << " m_linkFrequencyOffset: " << m_linkFrequencyOffset;
     }
     if (settingsKeys.contains("playLoop") || force) {
         ostr << " m_playLoop: " << m_playLoop;

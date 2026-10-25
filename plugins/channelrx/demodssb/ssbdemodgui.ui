@@ -123,6 +123,23 @@
           </property>
          </widget>
         </item>
+        <item>
+         <widget class="QToolButton" name="linkFrequencyOffset">
+          <property name="toolTip">
+           <string>Keep frequency offset in sync with other linked SSB modulators and demodulators</string>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+          <property name="icon">
+           <iconset resource="../../../sdrgui/resources/res.qrc">
+            <normaloff>:/link.png</normaloff>:/link.png</iconset>
+          </property>
+          <property name="checkable">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
        </layout>
       </item>
       <item>

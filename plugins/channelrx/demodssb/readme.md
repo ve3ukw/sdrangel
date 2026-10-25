@@ -18,6 +18,10 @@ The top and bottom bars of the channel window are described [here](../../../sdrg
 
 Use the wheels to adjust the frequency shift in Hz from the center frequency of reception. Left click on a digit sets the cursor position at this digit. Right click on a digit sets all digits on the right to zero. This effectively floors value at the digit position. Wheels are moved with the mousewheel while pointing at the wheel or by selecting the wheel with the left mouse click and using the keyboard arrows. Pressing shift simultaneously moves digit by 5 and pressing control moves it by 2.
 
+<h3>1A: Link frequency shift</h3>
+
+When this button is on, changing the frequency shift (1) also sets the frequency shift of the other SSB modulators and demodulators that have their link button on, in any device set. Typically this is used to keep the SSB modulator tuned to the same frequency as this demodulator, to operate as a transceiver. Use it with the link button of the PlutoSDR input device to also keep the Tx center frequency equal to the Rx center frequency.
+
 <h3>2: Channel power</h3>
 
 Average total power in dB relative to a +/- 1.0 amplitude signal received in the pass band.

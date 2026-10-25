@@ -43,6 +43,7 @@
 #include "gui/dialpopup.h"
 #include "gui/dialogpositioner.h"
 #include "maincore.h"
+#include "channel/channelwebapiutils.h"
 
 SSBModGUI* SSBModGUI::create(PluginAPI* pluginAPI, DeviceUISet *deviceUISet, BasebandSampleSource *channelTx)
 {
@@ -240,6 +241,12 @@ void SSBModGUI::on_volume_valueChanged(int value)
     ui->volumeText->setText(QString("%1").arg(value / 10.0, 0, 'f', 1));
     m_settings.m_volumeFactor = value / 10.0;
     applySettings(QStringList("volumeFactor"));
+}
+
+void SSBModGUI::on_linkFrequencyOffset_toggled(bool checked)
+{
+    m_settings.m_linkFrequencyOffset = checked;
+    applySettings(QStringList("linkFrequencyOffset"));
 }
 
 void SSBModGUI::on_audioMute_toggled(bool checked)
@@ -545,6 +552,13 @@ void SSBModGUI::applySettings(const QStringList& settingsKeys, bool force)
 
 		SSBMod::MsgConfigureSSBMod *msg = SSBMod::MsgConfigureSSBMod::create(settingsKeys, mod_settings, force);
 		m_ssbMod->getInputMessageQueue()->push(msg);
+
+        // Changes received from linked channels are displayed with applySettings blocked, so are not sent back
+        if (m_settings.m_linkFrequencyOffset
+            && (settingsKeys.contains("inputFrequencyOffset") || settingsKeys.contains("linkFrequencyOffset")))
+        {
+            ChannelWebAPIUtils::setLinkedFrequencyOffsets(m_ssbMod, QStringList{"sdrangel.channel.ssbdemod", "sdrangel.channeltx.modssb"}, m_settings.m_inputFrequencyOffset);
+        }
 	}
 }
 
@@ -713,6 +727,7 @@ void SSBModGUI::displaySettings()
     ui->audioBinaural->setChecked(m_settings.m_audioBinaural);
     ui->audioFlipChannels->setChecked(m_settings.m_audioFlipChannels);
     ui->audioMute->setChecked(m_settings.m_audioMute);
+    ui->linkFrequencyOffset->setChecked(m_settings.m_linkFrequencyOffset);
     ui->playLoop->setChecked(m_settings.m_playLoop);
 
     // Prevent uncontrolled triggering of applyBandwidths
@@ -901,6 +916,7 @@ void SSBModGUI::makeUIConnections()
     QObject::connect(ui->lowCut, &TickedSlider::valueChanged, this, &SSBModGUI::on_lowCut_valueChanged);
     QObject::connect(ui->volume, &QDial::valueChanged, this, &SSBModGUI::on_volume_valueChanged);
     QObject::connect(ui->audioMute, &QToolButton::toggled, this, &SSBModGUI::on_audioMute_toggled);
+    QObject::connect(ui->linkFrequencyOffset, &QToolButton::toggled, this, &SSBModGUI::on_linkFrequencyOffset_toggled);
     QObject::connect(ui->tone, &ButtonSwitch::toggled, this, &SSBModGUI::on_tone_toggled);
     QObject::connect(ui->toneFrequency, &QDial::valueChanged, this, &SSBModGUI::on_toneFrequency_valueChanged);
     QObject::connect(ui->mic, &ButtonSwitch::toggled, this, &SSBModGUI::on_mic_toggled);

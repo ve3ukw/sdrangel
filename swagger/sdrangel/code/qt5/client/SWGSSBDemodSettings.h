@@ -48,6 +48,9 @@ public:
     qint64 getInputFrequencyOffset();
     void setInputFrequencyOffset(qint64 input_frequency_offset);
 
+    qint32 getLinkFrequencyOffset();
+    void setLinkFrequencyOffset(qint32 link_frequency_offset);
+
     qint32 getFilterIndex();
     void setFilterIndex(qint32 filter_index);
 
@@ -153,6 +156,9 @@ public:
 private:
     qint64 input_frequency_offset;
     bool m_input_frequency_offset_isSet;
+
+    qint32 link_frequency_offset;
+    bool m_link_frequency_offset_isSet;
 
     qint32 filter_index;
     bool m_filter_index_isSet;

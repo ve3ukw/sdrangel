@@ -36,6 +36,7 @@
 #include "gui/dialpopup.h"
 #include "gui/dialogpositioner.h"
 #include "maincore.h"
+#include "channel/channelwebapiutils.h"
 #include "ssbdemod.h"
 
 SSBDemodGUI* SSBDemodGUI::create(PluginAPI* pluginAPI, DeviceUISet *deviceUISet, BasebandSampleSink *rxChannel)
@@ -240,6 +241,12 @@ void SSBDemodGUI::on_agcThresholdGate_valueChanged(int value)
     ui->agcThresholdGateText->setText(s);
     m_settings.m_agcThresholdGate = agcThresholdGate;
     applySettings(QStringList("agcThresholdGate"));
+}
+
+void SSBDemodGUI::on_linkFrequencyOffset_toggled(bool checked)
+{
+    m_settings.m_linkFrequencyOffset = checked;
+    applySettings(QStringList("linkFrequencyOffset"));
 }
 
 void SSBDemodGUI::on_audioMute_toggled(bool checked)
@@ -475,6 +482,13 @@ void SSBDemodGUI::applySettings(const QStringList& channelSettingsKeys, bool for
 	{
         SSBDemod::MsgConfigureSSBDemod* message = SSBDemod::MsgConfigureSSBDemod::create(channelSettingsKeys, m_settings, force);
         m_ssbDemod->getInputMessageQueue()->push(message);
+
+        // Changes received from linked channels are displayed with applySettings blocked, so are not sent back
+        if (m_settings.m_linkFrequencyOffset
+            && (channelSettingsKeys.contains("inputFrequencyOffset") || channelSettingsKeys.contains("linkFrequencyOffset")))
+        {
+            ChannelWebAPIUtils::setLinkedFrequencyOffsets(m_ssbDemod, QStringList{"sdrangel.channel.ssbdemod", "sdrangel.channeltx.modssb"}, m_settings.m_inputFrequencyOffset);
+        }
 	}
 }
 
@@ -676,6 +690,7 @@ void SSBDemodGUI::displaySettings()
     ui->audioBinaural->setChecked(m_settings.m_audioBinaural);
     ui->audioFlipChannels->setChecked(m_settings.m_audioFlipChannels);
     ui->audioMute->setChecked(m_settings.m_audioMute);
+    ui->linkFrequencyOffset->setChecked(m_settings.m_linkFrequencyOffset);
     ui->deltaFrequency->setValue(m_channelMarker.getCenterFrequency());
     ui->fftWindow->setCurrentIndex((int) m_settings.m_filterBank[m_settings.m_filterIndex].m_fftWindow);
 
@@ -902,6 +917,7 @@ void SSBDemodGUI::makeUIConnections()
     QObject::connect(ui->agcPowerThreshold, &QDial::valueChanged, this, &SSBDemodGUI::on_agcPowerThreshold_valueChanged);
     QObject::connect(ui->agcThresholdGate, &QDial::valueChanged, this, &SSBDemodGUI::on_agcThresholdGate_valueChanged);
     QObject::connect(ui->audioMute, &QToolButton::toggled, this, &SSBDemodGUI::on_audioMute_toggled);
+    QObject::connect(ui->linkFrequencyOffset, &QToolButton::toggled, this, &SSBDemodGUI::on_linkFrequencyOffset_toggled);
     QObject::connect(ui->spanLog2, &QSlider::valueChanged, this, &SSBDemodGUI::on_spanLog2_valueChanged);
     QObject::connect(ui->flipSidebands, &QPushButton::clicked, this, &SSBDemodGUI::on_flipSidebands_clicked);
     QObject::connect(ui->fftWindow, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &SSBDemodGUI::on_fftWindow_currentIndexChanged);

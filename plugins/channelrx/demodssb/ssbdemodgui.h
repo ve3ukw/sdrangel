@@ -128,6 +128,7 @@ private slots:
     void on_agcPowerThreshold_valueChanged(int value);
     void on_agcThresholdGate_valueChanged(int value);
 	void on_audioMute_toggled(bool checked);
+    void on_linkFrequencyOffset_toggled(bool checked);
 	void on_spanLog2_valueChanged(int value);
 	void on_flipSidebands_clicked(bool checked);
     void on_fftWindow_currentIndexChanged(int index);

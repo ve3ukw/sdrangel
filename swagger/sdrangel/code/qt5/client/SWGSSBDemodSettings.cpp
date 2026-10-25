@@ -30,6 +30,8 @@ SWGSSBDemodSettings::SWGSSBDemodSettings(QString* json) {
 SWGSSBDemodSettings::SWGSSBDemodSettings() {
     input_frequency_offset = 0L;
     m_input_frequency_offset_isSet = false;
+    link_frequency_offset = 0;
+    m_link_frequency_offset_isSet = false;
     filter_index = 0;
     m_filter_index_isSet = false;
     span_log2 = 0;
@@ -106,6 +108,8 @@ void
 SWGSSBDemodSettings::init() {
     input_frequency_offset = 0L;
     m_input_frequency_offset_isSet = false;
+    link_frequency_offset = 0;
+    m_link_frequency_offset_isSet = false;
     filter_index = 0;
     m_filter_index_isSet = false;
     span_log2 = 0;
@@ -237,6 +241,8 @@ void
 SWGSSBDemodSettings::fromJsonObject(QJsonObject &pJson) {
     ::SWGSDRangel::setValue(&input_frequency_offset, pJson["inputFrequencyOffset"], "qint64", "");
     
+    ::SWGSDRangel::setValue(&link_frequency_offset, pJson["linkFrequencyOffset"], "qint32", "");
+    
     ::SWGSDRangel::setValue(&filter_index, pJson["filterIndex"], "qint32", "");
     
     ::SWGSDRangel::setValue(&span_log2, pJson["spanLog2"], "qint32", "");
@@ -321,6 +327,9 @@ SWGSSBDemodSettings::asJsonObject() {
     QJsonObject* obj = new QJsonObject();
     if(m_input_frequency_offset_isSet){
         obj->insert("inputFrequencyOffset", QJsonValue(input_frequency_offset));
+    }
+    if(m_link_frequency_offset_isSet){
+        obj->insert("linkFrequencyOffset", QJsonValue(link_frequency_offset));
     }
     if(m_filter_index_isSet){
         obj->insert("filterIndex", QJsonValue(filter_index));
@@ -433,6 +442,16 @@ void
 SWGSSBDemodSettings::setInputFrequencyOffset(qint64 input_frequency_offset) {
     this->input_frequency_offset = input_frequency_offset;
     this->m_input_frequency_offset_isSet = true;
+}
+
+qint32
+SWGSSBDemodSettings::getLinkFrequencyOffset() {
+    return link_frequency_offset;
+}
+void
+SWGSSBDemodSettings::setLinkFrequencyOffset(qint32 link_frequency_offset) {
+    this->link_frequency_offset = link_frequency_offset;
+    this->m_link_frequency_offset_isSet = true;
 }
 
 qint32
@@ -771,6 +790,9 @@ SWGSSBDemodSettings::isSet(){
     bool isObjectUpdated = false;
     do{
         if(m_input_frequency_offset_isSet){
+            isObjectUpdated = true; break;
+        }
+        if(m_link_frequency_offset_isSet){
             isObjectUpdated = true; break;
         }
         if(m_filter_index_isSet){

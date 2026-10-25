@@ -48,6 +48,7 @@ void SSBDemodSettings::resetToDefaults()
     m_audioFlipChannels = false;
     m_dsb = false;
     m_audioMute = false;
+    m_linkFrequencyOffset = false;
     m_agc = false;
     m_agcClamping = false;
     m_agcPowerThreshold = -100;
@@ -118,6 +119,7 @@ QByteArray SSBDemodSettings::serialize() const
     s.writeS32(34, m_dnrNbPeaks);
     s.writeFloat(35, m_dnrAlpha);
     s.writeBool(36, m_audioMute);
+    s.writeBool(37, m_linkFrequencyOffset);
 
     for (unsigned int i = 0; i <  10; i++)
     {
@@ -208,6 +210,7 @@ bool SSBDemodSettings::deserialize(const QByteArray& data)
         d.readS32(34, &m_dnrNbPeaks, 20);
         d.readFloat(35, &m_dnrAlpha, 1.0);
         d.readBool(36, &m_audioMute, false);
+        d.readBool(37, &m_linkFrequencyOffset, false);
 
         for (unsigned int i = 0; (i < 10); i++)
         {
@@ -255,6 +258,9 @@ void SSBDemodSettings::applySettings(const QStringList& settingsKeys, const SSBD
     }
     if (settingsKeys.contains("audioMute")) {
         m_audioMute = settings.m_audioMute;
+    }
+    if (settingsKeys.contains("linkFrequencyOffset")) {
+        m_linkFrequencyOffset = settings.m_linkFrequencyOffset;
     }
     if (settingsKeys.contains("agc")) {
         m_agc = settings.m_agc;
@@ -354,6 +360,9 @@ QString SSBDemodSettings::getDebugString(const QStringList& settingsKeys, bool f
     }
     if (settingsKeys.contains("audioMute") || force) {
         ostr << " m_audioMute: " << m_audioMute;
+    }
+    if (settingsKeys.contains("linkFrequencyOffset") || force) {
+        ostr << " m_linkFrequencyOffset: " << m_linkFrequencyOffset;
     }
     if (settingsKeys.contains("agc") || force) {
         ostr << " m_agc: " << m_agc;

@@ -975,6 +975,36 @@ bool ChannelWebAPIUtils::setFrequencyOffset(unsigned int deviceIndex, int channe
     return false;
 }
 
+// Set input frequency offset of all channels, other than sourceChannel, with one of the given URIs
+// that have linkFrequencyOffset set, so that linked channels (E.g. Rx and Tx of a transceiver) stay in sync
+void ChannelWebAPIUtils::setLinkedFrequencyOffsets(const ChannelAPI *sourceChannel, const QStringList& channelURIs, int offset)
+{
+    std::vector<DeviceSet*>& deviceSets = MainCore::instance()->getDeviceSets();
+
+    for (unsigned int deviceSetIndex = 0; deviceSetIndex < deviceSets.size(); deviceSetIndex++)
+    {
+        DeviceSet *deviceSet = deviceSets[deviceSetIndex];
+
+        for (int channelIndex = 0; channelIndex < deviceSet->getNumberOfChannels(); channelIndex++)
+        {
+            ChannelAPI *channel = deviceSet->getChannelAt(channelIndex);
+
+            if (!channel || (channel == sourceChannel) || !channelURIs.contains(channel->getURI())) {
+                continue;
+            }
+
+            int link;
+            int currentOffset;
+
+            if (getChannelSetting(deviceSetIndex, channelIndex, "linkFrequencyOffset", link) && link
+                && getFrequencyOffset(deviceSetIndex, channelIndex, currentOffset) && (currentOffset != offset))
+            {
+                setFrequencyOffset(deviceSetIndex, channelIndex, offset);
+            }
+        }
+    }
+}
+
 bool ChannelWebAPIUtils::getAudioMute(unsigned int deviceIndex, int channelIndex, bool& mute)
 {
     SWGSDRangel::SWGChannelSettings channelSettingsResponse;

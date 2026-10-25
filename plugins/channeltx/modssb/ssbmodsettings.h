@@ -55,6 +55,7 @@ struct SSBModSettings
     bool m_audioFlipChannels;
     bool m_dsb;
     bool m_audioMute;
+    bool m_linkFrequencyOffset; //!< keep frequency offset in sync with other linked SSB channels
     bool m_playLoop;
     bool m_agc;
     int m_cmpPreGainDB;

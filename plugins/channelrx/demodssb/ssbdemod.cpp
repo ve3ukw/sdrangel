@@ -447,6 +447,9 @@ void SSBDemod::webapiUpdateChannelSettings(
     if (channelSettingsKeys.contains("audioMute")) {
         settings.m_audioMute = response.getSsbDemodSettings()->getAudioMute() != 0;
     }
+    if (channelSettingsKeys.contains("linkFrequencyOffset")) {
+        settings.m_linkFrequencyOffset = response.getSsbDemodSettings()->getLinkFrequencyOffset() != 0;
+    }
     if (channelSettingsKeys.contains("agc")) {
         settings.m_agc = response.getSsbDemodSettings()->getAgc() != 0;
     }
@@ -533,6 +536,7 @@ void SSBDemod::webapiFormatChannelSettings(SWGSDRangel::SWGChannelSettings& resp
 {
     response.getSsbDemodSettings()->setAudioMute(settings.m_audioMute ? 1 : 0);
     response.getSsbDemodSettings()->setInputFrequencyOffset(settings.m_inputFrequencyOffset);
+    response.getSsbDemodSettings()->setLinkFrequencyOffset(settings.m_linkFrequencyOffset ? 1 : 0);
     response.getSsbDemodSettings()->setFilterIndex(settings.m_filterIndex);
     response.getSsbDemodSettings()->setSpanLog2(settings.m_filterBank[settings.m_filterIndex].m_spanLog2);
     response.getSsbDemodSettings()->setRfBandwidth(settings.m_filterBank[settings.m_filterIndex].m_rfBandwidth);
@@ -744,6 +748,9 @@ void SSBDemod::webapiFormatChannelSettings(
     }
     if (channelSettingsKeys.contains("audioMute") || force) {
         swgSSBDemodSettings->setAudioMute(settings.m_audioMute ? 1 : 0);
+    }
+    if (channelSettingsKeys.contains("linkFrequencyOffset") || force) {
+        swgSSBDemodSettings->setLinkFrequencyOffset(settings.m_linkFrequencyOffset ? 1 : 0);
     }
     if (channelSettingsKeys.contains("agc") || force) {
         swgSSBDemodSettings->setAgc(settings.m_agc ? 1 : 0);

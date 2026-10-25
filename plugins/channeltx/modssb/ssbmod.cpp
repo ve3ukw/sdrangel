@@ -498,6 +498,9 @@ void SSBMod::webapiUpdateChannelSettings(
     if (channelSettingsKeys.contains("audioMute")) {
         settings.m_audioMute = response.getSsbModSettings()->getAudioMute() != 0;
     }
+    if (channelSettingsKeys.contains("linkFrequencyOffset")) {
+        settings.m_linkFrequencyOffset = response.getSsbModSettings()->getLinkFrequencyOffset() != 0;
+    }
     if (channelSettingsKeys.contains("playLoop")) {
         settings.m_playLoop = response.getSsbModSettings()->getPlayLoop() != 0;
     }
@@ -565,6 +568,7 @@ int SSBMod::webapiReportGet(
 void SSBMod::webapiFormatChannelSettings(SWGSDRangel::SWGChannelSettings& response, const SSBModSettings& settings)
 {
     response.getSsbModSettings()->setInputFrequencyOffset(settings.m_inputFrequencyOffset);
+    response.getSsbModSettings()->setLinkFrequencyOffset(settings.m_linkFrequencyOffset ? 1 : 0);
     response.getSsbModSettings()->setBandwidth(settings.m_bandwidth);
     response.getSsbModSettings()->setLowCutoff(settings.m_lowCutoff);
     response.getSsbModSettings()->setUsb(settings.m_usb ? 1 : 0);
@@ -799,6 +803,9 @@ void SSBMod::webapiFormatChannelSettings(
     }
     if (channelSettingsKeys.contains("audioMute") || force) {
         swgSSBModSettings->setAudioMute(settings.m_audioMute ? 1 : 0);
+    }
+    if (channelSettingsKeys.contains("linkFrequencyOffset") || force) {
+        swgSSBModSettings->setLinkFrequencyOffset(settings.m_linkFrequencyOffset ? 1 : 0);
     }
     if (channelSettingsKeys.contains("playLoop") || force) {
         swgSSBModSettings->setPlayLoop(settings.m_playLoop ? 1 : 0);
