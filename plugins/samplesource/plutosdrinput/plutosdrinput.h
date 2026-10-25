@@ -167,6 +167,7 @@ public:
     void handleError(int errorCode);
     void suspendBuddies();
     void resumeBuddies();
+    void linkTxFrequency();
     bool applySettings(const PlutoSDRInputSettings& settings, const QList<QString>& settingsKeys, bool force = false);
     void webapiFormatDeviceReport(SWGSDRangel::SWGDeviceReport& response);
     void webapiReverseSendSettings(const QList<QString>& deviceSettingsKeys, const PlutoSDRInputSettings& settings, bool force);

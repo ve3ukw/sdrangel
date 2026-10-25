@@ -102,6 +102,7 @@ private slots:
     void on_gain_valueChanged(int value);
     void on_antenna_currentIndexChanged(int index);
     void on_transverter_clicked();
+    void on_linkTxFrequency_toggled(bool checked);
     void on_sampleRateMode_toggled(bool checked);
     void updateHardware();
     void updateStatus();

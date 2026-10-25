@@ -358,6 +358,13 @@ void PlutoSDRInputGui::on_transverter_clicked()
     sendSettings();
 }
 
+void PlutoSDRInputGui::on_linkTxFrequency_toggled(bool checked)
+{
+    m_settings.m_linkTxFrequency = checked;
+    m_settingsKeys.append("linkTxFrequency");
+    sendSettings();
+}
+
 void PlutoSDRInputGui::on_sampleRateMode_toggled(bool checked)
 {
     m_sampleRateMode = checked;
@@ -428,6 +435,7 @@ void PlutoSDRInputGui::displaySettings()
     ui->transverter->setDeltaFrequency(m_settings.m_transverterDeltaFrequency);
     ui->transverter->setDeltaFrequencyActive(m_settings.m_transverterMode);
     ui->transverter->setIQOrder(m_settings.m_iqOrder);
+    ui->linkTxFrequency->setChecked(m_settings.m_linkTxFrequency);
     updateFrequencyLimits();
     ui->centerFrequency->setValue(m_settings.m_centerFrequency / 1000);
     displaySampleRate();
@@ -693,5 +701,6 @@ void PlutoSDRInputGui::makeUIConnections()
     QObject::connect(ui->gain, &QDial::valueChanged, this, &PlutoSDRInputGui::on_gain_valueChanged);
     QObject::connect(ui->antenna, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &PlutoSDRInputGui::on_antenna_currentIndexChanged);
     QObject::connect(ui->transverter, &TransverterButton::clicked, this, &PlutoSDRInputGui::on_transverter_clicked);
+    QObject::connect(ui->linkTxFrequency, &ButtonSwitch::toggled, this, &PlutoSDRInputGui::on_linkTxFrequency_toggled);
     QObject::connect(ui->sampleRateMode, &QToolButton::toggled, this, &PlutoSDRInputGui::on_sampleRateMode_toggled);
 }

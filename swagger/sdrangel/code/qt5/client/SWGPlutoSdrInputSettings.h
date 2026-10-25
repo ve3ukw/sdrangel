@@ -108,6 +108,9 @@ public:
     qint32 getIqOrder();
     void setIqOrder(qint32 iq_order);
 
+    qint32 getLinkTxFrequency();
+    void setLinkTxFrequency(qint32 link_tx_frequency);
+
     qint32 getUseReverseApi();
     void setUseReverseApi(qint32 use_reverse_api);
 
@@ -189,6 +192,9 @@ private:
 
     qint32 iq_order;
     bool m_iq_order_isSet;
+
+    qint32 link_tx_frequency;
+    bool m_link_tx_frequency_isSet;
 
     qint32 use_reverse_api;
     bool m_use_reverse_api_isSet;

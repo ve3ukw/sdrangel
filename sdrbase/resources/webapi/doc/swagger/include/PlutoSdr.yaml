@@ -92,6 +92,9 @@ PlutoSdrInputSettings:
         IQ samples order
           * 0 - Q then I (swapped)
           * 1 - I then Q (straight)
+    linkTxFrequency:
+      type: integer
+      description: "Keep the center frequency of the Tx device of the same hardware equal to this Rx device (1 for yes, 0 for no)"
     useReverseAPI:
       description: Synchronize with reverse API (1 for yes, 0 for no)
       type: integer

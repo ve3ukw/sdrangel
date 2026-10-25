@@ -72,6 +72,8 @@ SWGPlutoSdrInputSettings::SWGPlutoSdrInputSettings() {
     m_transverter_delta_frequency_isSet = false;
     iq_order = 0;
     m_iq_order_isSet = false;
+    link_tx_frequency = 0;
+    m_link_tx_frequency_isSet = false;
     use_reverse_api = 0;
     m_use_reverse_api_isSet = false;
     reverse_api_address = nullptr;
@@ -132,6 +134,8 @@ SWGPlutoSdrInputSettings::init() {
     m_transverter_delta_frequency_isSet = false;
     iq_order = 0;
     m_iq_order_isSet = false;
+    link_tx_frequency = 0;
+    m_link_tx_frequency_isSet = false;
     use_reverse_api = 0;
     m_use_reverse_api_isSet = false;
     reverse_api_address = new QString("");
@@ -231,6 +235,8 @@ SWGPlutoSdrInputSettings::fromJsonObject(QJsonObject &pJson) {
     
     ::SWGSDRangel::setValue(&iq_order, pJson["iqOrder"], "qint32", "");
     
+    ::SWGSDRangel::setValue(&link_tx_frequency, pJson["linkTxFrequency"], "qint32", "");
+    
     ::SWGSDRangel::setValue(&use_reverse_api, pJson["useReverseAPI"], "qint32", "");
     
     ::SWGSDRangel::setValue(&reverse_api_address, pJson["reverseAPIAddress"], "QString", "QString");
@@ -320,6 +326,9 @@ SWGPlutoSdrInputSettings::asJsonObject() {
     }
     if(m_iq_order_isSet){
         obj->insert("iqOrder", QJsonValue(iq_order));
+    }
+    if(m_link_tx_frequency_isSet){
+        obj->insert("linkTxFrequency", QJsonValue(link_tx_frequency));
     }
     if(m_use_reverse_api_isSet){
         obj->insert("useReverseAPI", QJsonValue(use_reverse_api));
@@ -558,6 +567,16 @@ SWGPlutoSdrInputSettings::setIqOrder(qint32 iq_order) {
 }
 
 qint32
+SWGPlutoSdrInputSettings::getLinkTxFrequency() {
+    return link_tx_frequency;
+}
+void
+SWGPlutoSdrInputSettings::setLinkTxFrequency(qint32 link_tx_frequency) {
+    this->link_tx_frequency = link_tx_frequency;
+    this->m_link_tx_frequency_isSet = true;
+}
+
+qint32
 SWGPlutoSdrInputSettings::getUseReverseApi() {
     return use_reverse_api;
 }
@@ -666,6 +685,9 @@ SWGPlutoSdrInputSettings::isSet(){
             isObjectUpdated = true; break;
         }
         if(m_iq_order_isSet){
+            isObjectUpdated = true; break;
+        }
+        if(m_link_tx_frequency_isSet){
             isObjectUpdated = true; break;
         }
         if(m_use_reverse_api_isSet){

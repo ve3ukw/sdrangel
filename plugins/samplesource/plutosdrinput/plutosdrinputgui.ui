@@ -260,6 +260,29 @@
        </property>
       </widget>
      </item>
+     <item>
+      <widget class="ButtonSwitch" name="linkTxFrequency">
+       <property name="maximumSize">
+        <size>
+         <width>24</width>
+         <height>24</height>
+        </size>
+       </property>
+       <property name="toolTip">
+        <string>Keep the Tx center frequency equal to the Rx center frequency</string>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="icon">
+        <iconset resource="../../../sdrgui/resources/res.qrc">
+         <normaloff>:/link.png</normaloff>:/link.png</iconset>
+       </property>
+       <property name="checkable">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
     </layout>
    </item>
    <item>

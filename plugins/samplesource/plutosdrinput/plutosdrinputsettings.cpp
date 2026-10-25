@@ -50,6 +50,7 @@ void PlutoSDRInputSettings::resetToDefaults()
 	m_transverterMode = false;
 	m_transverterDeltaFrequency = 0;
     m_iqOrder = true;
+    m_linkTxFrequency = false;
     m_useReverseAPI = false;
     m_reverseAPIAddress = "127.0.0.1";
     m_reverseAPIPort = 8888;
@@ -85,6 +86,7 @@ QByteArray PlutoSDRInputSettings::serialize() const
     s.writeBool(24, m_hwIQCorrection);
     s.writeBool(25, m_iqOrder);
     s.writeString(26, m_title);
+    s.writeBool(27, m_linkTxFrequency);
 
 	return s.final();
 }
@@ -158,6 +160,7 @@ bool PlutoSDRInputSettings::deserialize(const QByteArray& data)
         d.readBool(24, &m_hwIQCorrection, true);
         d.readBool(25, &m_iqOrder, true);
         d.readString(26, &m_title, "PlutoSDR");
+        d.readBool(27, &m_linkTxFrequency, false);
 
 		return true;
 	}
@@ -304,6 +307,9 @@ void PlutoSDRInputSettings::applySettings(const QStringList& settingsKeys, const
     if (settingsKeys.contains("iqOrder")) {
         m_iqOrder = settings.m_iqOrder;
     }
+    if (settingsKeys.contains("linkTxFrequency")) {
+        m_linkTxFrequency = settings.m_linkTxFrequency;
+    }
     if (settingsKeys.contains("useReverseAPI")) {
         m_useReverseAPI = settings.m_useReverseAPI;
     }
@@ -387,6 +393,9 @@ QString PlutoSDRInputSettings::getDebugString(const QStringList& settingsKeys, b
     }
     if (settingsKeys.contains("iqOrder") || force) {
         ostr << " m_iqOrder: " << m_iqOrder;
+    }
+    if (settingsKeys.contains("linkTxFrequency") || force) {
+        ostr << " m_linkTxFrequency: " << m_linkTxFrequency;
     }
     if (settingsKeys.contains("useReverseAPI") || force) {
         ostr << " m_useReverseAPI: " << m_useReverseAPI;

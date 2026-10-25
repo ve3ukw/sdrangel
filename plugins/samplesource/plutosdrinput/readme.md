@@ -67,6 +67,10 @@ Use this slider to adjust LO correction in ppm. It can be varied from -20.0 to 2
 
 This button opens a dialog to set the transverter mode frequency translation options. The details about this dialog can be found [here](../../../sdrgui/gui/transverterdialog.md)
 
+<h3>3A: Link Tx frequency</h3>
+
+When this button is on, the center frequency of the PlutoSDR output (Tx) device using the same hardware follows the center frequency of this Rx device. Changes made on the Tx device itself are not sent back to the Rx device. This makes it easy to operate the Rx and Tx as a transceiver.
+
 <h3>4: Auto correction options</h3>
 
   - **SW** section: These buttons control the software DSP auto correction options
