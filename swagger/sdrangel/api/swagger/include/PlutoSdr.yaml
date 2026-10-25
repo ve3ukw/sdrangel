@@ -243,6 +243,9 @@ PlutoSdrMIMOSettings:
         IQ samples order
           * 0 - Q then I (swapped)
           * 1 - I then Q (straight)
+    linkTxFrequency:
+      type: integer
+      description: "Keep the Tx center frequency equal to the Rx center frequency (1 for yes, 0 for no)"
     lpfBWRx:
       description: Analog lowpass filter bandwidth (Hz)
       type: integer

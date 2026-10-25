@@ -72,6 +72,10 @@ This button controls the start/stop of the Tx subsystem.
   - Green square icon: device is running and can be stopped
   - Magenta (or pink) square icon: an error occurred. In the case the device was accidentally disconnected you may click on the icon to stop, plug back in, check the source on the sampling devices control panel and start again.
 
+<h3>6A. Link Tx frequency</h3>
+
+When this button is on, the Tx center frequency is kept equal to the Rx center frequency: changing the Rx frequency also changes the Tx frequency. Changes made to the Tx frequency are not applied to the Rx frequency. This makes it easy to operate the Rx and Tx as a transceiver, possibly with the link buttons of the SSB demodulator and modulator to also keep their frequency shifts in sync.
+
 <h4>7: ADC sample rate</h4>
 
 This is the sample rate at which the ADC runs in kS/s (k) or MS/s (M) before hardware decimation. Hardware decimation is only partially controlled by the user using the FIR decimation factor (12). The value here is the value returned by the device interface therefore it is always exact.

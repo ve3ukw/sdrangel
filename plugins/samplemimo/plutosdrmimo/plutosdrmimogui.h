@@ -108,6 +108,7 @@ private slots:
 	void on_gain_valueChanged(int value);
 	void on_att_valueChanged(int value);
 	void on_transverter_clicked();
+	void on_linkTxFrequency_toggled(bool checked);
     void on_rfDCOffset_toggled(bool checked);
     void on_bbDCOffset_toggled(bool checked);
     void on_hwIQImbalance_toggled(bool checked);

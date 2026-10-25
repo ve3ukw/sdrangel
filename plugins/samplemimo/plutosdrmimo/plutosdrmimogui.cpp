@@ -152,6 +152,11 @@ void PlutoSDRMIMOGUI::displaySettings()
     setTitle(m_settings.m_title);
     getDeviceUISet()->m_mainSpectrumGUI->setTitle(m_settings.m_title);
 
+    {
+        QSignalBlocker blocker(ui->linkTxFrequency);
+        ui->linkTxFrequency->setChecked(m_settings.m_linkTxFrequency);
+    }
+
     if (m_rxElseTx)
     {
         ui->transverter->setDeltaFrequency(m_settings.m_rxTransverterDeltaFrequency);
@@ -957,6 +962,13 @@ void PlutoSDRMIMOGUI::on_antenna_currentIndexChanged(int index)
     sendSettings();
 }
 
+void PlutoSDRMIMOGUI::on_linkTxFrequency_toggled(bool checked)
+{
+    m_settings.m_linkTxFrequency = checked;
+    m_settingsKeys.append("linkTxFrequency");
+    sendSettings();
+}
+
 void PlutoSDRMIMOGUI::on_transverter_clicked()
 {
     if (m_rxElseTx)
@@ -1061,6 +1073,7 @@ void PlutoSDRMIMOGUI::makeUIConnections()
 	QObject::connect(ui->gain, &QDial::valueChanged, this, &PlutoSDRMIMOGUI::on_gain_valueChanged);
 	QObject::connect(ui->att, &QDial::valueChanged, this, &PlutoSDRMIMOGUI::on_att_valueChanged);
 	QObject::connect(ui->transverter, &TransverterButton::clicked, this, &PlutoSDRMIMOGUI::on_transverter_clicked);
+	QObject::connect(ui->linkTxFrequency, &ButtonSwitch::toggled, this, &PlutoSDRMIMOGUI::on_linkTxFrequency_toggled);
     QObject::connect(ui->rfDCOffset, &ButtonSwitch::toggled, this, &PlutoSDRMIMOGUI::on_rfDCOffset_toggled);
     QObject::connect(ui->bbDCOffset, &ButtonSwitch::toggled, this, &PlutoSDRMIMOGUI::on_bbDCOffset_toggled);
     QObject::connect(ui->hwIQImbalance, &ButtonSwitch::toggled, this, &PlutoSDRMIMOGUI::on_hwIQImbalance_toggled);

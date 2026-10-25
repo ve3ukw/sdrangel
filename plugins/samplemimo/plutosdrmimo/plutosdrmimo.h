@@ -197,6 +197,7 @@ private:
     void handleError(int errorCode);
 
 	bool applySettings(const PlutoSDRMIMOSettings& settings, const QList<QString>& settingsKeys, bool force);
+    void linkTxFrequency(PlutoSDRMIMOSettings& settings, QList<QString>& settingsKeys, bool force);
     void webapiReverseSendSettings(const QList<QString>& deviceSettingsKeys, const PlutoSDRMIMOSettings& settings, bool force);
     void webapiReverseSendStartStop(bool start);
     void webapiFormatDeviceReport(SWGSDRangel::SWGDeviceReport& response);

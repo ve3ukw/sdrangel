@@ -458,7 +458,11 @@ bool PlutoSDRMIMO::handleMessage(const Message& message)
         MsgConfigurePlutoSDRMIMO& conf = (MsgConfigurePlutoSDRMIMO&) message;
         qDebug() << "PlutoSDRMIMO::handleMessage: MsgConfigurePlutoSDRMIMO";
 
-        bool success = applySettings(conf.getSettings(), conf.getSettingsKeys(), conf.getForce());
+        PlutoSDRMIMOSettings settings = conf.getSettings();
+        QList<QString> settingsKeys = conf.getSettingsKeys();
+        linkTxFrequency(settings, settingsKeys, conf.getForce());
+
+        bool success = applySettings(settings, settingsKeys, conf.getForce());
 
         if (!success) {
             qDebug("PlutoSDRMIMO::handleMessage: config error");
@@ -495,6 +499,31 @@ bool PlutoSDRMIMO::handleMessage(const Message& message)
     else
     {
         return false;
+    }
+}
+
+// When Tx is linked to Rx, set the Tx center frequency to the Rx center frequency
+void PlutoSDRMIMO::linkTxFrequency(PlutoSDRMIMOSettings& settings, QList<QString>& settingsKeys, bool force)
+{
+    bool linkChanged = settingsKeys.contains("linkTxFrequency") || force;
+    bool rxChanged = settingsKeys.contains("rxCenterFrequency") || force;
+    bool link = linkChanged ? settings.m_linkTxFrequency : m_settings.m_linkTxFrequency;
+    quint64 rxCenterFrequency = rxChanged ? settings.m_rxCenterFrequency : m_settings.m_rxCenterFrequency;
+    quint64 txCenterFrequency = settingsKeys.contains("txCenterFrequency") || force ? settings.m_txCenterFrequency : m_settings.m_txCenterFrequency;
+
+    if (link && (linkChanged || rxChanged) && (txCenterFrequency != rxCenterFrequency))
+    {
+        settings.m_txCenterFrequency = rxCenterFrequency;
+
+        if (!settingsKeys.contains("txCenterFrequency")) {
+            settingsKeys.append("txCenterFrequency");
+        }
+
+        if (getMessageQueueToGUI())
+        {
+            MsgConfigurePlutoSDRMIMO *msgToGUI = MsgConfigurePlutoSDRMIMO::create(settings, QList<QString>{"txCenterFrequency"}, false);
+            getMessageQueueToGUI()->push(msgToGUI);
+        }
     }
 }
 
@@ -891,6 +920,9 @@ void PlutoSDRMIMO::webapiUpdateDeviceSettings(
     if (deviceSettingsKeys.contains("iqOrder")) {
         settings.m_iqOrder = response.getPlutoSdrMimoSettings()->getIqOrder() != 0;
     }
+    if (deviceSettingsKeys.contains("linkTxFrequency")) {
+        settings.m_linkTxFrequency = response.getPlutoSdrMimoSettings()->getLinkTxFrequency() != 0;
+    }
     if (deviceSettingsKeys.contains("lpfBWRx")) {
         settings.m_lpfBWRx = response.getPlutoSdrMimoSettings()->getLpfBwRx();
     }
@@ -1003,6 +1035,7 @@ void PlutoSDRMIMO::webapiFormatDeviceSettings(SWGSDRangel::SWGDeviceSettings& re
     response.getPlutoSdrMimoSettings()->setRxTransverterMode(settings.m_rxTransverterMode ? 1 : 0);
     response.getPlutoSdrMimoSettings()->setRxTransverterDeltaFrequency(settings.m_rxTransverterDeltaFrequency);
     response.getPlutoSdrMimoSettings()->setIqOrder(settings.m_iqOrder ? 1 : 0);
+    response.getPlutoSdrMimoSettings()->setLinkTxFrequency(settings.m_linkTxFrequency ? 1 : 0);
     response.getPlutoSdrMimoSettings()->setLpfBwRx(settings.m_lpfBWRx);
     response.getPlutoSdrMimoSettings()->setLpfRxFirEnable(settings.m_lpfRxFIREnable ? 1 : 0);
     response.getPlutoSdrMimoSettings()->setLpfRxFirbw(settings.m_lpfRxFIRBW);
@@ -1134,6 +1167,9 @@ void PlutoSDRMIMO::webapiReverseSendSettings(const QList<QString>& deviceSetting
     }
     if (deviceSettingsKeys.contains("iqOrder")) {
         swgPlutoSDRMIMOSettings->setIqOrder(settings.m_iqOrder ? 1 : 0);
+    }
+    if (deviceSettingsKeys.contains("linkTxFrequency")) {
+        swgPlutoSDRMIMOSettings->setLinkTxFrequency(settings.m_linkTxFrequency ? 1 : 0);
     }
     if (deviceSettingsKeys.contains("lpfBWRx")) {
         swgPlutoSDRMIMOSettings->setLpfBwRx(settings.m_lpfBWRx);
