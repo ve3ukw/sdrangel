@@ -164,8 +164,17 @@ bool GS232ControllerGUI::handleMessage(const Message& message)
         SWGSDRangel::SWGTargetAzimuthElevation *swgTarget = msg.getSWGTargetAzimuthElevation();
         float coord1, coord2;
         azElToDisplay(swgTarget->getAzimuth(), swgTarget->getElevation(), coord1, coord2);
+        // Set both coordinates before applying, so a single position is sent to the rotator,
+        // rather than one with the new azimuth and old elevation, followed by another
+        ui->coord1->blockSignals(true);
+        ui->coord2->blockSignals(true);
         ui->coord1->setValue(coord1);
         ui->coord2->setValue(coord2);
+        ui->coord1->blockSignals(false);
+        ui->coord2->blockSignals(false);
+        m_inputCoord1 = ui->coord1->value();
+        m_inputCoord2 = ui->coord2->value();
+        displayToAzEl(ui->coord1->value(), ui->coord2->value());
         ui->targetName->setText(*swgTarget->getName());
         return true;
     }
