@@ -139,6 +139,12 @@ else()
     message(STATUS "Not building denoiser (ENABLE_FEATURE_DENOISER=${ENABLE_FEATURE_DENOISER} RNNOISE_FOUND=${RNNOISE_FOUND})")
 endif()
 
+if (ENABLE_FEATURE_ADDRESSBOOK)
+    add_subdirectory(addressbook)
+else()
+    message(STATUS "Not building addressbook (ENABLE_FEATURE_ADDRESSBOOK=${ENABLE_FEATURE_ADDRESSBOOK})")
+endif()
+
 if (ENABLE_FEATURE_FREQDISPLAY)
     add_subdirectory(freqdisplay)
 else()

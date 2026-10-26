@@ -1,0 +1,271 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>AddressBookGUI</class>
+ <widget class="RollupContents" name="AddressBookGUI">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>620</width>
+    <height>360</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>420</width>
+    <height>200</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>Address Book</string>
+  </property>
+  <widget class="QWidget" name="settingsContainer" native="true">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>620</width>
+     <height>360</height>
+    </rect>
+   </property>
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
+   <property name="windowTitle">
+    <string>Address Book</string>
+   </property>
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <property name="spacing">
+     <number>3</number>
+    </property>
+    <property name="leftMargin">
+     <number>4</number>
+    </property>
+    <property name="topMargin">
+     <number>4</number>
+    </property>
+    <property name="rightMargin">
+     <number>4</number>
+    </property>
+    <property name="bottomMargin">
+     <number>4</number>
+    </property>
+    <item>
+     <layout class="QHBoxLayout" name="channelLayout">
+      <item>
+       <widget class="QLabel" name="channelsLabel">
+        <property name="text">
+         <string>Channel</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QComboBox" name="channels">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="toolTip">
+         <string>Receive channel to tune to the selected entry</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="groupFilterLabel">
+        <property name="text">
+         <string>Group</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QComboBox" name="groupFilter">
+        <property name="minimumSize">
+         <size>
+          <width>120</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="toolTip">
+         <string>Only show entries in this group</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <widget class="QTableWidget" name="entries">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+        <horstretch>0</horstretch>
+        <verstretch>1</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="toolTip">
+       <string>Address book entries. Double click to tune the channel to an entry</string>
+      </property>
+      <property name="editTriggers">
+       <set>QAbstractItemView::EditTrigger::NoEditTriggers</set>
+      </property>
+      <property name="selectionMode">
+       <enum>QAbstractItemView::SelectionMode::SingleSelection</enum>
+      </property>
+      <property name="selectionBehavior">
+       <enum>QAbstractItemView::SelectionBehavior::SelectRows</enum>
+      </property>
+      <property name="sortingEnabled">
+       <bool>true</bool>
+      </property>
+      <attribute name="horizontalHeaderStretchLastSection">
+       <bool>true</bool>
+      </attribute>
+      <attribute name="verticalHeaderVisible">
+       <bool>false</bool>
+      </attribute>
+      <column>
+       <property name="text">
+        <string>Name</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>Group</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>Freq (MHz)</string>
+       </property>
+       <property name="toolTip">
+        <string>Receive frequency in MHz</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>Mode</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>Channel</string>
+       </property>
+       <property name="toolTip">
+        <string>Channel type the entry can be tuned on</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>BW (kHz)</string>
+       </property>
+       <property name="toolTip">
+        <string>RF bandwidth in kHz</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>Tx Offset (MHz)</string>
+       </property>
+       <property name="toolTip">
+        <string>Transmit frequency minus receive frequency in MHz</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>CTCSS</string>
+       </property>
+       <property name="toolTip">
+        <string>CTCSS tone in Hz</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>Notes</string>
+       </property>
+      </column>
+     </widget>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="buttonLayout">
+      <item>
+       <widget class="QToolButton" name="tune">
+        <property name="toolTip">
+         <string>Tune the channel to the selected entry</string>
+        </property>
+        <property name="text">
+         <string>Tune</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QToolButton" name="add">
+        <property name="toolTip">
+         <string>Add an entry</string>
+        </property>
+        <property name="text">
+         <string>Add</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QToolButton" name="addFromChannel">
+        <property name="toolTip">
+         <string>Add an entry with the channel's current frequency, type and bandwidth</string>
+        </property>
+        <property name="text">
+         <string>Add from channel</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QToolButton" name="edit">
+        <property name="toolTip">
+         <string>Edit the selected entry</string>
+        </property>
+        <property name="text">
+         <string>Edit</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QToolButton" name="remove">
+        <property name="toolTip">
+         <string>Delete the selected entry</string>
+        </property>
+        <property name="text">
+         <string>Delete</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="status">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">color: red;</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+   </layout>
+  </widget>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>RollupContents</class>
+   <extends>QWidget</extends>
+   <header>gui/rollupcontents.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>
