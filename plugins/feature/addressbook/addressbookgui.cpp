@@ -481,10 +481,14 @@ void AddressBookGUI::on_addFromChannel_clicked()
     }
 
     ChannelAPI *channel = MainCore::instance()->getChannel(deviceSetIndex, channelIndex);
-    double centerFrequency;
+    qint64 centerFrequency;
+    int sampleRate;
+    double frequency;
     int offset = 0;
 
-    if (!channel || !ChannelWebAPIUtils::getCenterFrequency(deviceSetIndex, centerFrequency))
+    if (channel && AddressBook::getRxCenterFrequency(deviceSetIndex, channel, centerFrequency, sampleRate)) {
+        frequency = centerFrequency;
+    } else if (!channel || !ChannelWebAPIUtils::getCenterFrequency(deviceSetIndex, frequency))
     {
         ui->status->setText("Failed to get channel frequency");
         return;
@@ -494,7 +498,7 @@ void AddressBookGUI::on_addFromChannel_clicked()
 
     AddressBookEntry entry;
     entry.m_group = m_settings.m_groupFilter;
-    entry.m_frequency = qRound64(centerFrequency) + offset;
+    entry.m_frequency = qRound64(frequency) + offset;
     entry.m_channelType = channel->getIdentifier();
 
     double bandwidth;

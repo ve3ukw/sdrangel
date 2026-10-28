@@ -35,10 +35,17 @@ Lists the entries. Click a column header to sort by that column. Double click an
 
 Tunes the channel to the selected entry:
 
-* If the entry's channel type is not Any and differs from the selected channel's type, the entry is not tuned and an error is displayed.
+* If the selected channel is a transmit channel, or its type differs from the entry's channel type, and its link button is on,
+  the receive channel linked to it is tuned instead (E.g. selecting an NFM modulator tunes its linked NFM demodulator).
+* Otherwise, if the entry's channel type is not Any and differs from the selected channel's type, the entry is not tuned and an error is displayed.
 * If the frequency is within the device's current bandwidth, only the channel's frequency offset is changed.
   Otherwise, the device's center frequency is changed, keeping the channel's frequency offset.
 * If a bandwidth is set, the channel's RF bandwidth is set.
+* The channel can be on a single Rx device or on an Rx stream of a MIMO device (E.g. PlutoSDR MIMO).
+* The CTCSS tone of an NFM demodulator is set to the entry's CTCSS tone (`--` if the entry has none).
+* If the channel's link button is on (SSB and NFM demodulators), the channels linked to it are set to the same frequency.
+  Linked NFM modulators also get the entry's Tx offset as their repeater shift, and the entry's CTCSS tone, with CTCSS
+  switched on if the entry has a tone and off if it doesn't.
 
 <h3>5: Add</h3>
 

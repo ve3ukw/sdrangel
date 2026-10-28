@@ -27,6 +27,7 @@
 #include "addressbooksettings.h"
 
 class WebAPIAdapterInterface;
+class ChannelAPI;
 
 class AddressBook : public Feature
 {
@@ -118,11 +119,18 @@ public:
 
     /// Tune the channel with the given ID (e.g. "R0:1") to the entry. Returns false and sets errorMessage on failure
     static bool tune(const AddressBookEntry& entry, const QString& channelId, QString& errorMessage);
+    /// Get center frequency and sample rate of the Rx device, or Rx stream of a MIMO device, that a receive channel is attached to
+    static bool getRxCenterFrequency(unsigned int deviceSetIndex, const ChannelAPI *channel, qint64& centerFrequency, int& sampleRate);
+    /// Set center frequency of the Rx device, or Rx stream of a MIMO device, that a receive channel is attached to
+    static bool setRxCenterFrequency(unsigned int deviceSetIndex, const ChannelAPI *channel, qint64 centerFrequency);
 
     static const char* const m_featureIdURI;
     static const char* const m_featureId;
 
 private:
+    static ChannelAPI *getLinkedRxChannel(const AddressBookEntry& entry, const ChannelAPI *channel);
+    static int getCTCSSIndex(float ctcss);
+    static void tuneLinkedChannels(const AddressBookEntry& entry, const ChannelAPI *channel, qint64 rxOffset, int ctcssIndex);
     AddressBookSettings m_settings;
 
     void applySettings(const AddressBookSettings& settings, const QStringList& settingsKeys, bool force = false);
