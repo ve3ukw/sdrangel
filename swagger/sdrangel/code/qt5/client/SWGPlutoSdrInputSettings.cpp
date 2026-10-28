@@ -74,6 +74,8 @@ SWGPlutoSdrInputSettings::SWGPlutoSdrInputSettings() {
     m_iq_order_isSet = false;
     link_tx_frequency = 0;
     m_link_tx_frequency_isSet = false;
+    link_tx_frequency_shift = 0;
+    m_link_tx_frequency_shift_isSet = false;
     use_reverse_api = 0;
     m_use_reverse_api_isSet = false;
     reverse_api_address = nullptr;
@@ -136,6 +138,8 @@ SWGPlutoSdrInputSettings::init() {
     m_iq_order_isSet = false;
     link_tx_frequency = 0;
     m_link_tx_frequency_isSet = false;
+    link_tx_frequency_shift = 0;
+    m_link_tx_frequency_shift_isSet = false;
     use_reverse_api = 0;
     m_use_reverse_api_isSet = false;
     reverse_api_address = new QString("");
@@ -237,6 +241,8 @@ SWGPlutoSdrInputSettings::fromJsonObject(QJsonObject &pJson) {
     
     ::SWGSDRangel::setValue(&link_tx_frequency, pJson["linkTxFrequency"], "qint32", "");
     
+    ::SWGSDRangel::setValue(&link_tx_frequency_shift, pJson["linkTxFrequencyShift"], "qint32", "");
+    
     ::SWGSDRangel::setValue(&use_reverse_api, pJson["useReverseAPI"], "qint32", "");
     
     ::SWGSDRangel::setValue(&reverse_api_address, pJson["reverseAPIAddress"], "QString", "QString");
@@ -329,6 +335,9 @@ SWGPlutoSdrInputSettings::asJsonObject() {
     }
     if(m_link_tx_frequency_isSet){
         obj->insert("linkTxFrequency", QJsonValue(link_tx_frequency));
+    }
+    if(m_link_tx_frequency_shift_isSet){
+        obj->insert("linkTxFrequencyShift", QJsonValue(link_tx_frequency_shift));
     }
     if(m_use_reverse_api_isSet){
         obj->insert("useReverseAPI", QJsonValue(use_reverse_api));
@@ -577,6 +586,16 @@ SWGPlutoSdrInputSettings::setLinkTxFrequency(qint32 link_tx_frequency) {
 }
 
 qint32
+SWGPlutoSdrInputSettings::getLinkTxFrequencyShift() {
+    return link_tx_frequency_shift;
+}
+void
+SWGPlutoSdrInputSettings::setLinkTxFrequencyShift(qint32 link_tx_frequency_shift) {
+    this->link_tx_frequency_shift = link_tx_frequency_shift;
+    this->m_link_tx_frequency_shift_isSet = true;
+}
+
+qint32
 SWGPlutoSdrInputSettings::getUseReverseApi() {
     return use_reverse_api;
 }
@@ -688,6 +707,9 @@ SWGPlutoSdrInputSettings::isSet(){
             isObjectUpdated = true; break;
         }
         if(m_link_tx_frequency_isSet){
+            isObjectUpdated = true; break;
+        }
+        if(m_link_tx_frequency_shift_isSet){
             isObjectUpdated = true; break;
         }
         if(m_use_reverse_api_isSet){

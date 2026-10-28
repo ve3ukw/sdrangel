@@ -111,6 +111,9 @@ public:
     qint32 getLinkTxFrequency();
     void setLinkTxFrequency(qint32 link_tx_frequency);
 
+    qint32 getLinkTxFrequencyShift();
+    void setLinkTxFrequencyShift(qint32 link_tx_frequency_shift);
+
     qint32 getUseReverseApi();
     void setUseReverseApi(qint32 use_reverse_api);
 
@@ -195,6 +198,9 @@ private:
 
     qint32 link_tx_frequency;
     bool m_link_tx_frequency_isSet;
+
+    qint32 link_tx_frequency_shift;
+    bool m_link_tx_frequency_shift_isSet;
 
     qint32 use_reverse_api;
     bool m_use_reverse_api_isSet;

@@ -74,7 +74,9 @@ This button controls the start/stop of the Tx subsystem.
 
 <h3>6A. Link Tx frequency</h3>
 
-When this button is on, the Tx center frequency is kept equal to the Rx center frequency: changing the Rx frequency also changes the Tx frequency. Changes made to the Tx frequency are not applied to the Rx frequency. This makes it easy to operate the Rx and Tx as a transceiver, possibly with the link buttons of the SSB demodulator and modulator to also keep their frequency shifts in sync.
+When this button is on, the Tx center frequency is kept equal to the Rx center frequency: changing the Rx frequency also changes the Tx frequency. Changes made to the Tx frequency are not applied to the Rx frequency. This makes it easy to operate the Rx and Tx as a transceiver, possibly with the link buttons of the SSB or NFM demodulator and modulator to also keep their frequency shifts in sync.
+
+When a linked NFM modulator has a repeater shift, the Tx center frequency is kept at the Rx center frequency plus this shift (`linkTxFrequencyShift` setting in the API).
 
 <h4>7: ADC sample rate</h4>
 

@@ -84,6 +84,7 @@ struct PlutoSDRInputSettings {
     qint64 m_transverterDeltaFrequency;
     bool m_iqOrder;
     bool m_linkTxFrequency;    //!< keep Tx buddy center frequency equal to this one
+    int m_linkTxFrequencyShift; //!< Hz added to this center frequency to set Tx buddy center frequency
     bool     m_useReverseAPI;
     QString  m_reverseAPIAddress;
     uint16_t m_reverseAPIPort;

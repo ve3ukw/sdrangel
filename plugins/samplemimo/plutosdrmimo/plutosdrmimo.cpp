@@ -502,18 +502,21 @@ bool PlutoSDRMIMO::handleMessage(const Message& message)
     }
 }
 
-// When Tx is linked to Rx, set the Tx center frequency to the Rx center frequency
+// When Tx is linked to Rx, set the Tx center frequency to the Rx center frequency plus the link shift
 void PlutoSDRMIMO::linkTxFrequency(PlutoSDRMIMOSettings& settings, QList<QString>& settingsKeys, bool force)
 {
     bool linkChanged = settingsKeys.contains("linkTxFrequency") || force;
     bool rxChanged = settingsKeys.contains("rxCenterFrequency") || force;
+    bool shiftChanged = settingsKeys.contains("linkTxFrequencyShift") || force;
     bool link = linkChanged ? settings.m_linkTxFrequency : m_settings.m_linkTxFrequency;
     quint64 rxCenterFrequency = rxChanged ? settings.m_rxCenterFrequency : m_settings.m_rxCenterFrequency;
+    int shift = shiftChanged ? settings.m_linkTxFrequencyShift : m_settings.m_linkTxFrequencyShift;
+    quint64 linkedTxCenterFrequency = (quint64) ((qint64) rxCenterFrequency + shift);
     quint64 txCenterFrequency = settingsKeys.contains("txCenterFrequency") || force ? settings.m_txCenterFrequency : m_settings.m_txCenterFrequency;
 
-    if (link && (linkChanged || rxChanged) && (txCenterFrequency != rxCenterFrequency))
+    if (link && (linkChanged || rxChanged || shiftChanged) && (txCenterFrequency != linkedTxCenterFrequency))
     {
-        settings.m_txCenterFrequency = rxCenterFrequency;
+        settings.m_txCenterFrequency = linkedTxCenterFrequency;
 
         if (!settingsKeys.contains("txCenterFrequency")) {
             settingsKeys.append("txCenterFrequency");
@@ -923,6 +926,9 @@ void PlutoSDRMIMO::webapiUpdateDeviceSettings(
     if (deviceSettingsKeys.contains("linkTxFrequency")) {
         settings.m_linkTxFrequency = response.getPlutoSdrMimoSettings()->getLinkTxFrequency() != 0;
     }
+    if (deviceSettingsKeys.contains("linkTxFrequencyShift")) {
+        settings.m_linkTxFrequencyShift = response.getPlutoSdrMimoSettings()->getLinkTxFrequencyShift();
+    }
     if (deviceSettingsKeys.contains("lpfBWRx")) {
         settings.m_lpfBWRx = response.getPlutoSdrMimoSettings()->getLpfBwRx();
     }
@@ -1036,6 +1042,7 @@ void PlutoSDRMIMO::webapiFormatDeviceSettings(SWGSDRangel::SWGDeviceSettings& re
     response.getPlutoSdrMimoSettings()->setRxTransverterDeltaFrequency(settings.m_rxTransverterDeltaFrequency);
     response.getPlutoSdrMimoSettings()->setIqOrder(settings.m_iqOrder ? 1 : 0);
     response.getPlutoSdrMimoSettings()->setLinkTxFrequency(settings.m_linkTxFrequency ? 1 : 0);
+    response.getPlutoSdrMimoSettings()->setLinkTxFrequencyShift(settings.m_linkTxFrequencyShift);
     response.getPlutoSdrMimoSettings()->setLpfBwRx(settings.m_lpfBWRx);
     response.getPlutoSdrMimoSettings()->setLpfRxFirEnable(settings.m_lpfRxFIREnable ? 1 : 0);
     response.getPlutoSdrMimoSettings()->setLpfRxFirbw(settings.m_lpfRxFIRBW);
@@ -1170,6 +1177,9 @@ void PlutoSDRMIMO::webapiReverseSendSettings(const QList<QString>& deviceSetting
     }
     if (deviceSettingsKeys.contains("linkTxFrequency")) {
         swgPlutoSDRMIMOSettings->setLinkTxFrequency(settings.m_linkTxFrequency ? 1 : 0);
+    }
+    if (deviceSettingsKeys.contains("linkTxFrequencyShift")) {
+        swgPlutoSDRMIMOSettings->setLinkTxFrequencyShift(settings.m_linkTxFrequencyShift);
     }
     if (deviceSettingsKeys.contains("lpfBWRx")) {
         swgPlutoSDRMIMOSettings->setLpfBwRx(settings.m_lpfBWRx);

@@ -95,6 +95,9 @@ PlutoSdrInputSettings:
     linkTxFrequency:
       type: integer
       description: "Keep the center frequency of the Tx device of the same hardware equal to this Rx device (1 for yes, 0 for no)"
+    linkTxFrequencyShift:
+      type: integer
+      description: "Shift in Hz added to the Rx center frequency to set the Tx center frequency when linkTxFrequency is set. Typically set by a linked NFM modulator for repeater operation"
     useReverseAPI:
       description: Synchronize with reverse API (1 for yes, 0 for no)
       type: integer
@@ -246,6 +249,9 @@ PlutoSdrMIMOSettings:
     linkTxFrequency:
       type: integer
       description: "Keep the Tx center frequency equal to the Rx center frequency (1 for yes, 0 for no)"
+    linkTxFrequencyShift:
+      type: integer
+      description: "Shift in Hz added to the Rx center frequency to set the Tx center frequency when linkTxFrequency is set. Typically set by a linked NFM modulator for repeater operation"
     lpfBWRx:
       description: Analog lowpass filter bandwidth (Hz)
       type: integer

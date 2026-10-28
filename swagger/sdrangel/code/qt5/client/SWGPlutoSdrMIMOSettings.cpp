@@ -56,6 +56,8 @@ SWGPlutoSdrMIMOSettings::SWGPlutoSdrMIMOSettings() {
     m_iq_order_isSet = false;
     link_tx_frequency = 0;
     m_link_tx_frequency_isSet = false;
+    link_tx_frequency_shift = 0;
+    m_link_tx_frequency_shift_isSet = false;
     lpf_bw_rx = 0;
     m_lpf_bw_rx_isSet = false;
     lpf_rx_fir_enable = 0;
@@ -152,6 +154,8 @@ SWGPlutoSdrMIMOSettings::init() {
     m_iq_order_isSet = false;
     link_tx_frequency = 0;
     m_link_tx_frequency_isSet = false;
+    link_tx_frequency_shift = 0;
+    m_link_tx_frequency_shift_isSet = false;
     lpf_bw_rx = 0;
     m_lpf_bw_rx_isSet = false;
     lpf_rx_fir_enable = 0;
@@ -304,6 +308,8 @@ SWGPlutoSdrMIMOSettings::fromJsonObject(QJsonObject &pJson) {
     
     ::SWGSDRangel::setValue(&link_tx_frequency, pJson["linkTxFrequency"], "qint32", "");
     
+    ::SWGSDRangel::setValue(&link_tx_frequency_shift, pJson["linkTxFrequencyShift"], "qint32", "");
+    
     ::SWGSDRangel::setValue(&lpf_bw_rx, pJson["lpfBWRx"], "qint32", "");
     
     ::SWGSDRangel::setValue(&lpf_rx_fir_enable, pJson["lpfRxFIREnable"], "qint32", "");
@@ -421,6 +427,9 @@ SWGPlutoSdrMIMOSettings::asJsonObject() {
     }
     if(m_link_tx_frequency_isSet){
         obj->insert("linkTxFrequency", QJsonValue(link_tx_frequency));
+    }
+    if(m_link_tx_frequency_shift_isSet){
+        obj->insert("linkTxFrequencyShift", QJsonValue(link_tx_frequency_shift));
     }
     if(m_lpf_bw_rx_isSet){
         obj->insert("lpfBWRx", QJsonValue(lpf_bw_rx));
@@ -654,6 +663,16 @@ void
 SWGPlutoSdrMIMOSettings::setLinkTxFrequency(qint32 link_tx_frequency) {
     this->link_tx_frequency = link_tx_frequency;
     this->m_link_tx_frequency_isSet = true;
+}
+
+qint32
+SWGPlutoSdrMIMOSettings::getLinkTxFrequencyShift() {
+    return link_tx_frequency_shift;
+}
+void
+SWGPlutoSdrMIMOSettings::setLinkTxFrequencyShift(qint32 link_tx_frequency_shift) {
+    this->link_tx_frequency_shift = link_tx_frequency_shift;
+    this->m_link_tx_frequency_shift_isSet = true;
 }
 
 qint32
@@ -1001,6 +1020,9 @@ SWGPlutoSdrMIMOSettings::isSet(){
             isObjectUpdated = true; break;
         }
         if(m_link_tx_frequency_isSet){
+            isObjectUpdated = true; break;
+        }
+        if(m_link_tx_frequency_shift_isSet){
             isObjectUpdated = true; break;
         }
         if(m_lpf_bw_rx_isSet){

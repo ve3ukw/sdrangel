@@ -84,6 +84,9 @@ public:
     qint32 getLinkTxFrequency();
     void setLinkTxFrequency(qint32 link_tx_frequency);
 
+    qint32 getLinkTxFrequencyShift();
+    void setLinkTxFrequencyShift(qint32 link_tx_frequency_shift);
+
     qint32 getLpfBwRx();
     void setLpfBwRx(qint32 lpf_bw_rx);
 
@@ -219,6 +222,9 @@ private:
 
     qint32 link_tx_frequency;
     bool m_link_tx_frequency_isSet;
+
+    qint32 link_tx_frequency_shift;
+    bool m_link_tx_frequency_shift_isSet;
 
     qint32 lpf_bw_rx;
     bool m_lpf_bw_rx_isSet;

@@ -71,6 +71,8 @@ This button opens a dialog to set the transverter mode frequency translation opt
 
 When this button is on, the center frequency of the PlutoSDR output (Tx) device using the same hardware follows the center frequency of this Rx device. Changes made on the Tx device itself are not sent back to the Rx device. This makes it easy to operate the Rx and Tx as a transceiver.
 
+When a linked NFM modulator on the Tx device has a repeater shift, the Tx center frequency is kept at this center frequency plus this shift (`linkTxFrequencyShift` setting in the API).
+
 <h3>4: Auto correction options</h3>
 
   - **SW** section: These buttons control the software DSP auto correction options

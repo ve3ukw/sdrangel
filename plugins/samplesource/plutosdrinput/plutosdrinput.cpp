@@ -747,7 +747,8 @@ bool PlutoSDRInput::applySettings(const PlutoSDRInputSettings& settings, const Q
     }
 
     if (m_settings.m_linkTxFrequency
-        && (settingsKeys.contains("centerFrequency") || settingsKeys.contains("linkTxFrequency") || force))
+        && (settingsKeys.contains("centerFrequency") || settingsKeys.contains("linkTxFrequency")
+            || settingsKeys.contains("linkTxFrequencyShift") || force))
     {
         linkTxFrequency();
     }
@@ -764,10 +765,11 @@ bool PlutoSDRInput::applySettings(const PlutoSDRInputSettings& settings, const Q
     return true;
 }
 
-// Set the center frequency of the Tx devices sharing this hardware to ours
+// Set the center frequency of the Tx devices sharing this hardware to ours plus the link shift
 void PlutoSDRInput::linkTxFrequency()
 {
     const std::vector<DeviceAPI*>& sinkBuddies = m_deviceAPI->getSinkBuddies();
+    quint64 linkedTxFrequency = (quint64) ((qint64) m_settings.m_centerFrequency + m_settings.m_linkTxFrequencyShift);
 
     for (const auto& sinkBuddy : sinkBuddies)
     {
@@ -775,10 +777,10 @@ void PlutoSDRInput::linkTxFrequency()
         double txFrequency;
 
         if (ChannelWebAPIUtils::getCenterFrequency(deviceSetIndex, txFrequency)
-            && ((quint64) txFrequency != m_settings.m_centerFrequency))
+            && ((quint64) txFrequency != linkedTxFrequency))
         {
-            qDebug("PlutoSDRInput::linkTxFrequency: set Tx device %u to %llu Hz", deviceSetIndex, m_settings.m_centerFrequency);
-            ChannelWebAPIUtils::setCenterFrequency(deviceSetIndex, m_settings.m_centerFrequency);
+            qDebug("PlutoSDRInput::linkTxFrequency: set Tx device %u to %llu Hz", deviceSetIndex, linkedTxFrequency);
+            ChannelWebAPIUtils::setCenterFrequency(deviceSetIndex, linkedTxFrequency);
         }
     }
 }
@@ -1002,6 +1004,9 @@ void PlutoSDRInput::webapiUpdateDeviceSettings(
     if (deviceSettingsKeys.contains("linkTxFrequency")) {
         settings.m_linkTxFrequency = response.getPlutoSdrInputSettings()->getLinkTxFrequency() != 0;
     }
+    if (deviceSettingsKeys.contains("linkTxFrequencyShift")) {
+        settings.m_linkTxFrequencyShift = response.getPlutoSdrInputSettings()->getLinkTxFrequencyShift();
+    }
     if (deviceSettingsKeys.contains("lpfBW")) {
         settings.m_lpfBW = response.getPlutoSdrInputSettings()->getLpfBw();
     }
@@ -1073,6 +1078,7 @@ void PlutoSDRInput::webapiFormatDeviceSettings(SWGSDRangel::SWGDeviceSettings& r
     response.getPlutoSdrInputSettings()->setLog2Decim(settings.m_log2Decim);
     response.getPlutoSdrInputSettings()->setIqOrder(settings.m_iqOrder ? 1 : 0);
     response.getPlutoSdrInputSettings()->setLinkTxFrequency(settings.m_linkTxFrequency ? 1 : 0);
+    response.getPlutoSdrInputSettings()->setLinkTxFrequencyShift(settings.m_linkTxFrequencyShift);
     response.getPlutoSdrInputSettings()->setLpfBw(settings.m_lpfBW);
     response.getPlutoSdrInputSettings()->setGain(settings.m_gain);
     response.getPlutoSdrInputSettings()->setAntennaPath((int) settings.m_antennaPath);
@@ -1170,6 +1176,9 @@ void PlutoSDRInput::webapiReverseSendSettings(const QList<QString>& deviceSettin
     }
     if (deviceSettingsKeys.contains("linkTxFrequency") || force) {
         swgPlutoSdrInputSettings->setLinkTxFrequency(settings.m_linkTxFrequency ? 1 : 0);
+    }
+    if (deviceSettingsKeys.contains("linkTxFrequencyShift")) {
+        swgPlutoSdrInputSettings->setLinkTxFrequencyShift(settings.m_linkTxFrequencyShift);
     }
     if (deviceSettingsKeys.contains("lpfBW") || force) {
         swgPlutoSdrInputSettings->setLpfBw(settings.m_lpfBW);

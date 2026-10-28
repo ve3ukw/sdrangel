@@ -50,6 +50,7 @@ void PlutoSDRMIMOSettings::resetToDefaults()
 	m_rxTransverterDeltaFrequency = 0;
     m_iqOrder = true;
     m_linkTxFrequency = false;
+    m_linkTxFrequencyShift = 0;
 
 	m_rx0Gain = 40;
 	m_rx0AntennaPath = RFPATHRX_A_BAL;
@@ -109,6 +110,7 @@ QByteArray PlutoSDRMIMOSettings::serialize() const
     s.writeS64(24,  m_rxTransverterDeltaFrequency);
     s.writeBool(25, m_iqOrder);
     s.writeBool(26, m_linkTxFrequency);
+    s.writeS32(27, m_linkTxFrequencyShift);
 
     // Rx0
     s.writeU32(40, m_rx0Gain);
@@ -197,6 +199,7 @@ bool PlutoSDRMIMOSettings::deserialize(const QByteArray& data)
         d.readS64(24,  &m_rxTransverterDeltaFrequency, 0);
         d.readBool(25, &m_iqOrder, true);
         d.readBool(26, &m_linkTxFrequency, false);
+        d.readS32(27, &m_linkTxFrequencyShift, 0);
 
         // Rx0
         d.readU32(40, &m_rx0Gain, 40);
@@ -353,6 +356,9 @@ void PlutoSDRMIMOSettings::applySettings(const QStringList& settingsKeys, const 
     if (settingsKeys.contains("linkTxFrequency")) {
         m_linkTxFrequency = settings.m_linkTxFrequency;
     }
+    if (settingsKeys.contains("linkTxFrequencyShift")) {
+        m_linkTxFrequencyShift = settings.m_linkTxFrequencyShift;
+    }
     if (settingsKeys.contains("rx0Gain")) {
         m_rx0Gain = settings.m_rx0Gain;
     }
@@ -490,6 +496,9 @@ QString PlutoSDRMIMOSettings::getDebugString(const QStringList& settingsKeys, bo
     }
     if (settingsKeys.contains("linkTxFrequency") || force) {
         ostr << " m_linkTxFrequency: " << m_linkTxFrequency;
+    }
+    if (settingsKeys.contains("linkTxFrequencyShift") || force) {
+        ostr << " m_linkTxFrequencyShift: " << m_linkTxFrequencyShift;
     }
     if (settingsKeys.contains("rx0Gain") || force) {
         ostr << " m_rx0Gain: " << m_rx0Gain;

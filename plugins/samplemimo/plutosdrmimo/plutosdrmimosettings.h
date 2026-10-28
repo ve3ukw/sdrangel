@@ -79,6 +79,7 @@ struct PlutoSDRMIMOSettings {
     qint64  m_rxTransverterDeltaFrequency;
     bool    m_iqOrder;
     bool    m_linkTxFrequency; //!< keep Tx center frequency equal to Rx center frequency
+    int     m_linkTxFrequencyShift; //!< Hz added to Rx center frequency to set Tx center frequency when linked
     quint32 m_lpfBWRx;              //!< analog lowpass filter bandwidth (Hz)
     bool    m_lpfRxFIREnable;       //!< enable digital lowpass FIR filter
     quint32 m_lpfRxFIRBW;           //!< digital lowpass FIR filter bandwidth (Hz)
