@@ -45,6 +45,7 @@ struct NFMDemodSettings
     Real m_volume;
     bool m_ctcssOn;
     bool m_audioMute;
+    bool m_linkFrequencyOffset; //!< keep frequency offset and CTCSS/DCS settings in sync with other linked NFM channels
     int  m_ctcssIndex;
     bool m_dcsOn;
     unsigned int m_dcsCode;

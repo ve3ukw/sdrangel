@@ -133,6 +133,23 @@
          </widget>
         </item>
         <item>
+         <widget class="ButtonSwitch" name="linkFrequencyOffset">
+          <property name="toolTip">
+           <string>Keep frequency offset and CTCSS/DCS settings in sync with other linked NFM modulators and demodulators</string>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+          <property name="icon">
+           <iconset resource="../../../sdrgui/resources/res.qrc">
+            <normaloff>:/link.png</normaloff>:/link.png</iconset>
+          </property>
+          <property name="checkable">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
          <spacer name="horizontalSpacer">
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
@@ -795,6 +812,35 @@
          </size>
         </property>
        </spacer>
+      </item>
+      <item>
+       <widget class="QLabel" name="repeaterShiftLabel">
+        <property name="text">
+         <string>Shift</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QSpinBox" name="repeaterShift">
+        <property name="toolTip">
+         <string>Repeater shift in kHz. When linked, the frequency shift is set to the linked frequency shift plus this value</string>
+        </property>
+        <property name="keyboardTracking">
+         <bool>false</bool>
+        </property>
+        <property name="suffix">
+         <string>k</string>
+        </property>
+        <property name="minimum">
+         <number>-99999</number>
+        </property>
+        <property name="maximum">
+         <number>99999</number>
+        </property>
+        <property name="singleStep">
+         <number>100</number>
+        </property>
+       </widget>
       </item>
      </layout>
     </item>

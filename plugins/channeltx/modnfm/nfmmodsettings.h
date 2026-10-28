@@ -52,6 +52,8 @@ struct NFMModSettings
     float m_toneFrequency;
     float m_volumeFactor;
     bool m_channelMute;
+    bool m_linkFrequencyOffset; //!< keep frequency offset and CTCSS/DCS settings in sync with other linked NFM channels
+    int m_repeaterShift; //!< Hz added to the linked frequency offset
     bool m_playLoop;
     bool m_ctcssOn;
     int  m_ctcssIndex;

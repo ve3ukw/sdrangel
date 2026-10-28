@@ -37,6 +37,7 @@
 #include "device/deviceapi.h"
 #include "util/db.h"
 #include "maincore.h"
+#include "channel/channelwebapiutils.h"
 
 #include "nfmmodbaseband.h"
 #include "nfmmod.h"
@@ -384,6 +385,14 @@ void NFMMod::applySettings(const QStringList& settingsKeys, const NFMModSettings
     } else {
         m_settings.applySettings(settingsKeys, settings);
     }
+
+    // When the device links its Tx center frequency to an Rx center frequency (E.g. PlutoSDR link button),
+    // apply the repeater shift to the Tx center frequency, so the Tx sample rate needn't cover the shift
+    if (settingsKeys.contains("repeaterShift") || settingsKeys.contains("linkFrequencyOffset") || force)
+    {
+        ChannelWebAPIUtils::setTxFrequencyShift(m_deviceAPI->getDeviceSetIndex(),
+            m_settings.m_linkFrequencyOffset ? m_settings.m_repeaterShift : 0);
+    }
 }
 
 QByteArray NFMMod::serialize() const
@@ -514,6 +523,12 @@ void NFMMod::webapiUpdateChannelSettings(
     if (channelSettingsKeys.contains("inputFrequencyOffset")) {
         settings.m_inputFrequencyOffset = response.getNfmModSettings()->getInputFrequencyOffset();
     }
+    if (channelSettingsKeys.contains("linkFrequencyOffset")) {
+        settings.m_linkFrequencyOffset = response.getNfmModSettings()->getLinkFrequencyOffset() != 0;
+    }
+    if (channelSettingsKeys.contains("repeaterShift")) {
+        settings.m_repeaterShift = response.getNfmModSettings()->getRepeaterShift();
+    }
     if (channelSettingsKeys.contains("modAFInput")) {
         settings.m_modAFInput = (NFMModSettings::NFMModInputAF) response.getNfmModSettings()->getModAfInput();
     }
@@ -595,6 +610,8 @@ void NFMMod::webapiFormatChannelSettings(SWGSDRangel::SWGChannelSettings& respon
     response.getNfmModSettings()->setCtcssOn(settings.m_ctcssOn ? 1 : 0);
     response.getNfmModSettings()->setFmDeviation(settings.m_fmDeviation);
     response.getNfmModSettings()->setInputFrequencyOffset(settings.m_inputFrequencyOffset);
+    response.getNfmModSettings()->setLinkFrequencyOffset(settings.m_linkFrequencyOffset ? 1 : 0);
+    response.getNfmModSettings()->setRepeaterShift(settings.m_repeaterShift);
     response.getNfmModSettings()->setModAfInput((int) settings.m_modAFInput);
     response.getNfmModSettings()->setPlayLoop(settings.m_playLoop ? 1 : 0);
     response.getNfmModSettings()->setRfBandwidth(settings.m_rfBandwidth);
@@ -783,6 +800,12 @@ void NFMMod::webapiFormatChannelSettings(
     }
     if (channelSettingsKeys.contains("inputFrequencyOffset") || force) {
         swgNFMModSettings->setInputFrequencyOffset(settings.m_inputFrequencyOffset);
+    }
+    if (channelSettingsKeys.contains("linkFrequencyOffset") || force) {
+        swgNFMModSettings->setLinkFrequencyOffset(settings.m_linkFrequencyOffset ? 1 : 0);
+    }
+    if (channelSettingsKeys.contains("repeaterShift") || force) {
+        swgNFMModSettings->setRepeaterShift(settings.m_repeaterShift);
     }
     if (channelSettingsKeys.contains("modAFInput") || force) {
         swgNFMModSettings->setModAfInput((int) settings.m_modAFInput);

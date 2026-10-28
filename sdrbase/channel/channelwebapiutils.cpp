@@ -16,6 +16,8 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.          //
 ///////////////////////////////////////////////////////////////////////////////////
 
+#include <functional>
+
 #include <QDebug>
 
 #include "channelwebapiutils.h"
@@ -975,9 +977,9 @@ bool ChannelWebAPIUtils::setFrequencyOffset(unsigned int deviceIndex, int channe
     return false;
 }
 
-// Set input frequency offset of all channels, other than sourceChannel, with one of the given URIs
-// that have linkFrequencyOffset set, so that linked channels (E.g. Rx and Tx of a transceiver) stay in sync
-void ChannelWebAPIUtils::setLinkedFrequencyOffsets(const ChannelAPI *sourceChannel, const QStringList& channelURIs, int offset)
+// Call func for all channels, other than sourceChannel, with one of the given URIs that have linkFrequencyOffset set
+// If func returns false, iteration stops
+static void forEachLinkedChannel(const ChannelAPI *sourceChannel, const QStringList& channelURIs, std::function<bool(unsigned int, int)> func)
 {
     std::vector<DeviceSet*>& deviceSets = MainCore::instance()->getDeviceSets();
 
@@ -994,15 +996,229 @@ void ChannelWebAPIUtils::setLinkedFrequencyOffsets(const ChannelAPI *sourceChann
             }
 
             int link;
-            int currentOffset;
 
-            if (getChannelSetting(deviceSetIndex, channelIndex, "linkFrequencyOffset", link) && link
-                && getFrequencyOffset(deviceSetIndex, channelIndex, currentOffset) && (currentOffset != offset))
+            if (ChannelWebAPIUtils::getChannelSetting(deviceSetIndex, channelIndex, "linkFrequencyOffset", link) && link)
             {
-                setFrequencyOffset(deviceSetIndex, channelIndex, offset);
+                if (!func(deviceSetIndex, channelIndex)) {
+                    return;
+                }
             }
         }
     }
+}
+
+// Get repeater shift to apply to the frequency offset of a channel, which is 0 for channels that don't have one,
+// or when the shift is applied to the Tx center frequency by the device (See isTxFrequencyShiftLinked)
+static int getRepeaterShift(unsigned int deviceSetIndex, int channelIndex)
+{
+    int shift;
+
+    if (ChannelWebAPIUtils::getChannelSetting(deviceSetIndex, channelIndex, "repeaterShift", shift)
+        && !ChannelWebAPIUtils::isTxFrequencyShiftLinked(deviceSetIndex))
+    {
+        return shift;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+// Get index of the device set whose device has the linkTxFrequency setting that controls the center frequency
+// of the Tx device in txDeviceSetIndex. This is either the device itself (E.g. PlutoSDR MIMO) or an
+// Rx device sharing the same hardware (E.g. PlutoSDR input)
+static bool getTxFrequencyLinkDevice(unsigned int txDeviceSetIndex, unsigned int& linkDeviceSetIndex)
+{
+    std::vector<DeviceSet*>& deviceSets = MainCore::instance()->getDeviceSets();
+    int link;
+
+    if (txDeviceSetIndex >= deviceSets.size()) {
+        return false;
+    }
+
+    if (ChannelWebAPIUtils::getDeviceSetting(txDeviceSetIndex, "linkTxFrequency", link))
+    {
+        linkDeviceSetIndex = txDeviceSetIndex;
+        return true;
+    }
+
+    for (const auto& sourceBuddy : deviceSets[txDeviceSetIndex]->m_deviceAPI->getSourceBuddies())
+    {
+        unsigned int deviceSetIndex = sourceBuddy->getDeviceSetIndex();
+
+        if (ChannelWebAPIUtils::getDeviceSetting(deviceSetIndex, "linkTxFrequency", link))
+        {
+            linkDeviceSetIndex = deviceSetIndex;
+            return true;
+        }
+    }
+
+    return false;
+}
+
+// Whether the Tx center frequency of the device in txDeviceSetIndex is linked to an Rx center frequency
+// by a device that adds linkTxFrequencyShift to it
+bool ChannelWebAPIUtils::isTxFrequencyShiftLinked(unsigned int txDeviceSetIndex)
+{
+    unsigned int linkDeviceSetIndex;
+    int link;
+    int shift;
+
+    return getTxFrequencyLinkDevice(txDeviceSetIndex, linkDeviceSetIndex)
+        && getDeviceSetting(linkDeviceSetIndex, "linkTxFrequency", link) && link
+        && getDeviceSetting(linkDeviceSetIndex, "linkTxFrequencyShift", shift);
+}
+
+// Set the shift added to the linked Rx center frequency to give the Tx center frequency of the device in txDeviceSetIndex
+// Returns false if the device has no such setting
+bool ChannelWebAPIUtils::setTxFrequencyShift(unsigned int txDeviceSetIndex, int shift)
+{
+    unsigned int linkDeviceSetIndex;
+    int currentShift;
+
+    if (getTxFrequencyLinkDevice(txDeviceSetIndex, linkDeviceSetIndex)
+        && getDeviceSetting(linkDeviceSetIndex, "linkTxFrequencyShift", currentShift))
+    {
+        if (currentShift != shift) {
+            return patchDeviceSetting(linkDeviceSetIndex, "linkTxFrequencyShift", shift);
+        }
+        return true;
+    }
+
+    return false;
+}
+
+// Set input frequency offset of all channels, other than sourceChannel, with one of the given URIs
+// that have linkFrequencyOffset set, so that linked channels (E.g. Rx and Tx of a transceiver) stay in sync
+// offset is the offset without any repeater shift. Channels that have a repeaterShift setting (E.g. NFM modulator)
+// are set to offset + repeaterShift
+void ChannelWebAPIUtils::setLinkedFrequencyOffsets(const ChannelAPI *sourceChannel, const QStringList& channelURIs, int offset)
+{
+    forEachLinkedChannel(sourceChannel, channelURIs, [=](unsigned int deviceSetIndex, int channelIndex) {
+        int targetOffset = offset + getRepeaterShift(deviceSetIndex, channelIndex);
+        int currentOffset;
+
+        if (getFrequencyOffset(deviceSetIndex, channelIndex, currentOffset) && (currentOffset != targetOffset)) {
+            setFrequencyOffset(deviceSetIndex, channelIndex, targetOffset);
+        }
+        return true;
+    });
+}
+
+// Get frequency offset, without repeater shift, of the first channel, other than sourceChannel,
+// with one of the given URIs that has linkFrequencyOffset set
+bool ChannelWebAPIUtils::getLinkedFrequencyOffset(const ChannelAPI *sourceChannel, const QStringList& channelURIs, int& offset)
+{
+    bool found = false;
+
+    forEachLinkedChannel(sourceChannel, channelURIs, [&](unsigned int deviceSetIndex, int channelIndex) {
+        if (getFrequencyOffset(deviceSetIndex, channelIndex, offset))
+        {
+            offset -= getRepeaterShift(deviceSetIndex, channelIndex);
+            found = true;
+        }
+        return !found;
+    });
+
+    return found;
+}
+
+// Patch integer settings of a channel that differ from the given values, in a single request,
+// so the channel's GUI doesn't see partially applied settings. Settings the channel doesn't have are ignored
+bool ChannelWebAPIUtils::patchChannelSettings(unsigned int deviceSetIndex, int channelIndex, const QVariantMap& settings)
+{
+    SWGSDRangel::SWGChannelSettings channelSettingsResponse;
+    ChannelAPI *channel;
+
+    if (!getChannelSettings(deviceSetIndex, channelIndex, channelSettingsResponse, channel)) {
+        return false;
+    }
+
+    QJsonObject *jsonObj = channelSettingsResponse.asJsonObject();
+    QStringList channelSettingsKeys;
+    bool result = true;
+
+    for (auto it = settings.begin(); it != settings.end(); ++it)
+    {
+        double currentValue;
+
+        if (WebAPIUtils::getSubObjectDouble(*jsonObj, it.key(), currentValue) && (currentValue != it.value().toDouble()))
+        {
+            WebAPIUtils::setSubObject(*jsonObj, it.key(), it.value());
+            channelSettingsKeys.append(it.key());
+        }
+    }
+
+    if (!channelSettingsKeys.isEmpty())
+    {
+        QString errorResponse;
+        channelSettingsResponse.init();
+        channelSettingsResponse.fromJsonObject(*jsonObj);
+        int httpRC = channel->webapiSettingsPutPatch(false, channelSettingsKeys, channelSettingsResponse, errorResponse);
+
+        if (httpRC/100 != 2)
+        {
+            qWarning("ChannelWebAPIUtils::patchChannelSettings: patch channel settings error %d: %s",
+                httpRC, qPrintable(errorResponse));
+            result = false;
+        }
+    }
+
+    delete jsonObj;
+    return result;
+}
+
+// Set settings of all channels, other than sourceChannel, with one of the given URIs that have linkFrequencyOffset set
+void ChannelWebAPIUtils::setLinkedChannelSettings(const ChannelAPI *sourceChannel, const QStringList& channelURIs, const QVariantMap& settings)
+{
+    forEachLinkedChannel(sourceChannel, channelURIs, [&](unsigned int deviceSetIndex, int channelIndex) {
+        patchChannelSettings(deviceSetIndex, channelIndex, settings);
+        return true;
+    });
+}
+
+// Get all channels, other than sourceChannel, with one of the given URIs that have linkFrequencyOffset set
+QList<ChannelAPI*> ChannelWebAPIUtils::getLinkedChannels(const ChannelAPI *sourceChannel, const QStringList& channelURIs)
+{
+    QList<ChannelAPI*> channels;
+
+    forEachLinkedChannel(sourceChannel, channelURIs, [&](unsigned int deviceSetIndex, int channelIndex) {
+        channels.append(MainCore::instance()->getChannel(deviceSetIndex, channelIndex));
+        return true;
+    });
+
+    return channels;
+}
+
+// Get URIs of the channel types that can be linked with a channel with the given URI. Empty if it can't be linked
+QStringList ChannelWebAPIUtils::getLinkGroupURIs(const QString& channelURI)
+{
+    static const QList<QStringList> linkGroups = {
+        {"sdrangel.channel.ssbdemod", "sdrangel.channeltx.modssb"},
+        {"sdrangel.channel.nfmdemod", "sdrangel.channeltx.modnfm"}
+    };
+
+    for (const auto& linkGroup : linkGroups)
+    {
+        if (linkGroup.contains(channelURI)) {
+            return linkGroup;
+        }
+    }
+
+    return QStringList();
+}
+
+// Get an integer setting of the first channel, other than sourceChannel, with one of the given URIs that has linkFrequencyOffset set
+bool ChannelWebAPIUtils::getLinkedChannelSetting(const ChannelAPI *sourceChannel, const QStringList& channelURIs, const QString& setting, int& value)
+{
+    bool found = false;
+
+    forEachLinkedChannel(sourceChannel, channelURIs, [&](unsigned int deviceSetIndex, int channelIndex) {
+        found = getChannelSetting(deviceSetIndex, channelIndex, setting, value);
+        return !found;
+    });
+
+    return found;
 }
 
 bool ChannelWebAPIUtils::getAudioMute(unsigned int deviceIndex, int channelIndex, bool& mute)

@@ -39,10 +39,14 @@
 #include "gui/dialpopup.h"
 #include "gui/dialogpositioner.h"
 #include "maincore.h"
+#include "device/deviceapi.h"
+#include "channel/channelwebapiutils.h"
 
 #include "ui_nfmmodgui.h"
 #include "nfmmodgui.h"
 
+
+const char* const NFMModGUI::m_nfmDemodURI = "sdrangel.channel.nfmdemod";
 
 NFMModGUI* NFMModGUI::create(PluginAPI* pluginAPI, DeviceUISet *deviceUISet, BasebandSampleSource *channelTx)
 {
@@ -120,11 +124,34 @@ bool NFMModGUI::handleMessage(const Message& message)
         ui->deltaFrequency->setValueRange(false, 7, -m_basebandSampleRate/2, m_basebandSampleRate/2);
         ui->deltaFrequencyLabel->setToolTip(tr("Range %1 %L2 Hz").arg(QChar(0xB1)).arg(m_basebandSampleRate/2));
         updateAbsoluteCenterFrequency();
+        resyncLinkedFrequencyOffset();
         return true;
     }
     else
     {
         return false;
+    }
+}
+
+// Repeater shift to apply to the frequency offset, which is 0 when the device applies it to the Tx center frequency
+int NFMModGUI::getChannelRepeaterShift() const
+{
+    return ChannelWebAPIUtils::isTxFrequencyShiftLinked(m_deviceUISet->m_deviceAPI->getDeviceSetIndex()) ? 0 : m_settings.m_repeaterShift;
+}
+
+// When the Tx center frequency changes, whether the repeater shift is applied by the device or to the
+// frequency offset may have changed (E.g. the device link button was switched), so recalculate the offset
+void NFMModGUI::resyncLinkedFrequencyOffset()
+{
+    int offset;
+
+    if (m_settings.m_linkFrequencyOffset
+        && ChannelWebAPIUtils::getLinkedFrequencyOffset(m_nfmMod, QStringList{NFMMod::m_channelIdURI, m_nfmDemodURI}, offset)
+        && (offset + getChannelRepeaterShift() != m_settings.m_inputFrequencyOffset))
+    {
+        m_settings.m_inputFrequencyOffset = offset + getChannelRepeaterShift();
+        displaySettings();
+        applySettings(QStringList("inputFrequencyOffset"));
     }
 }
 
@@ -320,6 +347,52 @@ void NFMModGUI::on_showFileDialog_clicked(bool checked)
         ui->play->setEnabled(true);
         configureFileName();
     }
+}
+
+void NFMModGUI::on_linkFrequencyOffset_toggled(bool checked)
+{
+    m_settings.m_linkFrequencyOffset = checked;
+
+    // Ignore changes made by displaySettings
+    if (!m_doApplySettings) {
+        return;
+    }
+
+    QStringList settingsKeys("linkFrequencyOffset");
+
+    // Join the existing link group, by taking frequency and tones from channels that are already linked
+    if (checked)
+    {
+        getLinkedSettings(settingsKeys);
+        displaySettings();
+    }
+
+    NFMMod::MsgConfigureNFMMod *msg = NFMMod::MsgConfigureNFMMod::create(settingsKeys, m_settings, false);
+    m_nfmMod->getInputMessageQueue()->push(msg);
+}
+
+void NFMModGUI::on_repeaterShift_valueChanged(int value)
+{
+    // Ignore changes made by displaySettings
+    if (!m_doApplySettings) {
+        return;
+    }
+
+    QStringList settingsKeys("repeaterShift");
+    m_settings.m_repeaterShift = value * 1000;
+
+    // Move away from the linked frequency by the new shift
+    int offset;
+
+    if (m_settings.m_linkFrequencyOffset
+        && ChannelWebAPIUtils::getLinkedFrequencyOffset(m_nfmMod, QStringList{NFMMod::m_channelIdURI, m_nfmDemodURI}, offset))
+    {
+        m_settings.m_inputFrequencyOffset = offset + getChannelRepeaterShift();
+        settingsKeys.append("inputFrequencyOffset");
+        displaySettings();
+    }
+
+    applySettings(settingsKeys);
 }
 
 void NFMModGUI::on_ctcss_currentIndexChanged(int index)
@@ -539,7 +612,77 @@ void NFMModGUI::applySettings(const QStringList& settingsKeys, const bool force)
 	{
 		NFMMod::MsgConfigureNFMMod *msg = NFMMod::MsgConfigureNFMMod::create(settingsKeys, m_settings, force);
 		m_nfmMod->getInputMessageQueue()->push(msg);
+
+        // Changes received from linked channels are displayed with applySettings blocked, so are not sent back
+        if (m_settings.m_linkFrequencyOffset) {
+            applyLinkedSettings(settingsKeys);
+        }
 	}
+}
+
+// Send frequency offset (without repeater shift) and tone changes to other linked NFM channels
+void NFMModGUI::applyLinkedSettings(const QStringList& settingsKeys)
+{
+    const QStringList modURIs{NFMMod::m_channelIdURI};
+    const QStringList demodURIs{m_nfmDemodURI};
+
+    if (settingsKeys.contains("inputFrequencyOffset"))
+    {
+        ChannelWebAPIUtils::setLinkedFrequencyOffsets(m_nfmMod, modURIs + demodURIs,
+            m_settings.m_inputFrequencyOffset - getChannelRepeaterShift());
+    }
+
+    // Demodulator CTCSS index 0 is no tone, whereas modulator CTCSS index 0 is the first tone
+    if (settingsKeys.contains("ctcssIndex"))
+    {
+        ChannelWebAPIUtils::setLinkedChannelSettings(m_nfmMod, modURIs, {{"ctcssIndex", m_settings.m_ctcssIndex}});
+        ChannelWebAPIUtils::setLinkedChannelSettings(m_nfmMod, demodURIs, {{"ctcssIndex", m_settings.m_ctcssIndex + 1}});
+    }
+
+    // DCS code 0 is no code in the demodulator
+    if ((settingsKeys.contains("dcsCode") || settingsKeys.contains("dcsPositive")) && (m_settings.m_dcsCode != 0))
+    {
+        ChannelWebAPIUtils::setLinkedChannelSettings(m_nfmMod, modURIs + demodURIs, {
+            {"dcsCode", m_settings.m_dcsCode},
+            {"dcsPositive", m_settings.m_dcsPositive ? 1 : 0}
+        });
+    }
+}
+
+// Get frequency offset and tones from other linked NFM channels
+void NFMModGUI::getLinkedSettings(QStringList& settingsKeys)
+{
+    const QStringList modURIs{NFMMod::m_channelIdURI};
+    const QStringList demodURIs{m_nfmDemodURI};
+    int offset;
+    int ctcssIndex;
+    int dcsCode;
+    int dcsPositive;
+
+    if (ChannelWebAPIUtils::getLinkedFrequencyOffset(m_nfmMod, modURIs + demodURIs, offset))
+    {
+        m_settings.m_inputFrequencyOffset = offset + getChannelRepeaterShift();
+        settingsKeys.append("inputFrequencyOffset");
+    }
+
+    if (ChannelWebAPIUtils::getLinkedChannelSetting(m_nfmMod, modURIs, "ctcssIndex", ctcssIndex))
+    {
+        m_settings.m_ctcssIndex = ctcssIndex;
+        settingsKeys.append("ctcssIndex");
+    }
+    else if (ChannelWebAPIUtils::getLinkedChannelSetting(m_nfmMod, demodURIs, "ctcssIndex", ctcssIndex) && (ctcssIndex > 0))
+    {
+        m_settings.m_ctcssIndex = ctcssIndex - 1;
+        settingsKeys.append("ctcssIndex");
+    }
+
+    if (ChannelWebAPIUtils::getLinkedChannelSetting(m_nfmMod, modURIs + demodURIs, "dcsCode", dcsCode) && (dcsCode != 0)
+        && ChannelWebAPIUtils::getLinkedChannelSetting(m_nfmMod, modURIs + demodURIs, "dcsPositive", dcsPositive))
+    {
+        m_settings.m_dcsCode = dcsCode;
+        m_settings.m_dcsPositive = dcsPositive != 0;
+        settingsKeys.append({"dcsCode", "dcsPositive"});
+    }
 }
 
 void NFMModGUI::displaySettings()
@@ -590,6 +733,8 @@ void NFMModGUI::displaySettings()
     ui->compressor->setChecked(m_settings.m_compressorEnable);
 
     ui->channelMute->setChecked(m_settings.m_channelMute);
+    ui->linkFrequencyOffset->setChecked(m_settings.m_linkFrequencyOffset);
+    ui->repeaterShift->setValue(m_settings.m_repeaterShift / 1000);
     ui->playLoop->setChecked(m_settings.m_playLoop);
 
     ui->tone->setEnabled((m_settings.m_modAFInput == NFMModSettings::NFMModInputAF::NFMModInputTone) || (m_settings.m_modAFInput == NFMModSettings::NFMModInputAF::NFMModInputNone));
@@ -737,6 +882,8 @@ void NFMModGUI::makeUIConnections()
     QObject::connect(ui->toneFrequency, &QDial::valueChanged, this, &NFMModGUI::on_toneFrequency_valueChanged);
     QObject::connect(ui->volume, &QDial::valueChanged, this, &NFMModGUI::on_volume_valueChanged);
     QObject::connect(ui->channelMute, &QToolButton::toggled, this, &NFMModGUI::on_channelMute_toggled);
+    QObject::connect(ui->linkFrequencyOffset, &ButtonSwitch::toggled, this, &NFMModGUI::on_linkFrequencyOffset_toggled);
+    QObject::connect(ui->repeaterShift, QOverload<int>::of(&QSpinBox::valueChanged), this, &NFMModGUI::on_repeaterShift_valueChanged);
     QObject::connect(ui->tone, &ButtonSwitch::toggled, this, &NFMModGUI::on_tone_toggled);
     QObject::connect(ui->morseKeyer, &ButtonSwitch::toggled, this, &NFMModGUI::on_morseKeyer_toggled);
     QObject::connect(ui->mic, &ButtonSwitch::toggled, this, &NFMModGUI::on_mic_toggled);

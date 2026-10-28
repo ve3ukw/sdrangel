@@ -5,6 +5,12 @@ NFMModSettings:
       type: integer
       format: int64
       description: "Channel frequency offset from the device center frequency in Hz."
+    linkFrequencyOffset:
+      type: integer
+      description: "Keep frequency offset and CTCSS/DCS settings in sync with other linked NFM modulator and demodulator channels (1 for yes, 0 for no)"
+    repeaterShift:
+      type: integer
+      description: "Repeater shift in Hz. When linked, the frequency offset is set to the linked frequency offset plus this shift"
     rfBandwidth:
       type: number
       format: float

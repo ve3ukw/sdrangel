@@ -76,6 +76,7 @@ private:
     bool m_doApplySettings;
 
     NFMMod* m_nfmMod;
+    static const char* const m_nfmDemodURI; //!< URI of NFM demodulator, which can be linked to this modulator
     MovingAverageUtil<double, double, 20> m_channelPowerDbAvg;
 
     QString m_fileName;
@@ -95,6 +96,10 @@ private:
 
     void blockApplySettings(bool block);
     void applySettings(const QStringList& settingsKeys, bool force = false);
+    void applyLinkedSettings(const QStringList& settingsKeys);
+    void getLinkedSettings(QStringList& settingsKeys);
+    int getChannelRepeaterShift() const;
+    void resyncLinkedFrequencyOffset();
     void displaySettings();
     void updateWithStreamData();
     void updateWithStreamTime();
@@ -117,6 +122,8 @@ private slots:
     void on_toneFrequency_valueChanged(int value);
     void on_volume_valueChanged(int value);
     void on_channelMute_toggled(bool checked);
+    void on_linkFrequencyOffset_toggled(bool checked);
+    void on_repeaterShift_valueChanged(int value);
     void on_tone_toggled(bool checked);
     void on_morseKeyer_toggled(bool checked);
     void on_mic_toggled(bool checked);

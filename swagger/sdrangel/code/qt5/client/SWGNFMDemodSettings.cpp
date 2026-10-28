@@ -30,6 +30,8 @@ SWGNFMDemodSettings::SWGNFMDemodSettings(QString* json) {
 SWGNFMDemodSettings::SWGNFMDemodSettings() {
     input_frequency_offset = 0L;
     m_input_frequency_offset_isSet = false;
+    link_frequency_offset = 0;
+    m_link_frequency_offset_isSet = false;
     rf_bandwidth = 0.0f;
     m_rf_bandwidth_isSet = false;
     af_bandwidth = 0.0f;
@@ -52,6 +54,12 @@ SWGNFMDemodSettings::SWGNFMDemodSettings() {
     m_audio_mute_isSet = false;
     ctcss_index = 0;
     m_ctcss_index_isSet = false;
+    dcs_on = 0;
+    m_dcs_on_isSet = false;
+    dcs_code = 0;
+    m_dcs_code_isSet = false;
+    dcs_positive = 0;
+    m_dcs_positive_isSet = false;
     rgb_color = 0;
     m_rgb_color_isSet = false;
     title = nullptr;
@@ -84,6 +92,8 @@ void
 SWGNFMDemodSettings::init() {
     input_frequency_offset = 0L;
     m_input_frequency_offset_isSet = false;
+    link_frequency_offset = 0;
+    m_link_frequency_offset_isSet = false;
     rf_bandwidth = 0.0f;
     m_rf_bandwidth_isSet = false;
     af_bandwidth = 0.0f;
@@ -106,6 +116,12 @@ SWGNFMDemodSettings::init() {
     m_audio_mute_isSet = false;
     ctcss_index = 0;
     m_ctcss_index_isSet = false;
+    dcs_on = 0;
+    m_dcs_on_isSet = false;
+    dcs_code = 0;
+    m_dcs_code_isSet = false;
+    dcs_positive = 0;
+    m_dcs_positive_isSet = false;
     rgb_color = 0;
     m_rgb_color_isSet = false;
     title = new QString("");
@@ -180,6 +196,8 @@ void
 SWGNFMDemodSettings::fromJsonObject(QJsonObject &pJson) {
     ::SWGSDRangel::setValue(&input_frequency_offset, pJson["inputFrequencyOffset"], "qint64", "");
     
+    ::SWGSDRangel::setValue(&link_frequency_offset, pJson["linkFrequencyOffset"], "qint32", "");
+    
     ::SWGSDRangel::setValue(&rf_bandwidth, pJson["rfBandwidth"], "float", "");
     
     ::SWGSDRangel::setValue(&af_bandwidth, pJson["afBandwidth"], "float", "");
@@ -201,6 +219,12 @@ SWGNFMDemodSettings::fromJsonObject(QJsonObject &pJson) {
     ::SWGSDRangel::setValue(&audio_mute, pJson["audioMute"], "qint32", "");
     
     ::SWGSDRangel::setValue(&ctcss_index, pJson["ctcssIndex"], "qint32", "");
+    
+    ::SWGSDRangel::setValue(&dcs_on, pJson["dcsOn"], "qint32", "");
+    
+    ::SWGSDRangel::setValue(&dcs_code, pJson["dcsCode"], "qint32", "");
+    
+    ::SWGSDRangel::setValue(&dcs_positive, pJson["dcsPositive"], "qint32", "");
     
     ::SWGSDRangel::setValue(&rgb_color, pJson["rgbColor"], "qint32", "");
     
@@ -243,6 +267,9 @@ SWGNFMDemodSettings::asJsonObject() {
     if(m_input_frequency_offset_isSet){
         obj->insert("inputFrequencyOffset", QJsonValue(input_frequency_offset));
     }
+    if(m_link_frequency_offset_isSet){
+        obj->insert("linkFrequencyOffset", QJsonValue(link_frequency_offset));
+    }
     if(m_rf_bandwidth_isSet){
         obj->insert("rfBandwidth", QJsonValue(rf_bandwidth));
     }
@@ -275,6 +302,15 @@ SWGNFMDemodSettings::asJsonObject() {
     }
     if(m_ctcss_index_isSet){
         obj->insert("ctcssIndex", QJsonValue(ctcss_index));
+    }
+    if(m_dcs_on_isSet){
+        obj->insert("dcsOn", QJsonValue(dcs_on));
+    }
+    if(m_dcs_code_isSet){
+        obj->insert("dcsCode", QJsonValue(dcs_code));
+    }
+    if(m_dcs_positive_isSet){
+        obj->insert("dcsPositive", QJsonValue(dcs_positive));
     }
     if(m_rgb_color_isSet){
         obj->insert("rgbColor", QJsonValue(rgb_color));
@@ -321,6 +357,16 @@ void
 SWGNFMDemodSettings::setInputFrequencyOffset(qint64 input_frequency_offset) {
     this->input_frequency_offset = input_frequency_offset;
     this->m_input_frequency_offset_isSet = true;
+}
+
+qint32
+SWGNFMDemodSettings::getLinkFrequencyOffset() {
+    return link_frequency_offset;
+}
+void
+SWGNFMDemodSettings::setLinkFrequencyOffset(qint32 link_frequency_offset) {
+    this->link_frequency_offset = link_frequency_offset;
+    this->m_link_frequency_offset_isSet = true;
 }
 
 float
@@ -431,6 +477,36 @@ void
 SWGNFMDemodSettings::setCtcssIndex(qint32 ctcss_index) {
     this->ctcss_index = ctcss_index;
     this->m_ctcss_index_isSet = true;
+}
+
+qint32
+SWGNFMDemodSettings::getDcsOn() {
+    return dcs_on;
+}
+void
+SWGNFMDemodSettings::setDcsOn(qint32 dcs_on) {
+    this->dcs_on = dcs_on;
+    this->m_dcs_on_isSet = true;
+}
+
+qint32
+SWGNFMDemodSettings::getDcsCode() {
+    return dcs_code;
+}
+void
+SWGNFMDemodSettings::setDcsCode(qint32 dcs_code) {
+    this->dcs_code = dcs_code;
+    this->m_dcs_code_isSet = true;
+}
+
+qint32
+SWGNFMDemodSettings::getDcsPositive() {
+    return dcs_positive;
+}
+void
+SWGNFMDemodSettings::setDcsPositive(qint32 dcs_positive) {
+    this->dcs_positive = dcs_positive;
+    this->m_dcs_positive_isSet = true;
 }
 
 qint32
@@ -551,6 +627,9 @@ SWGNFMDemodSettings::isSet(){
         if(m_input_frequency_offset_isSet){
             isObjectUpdated = true; break;
         }
+        if(m_link_frequency_offset_isSet){
+            isObjectUpdated = true; break;
+        }
         if(m_rf_bandwidth_isSet){
             isObjectUpdated = true; break;
         }
@@ -582,6 +661,15 @@ SWGNFMDemodSettings::isSet(){
             isObjectUpdated = true; break;
         }
         if(m_ctcss_index_isSet){
+            isObjectUpdated = true; break;
+        }
+        if(m_dcs_on_isSet){
+            isObjectUpdated = true; break;
+        }
+        if(m_dcs_code_isSet){
+            isObjectUpdated = true; break;
+        }
+        if(m_dcs_positive_isSet){
             isObjectUpdated = true; break;
         }
         if(m_rgb_color_isSet){

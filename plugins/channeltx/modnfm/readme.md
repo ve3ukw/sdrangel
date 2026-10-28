@@ -14,6 +14,19 @@ The top and bottom bars of the channel window are described [here](../../../sdrg
 
 Use the wheels to adjust the frequency shift in Hz from the center frequency of transmission. Left click on a digit sets the cursor position at this digit. Right click on a digit sets all digits on the right to zero. This effectively floors value at the digit position. Wheels are moved with the mousewheel while pointing at the wheel or by selecting the wheel with the left mouse click and using the keyboard arrows. Pressing shift simultaneously moves digit by 5 and pressing control moves it by 2.
 
+<h3>1A: Link frequency shift and tones</h3>
+
+When this button is on, this modulator is linked with the other NFM demodulators and modulators that have their link button on, in any device set. Typically this is used with an NFM demodulator to operate as a transceiver, either on a simplex frequency or through a repeater (see the repeater shift (27)).
+
+While linked:
+
+  - Changing the frequency shift (1) also sets the frequency shift of the other linked channels (less the repeater shift, when it is applied to the frequency shift - see 27).
+  - Changing the CTCSS tone (14) or DCS code (25 and 26) also sets the CTCSS tone or DCS code of the other linked channels. Only the tone and code values are linked: CTCSS and DCS are switched on and off separately in each channel, so for example this modulator can send a tone while the demodulator does not use tone squelch.
+
+When the button is switched on, the frequency shift, CTCSS tone and DCS code are taken from the channels that are already linked, if any.
+
+Frequency shifts are relative to each device's center frequency, so to stay on the same frequency the Rx and Tx devices must have the same center frequency. Use the link button of the PlutoSDR MIMO or PlutoSDR input device to keep the Tx center frequency equal to the Rx center frequency (plus the repeater shift of a linked NFM modulator).
+
 <h3>2: Channel power</h3>
 
 Average total power in dB relative to a +/- 1.0 amplitude signal generated in the pass band.
@@ -272,3 +285,12 @@ This is the DCS octal code (0..511 in decimal 0..777 in octal)
 <h3>26: DCS positive modulation</h3>
 
 When checked the "1" bits are represented with positive shift frequency and "0" with negative shift. When unchecked (negative modulation) this is the opposite.
+
+<h3>27: Repeater shift</h3>
+
+Repeater shift in kHz (E.g. -600 for a 2m repeater, +5000 or -5000 for a 70cm repeater, 0 for simplex). When linked (1A), this modulator transmits at the frequency of the linked channels plus this value, so that it transmits on the repeater input while a linked demodulator receives the repeater output. Changing this value moves the modulator and leaves the linked demodulators where they are.
+
+The shift is applied in one of two ways:
+
+  - When the Tx center frequency of the device is linked to the Rx center frequency (link button of the PlutoSDR MIMO device, or of the PlutoSDR input device sharing the hardware with the PlutoSDR output device of this modulator), the shift is added to the Tx center frequency (Tx LO) and the frequency shift (1) of this modulator stays equal to that of the linked channels. Any shift can be used whatever the sample rate, so this is the way to use for 70cm repeaters.
+  - Otherwise the shift is added to the frequency shift (1) of this modulator, so the Tx device sample rate must be large enough for the channel to remain within the device bandwidth: for a 600 kHz shift a sample rate of at least about 1.3 MS/s is needed; for a 5 MHz shift at least about 10.1 MS/s.

@@ -14,6 +14,19 @@ The top and bottom bars of the channel window are described [here](../../../sdrg
 
 Use the wheels to adjust the frequency shift in Hz from the center frequency of reception. Right click on a digit sets all digits on the right to zero. This effectively floors value at the digit position. Wheels are moved with the mousewheel while pointing at the wheel or by selecting the wheel with the left mouse click and using the keyboard arrows. Pressing shift simultaneously moves digit by 5 and pressing control moves it by 2. Left click on a digit sets the cursor position at this digit.
 
+<h3>1A: Link frequency shift and tones</h3>
+
+When this button is on, this demodulator is linked with the other NFM modulators and demodulators that have their link button on, in any device set. Typically this is used with an NFM modulator to operate as a transceiver, either on a simplex frequency or through a repeater (see the repeater shift of the NFM modulator).
+
+While linked:
+
+  - Changing the frequency shift (1) also sets the frequency shift of the other linked channels. Linked modulators add their repeater shift.
+  - Changing the CTCSS tone (C.2) or DCS code (C.5) also sets the CTCSS tone or DCS code of the other linked channels. Only the tone and code values are linked: CTCSS and DCS are switched on and off separately in each channel, so for example the modulator can send a tone while this demodulator does not use tone squelch.
+
+When the button is switched on, the frequency shift, CTCSS tone and DCS code are taken from the channels that are already linked, if any.
+
+Frequency shifts are relative to each device's center frequency, so to stay on the same frequency the Rx and Tx devices must have the same center frequency. Use the link button of the PlutoSDR MIMO or PlutoSDR input device to keep the Tx center frequency equal to the Rx center frequency (plus the repeater shift of a linked NFM modulator).
+
 <h3>2: Channel power</h3>
 
 Average total power in dB relative to a +/- 1.0 amplitude signal received in the pass band.

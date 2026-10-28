@@ -63,6 +63,8 @@ void NFMModSettings::resetToDefaults()
     m_toneFrequency = 1000.0f;
     m_volumeFactor = 1.0f;
     m_channelMute = false;
+    m_linkFrequencyOffset = false;
+    m_repeaterShift = 0;
     m_playLoop = false;
     m_ctcssOn = false;
     m_ctcssIndex = 0;
@@ -140,6 +142,8 @@ QByteArray NFMModSettings::serialize() const
     s.writeBool(31, m_preEmphasisOn);
     s.writeBool(32, m_bpfOn);
     s.writeBool(33, m_compressorEnable);
+    s.writeBool(34, m_linkFrequencyOffset);
+    s.writeS32(35, m_repeaterShift);
 
     return s.final();
 }
@@ -230,6 +234,8 @@ bool NFMModSettings::deserialize(const QByteArray& data)
         d.readBool(31, &m_preEmphasisOn, true);
         d.readBool(32, &m_bpfOn, true);
         d.readBool(33, &m_compressorEnable, false);
+        d.readBool(34, &m_linkFrequencyOffset, false);
+        d.readS32(35, &m_repeaterShift, 0);
 
         return true;
     }
@@ -382,6 +388,12 @@ void NFMModSettings::applySettings(const QStringList& settingsKeys, const NFMMod
     if (settingsKeys.contains("channelMute")) {
         m_channelMute = settings.m_channelMute;
     }
+    if (settingsKeys.contains("linkFrequencyOffset")) {
+        m_linkFrequencyOffset = settings.m_linkFrequencyOffset;
+    }
+    if (settingsKeys.contains("repeaterShift")) {
+        m_repeaterShift = settings.m_repeaterShift;
+    }
     if (settingsKeys.contains("playLoop")) {
         m_playLoop = settings.m_playLoop;
     }
@@ -486,6 +498,12 @@ QString NFMModSettings::getDebugString(const QStringList& settingsKeys, bool for
     }
     if (settingsKeys.contains("channelMute") || force) {
         ostr << " m_channelMute: " << m_channelMute;
+    }
+    if (settingsKeys.contains("linkFrequencyOffset") || force) {
+        ostr << " m_linkFrequencyOffset: " << m_linkFrequencyOffset;
+    }
+    if (settingsKeys.contains("repeaterShift") || force) {
+        ostr << " m_repeaterShift: " << m_repeaterShift;
     }
     if (settingsKeys.contains("playLoop") || force) {
         ostr << " m_playLoop: " << m_playLoop;

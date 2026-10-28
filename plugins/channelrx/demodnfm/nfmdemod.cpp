@@ -383,6 +383,18 @@ void NFMDemod::webapiUpdateChannelSettings(
     if (channelSettingsKeys.contains("ctcssOn")) {
         settings.m_ctcssOn = response.getNfmDemodSettings()->getCtcssOn() != 0;
     }
+    if (channelSettingsKeys.contains("dcsOn")) {
+        settings.m_dcsOn = response.getNfmDemodSettings()->getDcsOn() != 0;
+    }
+    if (channelSettingsKeys.contains("dcsCode")) {
+        settings.m_dcsCode = response.getNfmDemodSettings()->getDcsCode() % 512;
+    }
+    if (channelSettingsKeys.contains("dcsPositive")) {
+        settings.m_dcsPositive = response.getNfmDemodSettings()->getDcsPositive() != 0;
+    }
+    if (channelSettingsKeys.contains("linkFrequencyOffset")) {
+        settings.m_linkFrequencyOffset = response.getNfmDemodSettings()->getLinkFrequencyOffset() != 0;
+    }
     if (channelSettingsKeys.contains("deltaSquelch")) {
         settings.m_deltaSquelch = response.getNfmDemodSettings()->getDeltaSquelch() != 0;
     }
@@ -457,6 +469,10 @@ void NFMDemod::webapiFormatChannelSettings(SWGSDRangel::SWGChannelSettings& resp
     response.getNfmDemodSettings()->setHighPass(settings.m_highPass ? 1 : 0);
     response.getNfmDemodSettings()->setCtcssIndex(settings.m_ctcssIndex);
     response.getNfmDemodSettings()->setCtcssOn(settings.m_ctcssOn ? 1 : 0);
+    response.getNfmDemodSettings()->setDcsOn(settings.m_dcsOn ? 1 : 0);
+    response.getNfmDemodSettings()->setDcsCode(settings.m_dcsCode);
+    response.getNfmDemodSettings()->setDcsPositive(settings.m_dcsPositive ? 1 : 0);
+    response.getNfmDemodSettings()->setLinkFrequencyOffset(settings.m_linkFrequencyOffset ? 1 : 0);
     response.getNfmDemodSettings()->setDeltaSquelch(settings.m_deltaSquelch ? 1 : 0);
     response.getNfmDemodSettings()->setFmDeviation(settings.m_fmDeviation);
     response.getNfmDemodSettings()->setInputFrequencyOffset(settings.m_inputFrequencyOffset);
@@ -631,6 +647,18 @@ void NFMDemod::webapiFormatChannelSettings(
     }
     if (channelSettingsKeys.contains("ctcssOn") || force) {
         swgNFMDemodSettings->setCtcssOn(settings.m_ctcssOn ? 1 : 0);
+    }
+    if (channelSettingsKeys.contains("dcsOn") || force) {
+        swgNFMDemodSettings->setDcsOn(settings.m_dcsOn ? 1 : 0);
+    }
+    if (channelSettingsKeys.contains("dcsCode") || force) {
+        swgNFMDemodSettings->setDcsCode(settings.m_dcsCode);
+    }
+    if (channelSettingsKeys.contains("dcsPositive") || force) {
+        swgNFMDemodSettings->setDcsPositive(settings.m_dcsPositive ? 1 : 0);
+    }
+    if (channelSettingsKeys.contains("linkFrequencyOffset") || force) {
+        swgNFMDemodSettings->setLinkFrequencyOffset(settings.m_linkFrequencyOffset ? 1 : 0);
     }
     if (channelSettingsKeys.contains("deltaSquelch") || force) {
         swgNFMDemodSettings->setDeltaSquelch(settings.m_deltaSquelch ? 1 : 0);

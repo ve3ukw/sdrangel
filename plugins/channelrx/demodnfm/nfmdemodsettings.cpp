@@ -63,6 +63,7 @@ void NFMDemodSettings::resetToDefaults()
     m_volume = 1.0;
     m_ctcssOn = false;
     m_audioMute = false;
+    m_linkFrequencyOffset = false;
     m_ctcssIndex = 0;
     m_dcsOn = false;
     m_dcsCode = 0023;
@@ -121,6 +122,7 @@ QByteArray NFMDemodSettings::serialize() const
     s.writeS32(27, m_workspaceIndex);
     s.writeBlob(28, m_geometryBytes);
     s.writeBool(29, m_hidden);
+    s.writeBool(30, m_linkFrequencyOffset);
 
     return s.final();
 }
@@ -194,6 +196,7 @@ bool NFMDemodSettings::deserialize(const QByteArray& data)
         d.readS32(27, &m_workspaceIndex, 0);
         d.readBlob(28, &m_geometryBytes);
         d.readBool(29, &m_hidden, false);
+        d.readBool(30, &m_linkFrequencyOffset, false);
 
         return true;
     }
@@ -235,6 +238,9 @@ void NFMDemodSettings::applySettings(const QStringList& settingsKeys, const NFMD
     }
     if (settingsKeys.contains("audioMute")) {
         m_audioMute = settings.m_audioMute;
+    }
+    if (settingsKeys.contains("linkFrequencyOffset")) {
+        m_linkFrequencyOffset = settings.m_linkFrequencyOffset;
     }
     if (settingsKeys.contains("ctcssIndex")) {
         m_ctcssIndex = settings.m_ctcssIndex;
@@ -322,6 +328,9 @@ QString NFMDemodSettings::getDebugString(const QStringList& settingsKeys, bool f
     }
     if (settingsKeys.contains("audioMute") || force) {
         ostr << " m_audioMute: " << m_audioMute;
+    }
+    if (settingsKeys.contains("linkFrequencyOffset") || force) {
+        ostr << " m_linkFrequencyOffset: " << m_linkFrequencyOffset;
     }
     if (settingsKeys.contains("ctcssIndex") || force) {
         ostr << " m_ctcssIndex: " << m_ctcssIndex;

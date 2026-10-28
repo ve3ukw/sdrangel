@@ -25,6 +25,7 @@
 #include <QJsonArray>
 #include <QTimer>
 #include <QUrl>
+#include <QVariantMap>
 
 #include "SWGDeviceSettings.h"
 #include "SWGDeviceReport.h"
@@ -93,6 +94,14 @@ public:
     static bool getFrequencyOffset(unsigned int deviceIndex, int channelIndex, int& offset);
     static bool setFrequencyOffset(unsigned int deviceIndex, int channelIndex, int offset);
     static void setLinkedFrequencyOffsets(const ChannelAPI *sourceChannel, const QStringList& channelURIs, int offset);
+    static bool isTxFrequencyShiftLinked(unsigned int txDeviceSetIndex);
+    static bool setTxFrequencyShift(unsigned int txDeviceSetIndex, int shift);
+    static bool getLinkedFrequencyOffset(const ChannelAPI *sourceChannel, const QStringList& channelURIs, int& offset);
+    static void setLinkedChannelSettings(const ChannelAPI *sourceChannel, const QStringList& channelURIs, const QVariantMap& settings);
+    static QList<ChannelAPI*> getLinkedChannels(const ChannelAPI *sourceChannel, const QStringList& channelURIs);
+    static QStringList getLinkGroupURIs(const QString& channelURI);
+    static bool patchChannelSettings(unsigned int deviceSetIndex, int channelIndex, const QVariantMap& settings);
+    static bool getLinkedChannelSetting(const ChannelAPI *sourceChannel, const QStringList& channelURIs, const QString& setting, int& value);
     static bool getAudioMute(unsigned int deviceIndex, int channelIndex, bool& mute);
     static bool setAudioMute(unsigned int deviceIndex, int channelIndex, bool mute);
     static bool startStopFileSinks(unsigned int deviceIndex, bool start);

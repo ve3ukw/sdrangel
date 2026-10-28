@@ -77,6 +77,7 @@ private:
 	bool m_doApplySettings;
 
 	NFMDemod* m_nfmDemod;
+    static const char* const m_nfmModURI; //!< URI of NFM modulator, which can be linked to this demodulator
 	bool m_squelchOpen;
     int m_audioSampleRate;
 	bool m_reportedDcsCode;
@@ -89,6 +90,8 @@ private:
 
 	void blockApplySettings(bool block);
 	void applySettings(const QStringList& settingsKeys, bool force = false);
+    void applyLinkedSettings(const QStringList& settingsKeys);
+    void getLinkedSettings(QStringList& settingsKeys);
 	void displaySettings();
 	void setCtcssFreq(Real ctcssFreq);
 	void setDcsCode(unsigned int dcsCode);
@@ -115,6 +118,7 @@ private slots:
 	void on_dcsCode_currentIndexChanged(int index);
     void on_highPassFilter_toggled(bool checked);
 	void on_audioMute_toggled(bool checked);
+    void on_linkFrequencyOffset_toggled(bool checked);
 	void onWidgetRolled(QWidget* widget, bool rollDown);
 	void onMenuDialogCalled(const QPoint& p);
     void handleInputMessages();

@@ -35,10 +35,13 @@
 #include "dsp/dcscodes.h"
 #include "dsp/dspcommands.h"
 #include "maincore.h"
+#include "channel/channelwebapiutils.h"
 
 #include "nfmdemodreport.h"
 #include "nfmdemod.h"
 #include "nfmdemodgui.h"
+
+const char* const NFMDemodGUI::m_nfmModURI = "sdrangel.channeltx.modnfm";
 
 NFMDemodGUI* NFMDemodGUI::create(PluginAPI* pluginAPI, DeviceUISet *deviceUISet, BasebandSampleSink *rxChannel)
 {
@@ -297,6 +300,28 @@ void NFMDemodGUI::on_audioMute_toggled(bool checked)
 	applySettings(QStringList({"audioMute"}));
 }
 
+void NFMDemodGUI::on_linkFrequencyOffset_toggled(bool checked)
+{
+    m_settings.m_linkFrequencyOffset = checked;
+
+    // Ignore changes made by displaySettings
+    if (!m_doApplySettings) {
+        return;
+    }
+
+    QStringList settingsKeys("linkFrequencyOffset");
+
+    // Join the existing link group, by taking frequency and tones from channels that are already linked
+    if (checked)
+    {
+        getLinkedSettings(settingsKeys);
+        displaySettings();
+    }
+
+    NFMDemod::MsgConfigureNFMDemod* message = NFMDemod::MsgConfigureNFMDemod::create(settingsKeys, m_settings, false);
+    m_nfmDemod->getInputMessageQueue()->push(message);
+}
+
 void NFMDemodGUI::on_ctcss_currentIndexChanged(int index)
 {
 	m_settings.m_ctcssIndex = index;
@@ -489,7 +514,75 @@ void NFMDemodGUI::applySettings(const QStringList& settingsKeys, bool force)
 
         NFMDemod::MsgConfigureNFMDemod* message = NFMDemod::MsgConfigureNFMDemod::create(settingsKeys, m_settings, force);
         m_nfmDemod->getInputMessageQueue()->push(message);
+
+        // Changes received from linked channels are displayed with applySettings blocked, so are not sent back
+        if (m_settings.m_linkFrequencyOffset) {
+            applyLinkedSettings(settingsKeys);
+        }
 	}
+}
+
+// Send frequency offset and tone changes to other linked NFM channels
+void NFMDemodGUI::applyLinkedSettings(const QStringList& settingsKeys)
+{
+    const QStringList demodURIs{NFMDemod::m_channelIdURI};
+    const QStringList modURIs{m_nfmModURI};
+
+    if (settingsKeys.contains("inputFrequencyOffset")) {
+        ChannelWebAPIUtils::setLinkedFrequencyOffsets(m_nfmDemod, demodURIs + modURIs, m_settings.m_inputFrequencyOffset);
+    }
+
+    // Demodulator CTCSS index 0 is no tone, whereas modulator CTCSS index 0 is the first tone
+    if (settingsKeys.contains("ctcssIndex") && (m_settings.m_ctcssIndex > 0))
+    {
+        ChannelWebAPIUtils::setLinkedChannelSettings(m_nfmDemod, demodURIs, {{"ctcssIndex", m_settings.m_ctcssIndex}});
+        ChannelWebAPIUtils::setLinkedChannelSettings(m_nfmDemod, modURIs, {{"ctcssIndex", m_settings.m_ctcssIndex - 1}});
+    }
+
+    // DCS code 0 is no code
+    if ((settingsKeys.contains("dcsCode") || settingsKeys.contains("dcsPositive")) && (m_settings.m_dcsCode != 0))
+    {
+        ChannelWebAPIUtils::setLinkedChannelSettings(m_nfmDemod, demodURIs + modURIs, {
+            {"dcsCode", m_settings.m_dcsCode},
+            {"dcsPositive", m_settings.m_dcsPositive ? 1 : 0}
+        });
+    }
+}
+
+// Get frequency offset and tones from other linked NFM channels
+void NFMDemodGUI::getLinkedSettings(QStringList& settingsKeys)
+{
+    const QStringList demodURIs{NFMDemod::m_channelIdURI};
+    const QStringList modURIs{m_nfmModURI};
+    int offset;
+    int ctcssIndex;
+    int dcsCode;
+    int dcsPositive;
+
+    if (ChannelWebAPIUtils::getLinkedFrequencyOffset(m_nfmDemod, demodURIs + modURIs, offset))
+    {
+        m_settings.m_inputFrequencyOffset = offset;
+        settingsKeys.append("inputFrequencyOffset");
+    }
+
+    if (ChannelWebAPIUtils::getLinkedChannelSetting(m_nfmDemod, demodURIs, "ctcssIndex", ctcssIndex))
+    {
+        m_settings.m_ctcssIndex = ctcssIndex;
+        settingsKeys.append("ctcssIndex");
+    }
+    else if (ChannelWebAPIUtils::getLinkedChannelSetting(m_nfmDemod, modURIs, "ctcssIndex", ctcssIndex))
+    {
+        m_settings.m_ctcssIndex = ctcssIndex + 1;
+        settingsKeys.append("ctcssIndex");
+    }
+
+    if (ChannelWebAPIUtils::getLinkedChannelSetting(m_nfmDemod, demodURIs + modURIs, "dcsCode", dcsCode) && (dcsCode != 0)
+        && ChannelWebAPIUtils::getLinkedChannelSetting(m_nfmDemod, demodURIs + modURIs, "dcsPositive", dcsPositive))
+    {
+        m_settings.m_dcsCode = dcsCode;
+        m_settings.m_dcsPositive = dcsPositive != 0;
+        settingsKeys.append({"dcsCode", "dcsPositive"});
+    }
 }
 
 void NFMDemodGUI::displaySettings()
@@ -547,6 +640,7 @@ void NFMDemodGUI::displaySettings()
     ui->ctcssOn->setChecked(m_settings.m_ctcssOn);
     ui->highPassFilter->setChecked(m_settings.m_highPass);
     ui->audioMute->setChecked(m_settings.m_audioMute);
+    ui->linkFrequencyOffset->setChecked(m_settings.m_linkFrequencyOffset);
 
     ui->ctcss->setCurrentIndex(m_settings.m_ctcssIndex);
     ui->dcsOn->setChecked(m_settings.m_dcsOn);
@@ -679,6 +773,7 @@ void NFMDemodGUI::makeUIConnections()
     QObject::connect(ui->dcsCode, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &NFMDemodGUI::on_dcsCode_currentIndexChanged);
     QObject::connect(ui->highPassFilter, &ButtonSwitch::toggled, this, &NFMDemodGUI::on_highPassFilter_toggled);
     QObject::connect(ui->audioMute, &QToolButton::toggled, this, &NFMDemodGUI::on_audioMute_toggled);
+    QObject::connect(ui->linkFrequencyOffset, &ButtonSwitch::toggled, this, &NFMDemodGUI::on_linkFrequencyOffset_toggled);
 }
 
 void NFMDemodGUI::updateAbsoluteCenterFrequency()
