@@ -1195,7 +1195,8 @@ QStringList ChannelWebAPIUtils::getLinkGroupURIs(const QString& channelURI)
 {
     static const QList<QStringList> linkGroups = {
         {"sdrangel.channel.ssbdemod", "sdrangel.channeltx.modssb"},
-        {"sdrangel.channel.nfmdemod", "sdrangel.channeltx.modnfm"}
+        {"sdrangel.channel.nfmdemod", "sdrangel.channeltx.modnfm"},
+        {"sdrangel.channel.amdemod", "sdrangel.channeltx.modam"}
     };
 
     for (const auto& linkGroup : linkGroups)

@@ -35,6 +35,7 @@
 #include "gui/crightclickenabler.h"
 #include "gui/audioselectdialog.h"
 #include "gui/dialogpositioner.h"
+#include "channel/channelwebapiutils.h"
 #include "maincore.h"
 
 #include "ui_amdemodgui.h"
@@ -519,6 +520,12 @@ AMDemodGUI::~AMDemodGUI()
 	delete ui;
 }
 
+void AMDemodGUI::on_linkFrequencyOffset_toggled(bool checked)
+{
+    m_settings.m_linkFrequencyOffset = checked;
+    applySettings(QStringList("linkFrequencyOffset"));
+}
+
 void AMDemodGUI::blockApplySettings(bool block)
 {
     m_doApplySettings = !block;
@@ -530,6 +537,13 @@ void AMDemodGUI::applySettings(const QStringList& settingsKeys, bool force)
 	{
 	    AMDemod::MsgConfigureAMDemod* message = AMDemod::MsgConfigureAMDemod::create(settingsKeys, m_settings, force);
 	    m_amDemod->getInputMessageQueue()->push(message);
+
+        // Changes received from linked channels are displayed with applySettings blocked, so are not sent back
+        if (m_settings.m_linkFrequencyOffset
+            && (settingsKeys.contains("inputFrequencyOffset") || settingsKeys.contains("linkFrequencyOffset")))
+        {
+            ChannelWebAPIUtils::setLinkedFrequencyOffsets(m_amDemod, QStringList{"sdrangel.channel.amdemod", "sdrangel.channeltx.modam"}, m_settings.m_inputFrequencyOffset);
+        }
 	}
 }
 
@@ -548,6 +562,7 @@ void AMDemodGUI::displaySettings()
 
     blockApplySettings(true);
 
+    ui->linkFrequencyOffset->setChecked(m_settings.m_linkFrequencyOffset);
     ui->frequencyMode->setCurrentIndex((int) m_settings.m_frequencyMode);
     on_frequencyMode_currentIndexChanged((int) m_settings.m_frequencyMode);
     displaySnap();
@@ -788,6 +803,7 @@ void AMDemodGUI::makeUIConnections()
 {
     QObject::connect(ui->frequencyMode, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &AMDemodGUI::on_frequencyMode_currentIndexChanged);
     QObject::connect(ui->deltaFrequency, &ValueDialZ::changed, this, &AMDemodGUI::on_deltaFrequency_changed);
+    QObject::connect(ui->linkFrequencyOffset, &ButtonSwitch::toggled, this, &AMDemodGUI::on_linkFrequencyOffset_toggled);
     QObject::connect(ui->pll, &QToolButton::toggled, this, &AMDemodGUI::on_pll_toggled);
     QObject::connect(ui->ssb, &QToolButton::toggled, this, &AMDemodGUI::on_ssb_toggled);
     QObject::connect(ui->bandpassEnable, &ButtonSwitch::toggled, this, &AMDemodGUI::on_bandpassEnable_toggled);

@@ -30,6 +30,8 @@ SWGAMDemodSettings::SWGAMDemodSettings(QString* json) {
 SWGAMDemodSettings::SWGAMDemodSettings() {
     input_frequency_offset = 0L;
     m_input_frequency_offset_isSet = false;
+    link_frequency_offset = 0;
+    m_link_frequency_offset_isSet = false;
     rf_bandwidth = 0.0f;
     m_rf_bandwidth_isSet = false;
     af_bandwidth = 0.0f;
@@ -84,6 +86,8 @@ void
 SWGAMDemodSettings::init() {
     input_frequency_offset = 0L;
     m_input_frequency_offset_isSet = false;
+    link_frequency_offset = 0;
+    m_link_frequency_offset_isSet = false;
     rf_bandwidth = 0.0f;
     m_rf_bandwidth_isSet = false;
     af_bandwidth = 0.0f;
@@ -180,6 +184,8 @@ void
 SWGAMDemodSettings::fromJsonObject(QJsonObject &pJson) {
     ::SWGSDRangel::setValue(&input_frequency_offset, pJson["inputFrequencyOffset"], "qint64", "");
     
+    ::SWGSDRangel::setValue(&link_frequency_offset, pJson["linkFrequencyOffset"], "qint32", "");
+    
     ::SWGSDRangel::setValue(&rf_bandwidth, pJson["rfBandwidth"], "float", "");
     
     ::SWGSDRangel::setValue(&af_bandwidth, pJson["afBandwidth"], "float", "");
@@ -242,6 +248,9 @@ SWGAMDemodSettings::asJsonObject() {
     QJsonObject* obj = new QJsonObject();
     if(m_input_frequency_offset_isSet){
         obj->insert("inputFrequencyOffset", QJsonValue(input_frequency_offset));
+    }
+    if(m_link_frequency_offset_isSet){
+        obj->insert("linkFrequencyOffset", QJsonValue(link_frequency_offset));
     }
     if(m_rf_bandwidth_isSet){
         obj->insert("rfBandwidth", QJsonValue(rf_bandwidth));
@@ -321,6 +330,16 @@ void
 SWGAMDemodSettings::setInputFrequencyOffset(qint64 input_frequency_offset) {
     this->input_frequency_offset = input_frequency_offset;
     this->m_input_frequency_offset_isSet = true;
+}
+
+qint32
+SWGAMDemodSettings::getLinkFrequencyOffset() {
+    return link_frequency_offset;
+}
+void
+SWGAMDemodSettings::setLinkFrequencyOffset(qint32 link_frequency_offset) {
+    this->link_frequency_offset = link_frequency_offset;
+    this->m_link_frequency_offset_isSet = true;
 }
 
 float
@@ -549,6 +568,9 @@ SWGAMDemodSettings::isSet(){
     bool isObjectUpdated = false;
     do{
         if(m_input_frequency_offset_isSet){
+            isObjectUpdated = true; break;
+        }
+        if(m_link_frequency_offset_isSet){
             isObjectUpdated = true; break;
         }
         if(m_rf_bandwidth_isSet){

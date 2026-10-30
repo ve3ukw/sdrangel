@@ -5,6 +5,9 @@ AMDemodSettings:
       description: channel center frequency shift from baseband center in Hz
       type: integer
       format: int64
+    linkFrequencyOffset:
+      type: integer
+      description: "Keep frequency offset in sync with other linked AM modulator and demodulator channels (1 for yes, 0 for no)"
     rfBandwidth:
       description: channel RF bandwidth in Hz (floors to next 100 Hz)
       type: number

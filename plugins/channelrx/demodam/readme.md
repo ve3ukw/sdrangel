@@ -30,6 +30,10 @@ Specifies channel center frequency according to frequency entry mode:
 
 Use the wheels to adjust the value. Left click on a digit sets the cursor position at this digit. Right click on a digit sets all digits on the right to zero. This effectively floors value at the digit position. Wheels are moved with the mousewheel while pointing at the wheel or by selecting the wheel with the left mouse click and using the keyboard arrows. Pressing shift simultaneously moves digit by 5 and pressing control moves it by 2.
 
+<h3>1A: Link frequency shift</h3>
+
+When this button is on, changing the frequency shift (1) also sets the frequency shift of the other AM modulators and demodulators that have their link button on, in any device set. Typically this is used to keep the AM modulator tuned to the same frequency as this demodulator, to operate as a transceiver. Use it with the link button of the PlutoSDR input or MIMO device to also keep the Tx center frequency equal to the Rx center frequency.
+
 <h3>2: PLL and synchronous AM</h3>
 
 Use this toggle button to turn on or off the PLL locking and synchronous AM detection. When on the input signal is mixed with the NCO of the PLL that locks to the carrier of the AM transmission. Then the signal is processed as a DSB or SSB (see control 3) modulated signal. The main advantage compared to envelope detection is a better resilience to carrier selective fading. This does not prevents all selective fading distortion but addresses the most annoying.

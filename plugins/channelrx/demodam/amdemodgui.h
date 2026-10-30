@@ -107,6 +107,7 @@ private:
 private slots:
 	void on_frequencyMode_currentIndexChanged(int index);
 	void on_deltaFrequency_changed(qint64 value);
+    void on_linkFrequencyOffset_toggled(bool checked);
 	void on_pll_toggled(bool checked);
 	void on_ssb_toggled(bool checked);
 	void on_bandpassEnable_toggled(bool checked);

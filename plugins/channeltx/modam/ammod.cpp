@@ -483,6 +483,9 @@ void AMMod::webapiUpdateChannelSettings(
     if (channelSettingsKeys.contains("rfBandwidth")) {
         settings.m_rfBandwidth = response.getAmModSettings()->getRfBandwidth();
     }
+    if (channelSettingsKeys.contains("linkFrequencyOffset")) {
+        settings.m_linkFrequencyOffset = response.getAmModSettings()->getLinkFrequencyOffset() != 0;
+    }
     if (channelSettingsKeys.contains("rgbColor")) {
         settings.m_rgbColor = response.getAmModSettings()->getRgbColor();
     }
@@ -542,6 +545,7 @@ void AMMod::webapiFormatChannelSettings(SWGSDRangel::SWGChannelSettings& respons
     response.getAmModSettings()->setModAfInput((int) settings.m_modAFInput);
     response.getAmModSettings()->setPlayLoop(settings.m_playLoop ? 1 : 0);
     response.getAmModSettings()->setRfBandwidth(settings.m_rfBandwidth);
+    response.getAmModSettings()->setLinkFrequencyOffset(settings.m_linkFrequencyOffset ? 1 : 0);
     response.getAmModSettings()->setModFactor(settings.m_modFactor);
     response.getAmModSettings()->setRgbColor(settings.m_rgbColor);
 
@@ -739,6 +743,9 @@ void AMMod::webapiFormatChannelSettings(
     }
     if (channelSettingsKeys.contains("rfBandwidth") || force) {
         swgAMModSettings->setRfBandwidth(settings.m_rfBandwidth);
+    }
+    if (channelSettingsKeys.contains("linkFrequencyOffset") || force) {
+        swgAMModSettings->setLinkFrequencyOffset(settings.m_linkFrequencyOffset ? 1 : 0);
     }
     if (channelSettingsKeys.contains("rgbColor") || force) {
         swgAMModSettings->setRgbColor(settings.m_rgbColor);

@@ -67,6 +67,7 @@ struct AMDemodSettings
     int m_workspaceIndex;
     QByteArray m_geometryBytes;
     bool m_hidden;
+    bool m_linkFrequencyOffset; //!< keep frequency offset in sync with other linked AM channels
 
     AMDemodSettings();
     void resetToDefaults();

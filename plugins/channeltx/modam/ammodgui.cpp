@@ -38,6 +38,7 @@
 #include "gui/basicchannelsettingsdialog.h"
 #include "gui/dialpopup.h"
 #include "gui/dialogpositioner.h"
+#include "channel/channelwebapiutils.h"
 #include "maincore.h"
 
 #include "ui_ammodgui.h"
@@ -426,6 +427,12 @@ AMModGUI::~AMModGUI()
     delete m_feedbackRightClickEnabler;
 }
 
+void AMModGUI::on_linkFrequencyOffset_toggled(bool checked)
+{
+    m_settings.m_linkFrequencyOffset = checked;
+    applySettings(QStringList("linkFrequencyOffset"));
+}
+
 void AMModGUI::blockApplySettings(bool block)
 {
     m_doApplySettings = !block;
@@ -438,6 +445,13 @@ void AMModGUI::applySettings(const QStringList& settingsKeys, bool force)
 		setTitleColor(m_channelMarker.getColor());
         AMMod::MsgConfigureAMMod* message = AMMod::MsgConfigureAMMod::create(settingsKeys, m_settings, force);
         m_amMod->getInputMessageQueue()->push(message);
+
+        // Changes received from linked channels are displayed with applySettings blocked, so are not sent back
+        if (m_settings.m_linkFrequencyOffset
+            && (settingsKeys.contains("inputFrequencyOffset") || settingsKeys.contains("linkFrequencyOffset")))
+        {
+            ChannelWebAPIUtils::setLinkedFrequencyOffsets(m_amMod, QStringList{"sdrangel.channel.amdemod", "sdrangel.channeltx.modam"}, m_settings.m_inputFrequencyOffset);
+        }
 	}
 }
 
@@ -456,6 +470,7 @@ void AMModGUI::displaySettings()
 
     blockApplySettings(true);
 
+    ui->linkFrequencyOffset->setChecked(m_settings.m_linkFrequencyOffset);
     ui->deltaFrequency->setValue(m_channelMarker.getCenterFrequency());
 
     ui->rfBW->setValue((int) roundf(m_settings.m_rfBandwidth / 100.f));
@@ -613,6 +628,7 @@ void AMModGUI::updateWithStreamTime()
 void AMModGUI::makeUIConnections() const
 {
     QObject::connect(ui->deltaFrequency, &ValueDialZ::changed, this, &AMModGUI::on_deltaFrequency_changed);
+    QObject::connect(ui->linkFrequencyOffset, &ButtonSwitch::toggled, this, &AMModGUI::on_linkFrequencyOffset_toggled);
     QObject::connect(ui->rfBW, &QSlider::valueChanged, this, &AMModGUI::on_rfBW_valueChanged);
     QObject::connect(ui->modPercent, &QSlider::valueChanged, this, &AMModGUI::on_modPercent_valueChanged);
     QObject::connect(ui->volume, &QDial::valueChanged, this, &AMModGUI::on_volume_valueChanged);

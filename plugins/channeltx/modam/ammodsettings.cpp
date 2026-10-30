@@ -57,6 +57,7 @@ void AMModSettings::resetToDefaults()
     m_reverseAPIChannelIndex = 0;
     m_workspaceIndex = 0;
     m_hidden = false;
+    m_linkFrequencyOffset = false;
 }
 
 QByteArray AMModSettings::serialize() const
@@ -100,6 +101,7 @@ QByteArray AMModSettings::serialize() const
     s.writeS32(22, m_workspaceIndex);
     s.writeBlob(23, m_geometryBytes);
     s.writeBool(24, m_hidden);
+    s.writeBool(25, m_linkFrequencyOffset);
 
     return s.final();
 }
@@ -178,6 +180,7 @@ bool AMModSettings::deserialize(const QByteArray& data)
         d.readS32(22, &m_workspaceIndex, 0);
         d.readBlob(23, &m_geometryBytes);
         d.readBool(24, &m_hidden, false);
+        d.readBool(25, &m_linkFrequencyOffset, false);
 
         return true;
     }
@@ -259,6 +262,9 @@ void AMModSettings::applySettings(const QStringList& settingsKeys, const AMModSe
     if (settingsKeys.contains("hidden")) {
         m_hidden = settings.m_hidden;
     }
+    if (settingsKeys.contains("linkFrequencyOffset")) {
+        m_linkFrequencyOffset = settings.m_linkFrequencyOffset;
+    }
     if (settingsKeys.contains("cwKeyerSettings")) {
         m_cwKeyerSettings = settings.m_cwKeyerSettings;
     }
@@ -333,6 +339,9 @@ QString AMModSettings::getDebugString(const QStringList& settingsKeys, bool forc
     }
     if (settingsKeys.contains("hidden") || force) {
         ostr << " m_hidden: " << m_hidden;
+    }
+    if (settingsKeys.contains("linkFrequencyOffset") || force) {
+        ostr << " m_linkFrequencyOffset: " << m_linkFrequencyOffset;
     }
 
     return QString(ostr.str().c_str());

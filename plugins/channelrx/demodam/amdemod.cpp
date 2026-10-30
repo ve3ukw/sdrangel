@@ -208,11 +208,12 @@ void AMDemod::setCenterFrequency(qint64 frequency)
 {
     AMDemodSettings settings = m_settings;
     settings.m_inputFrequencyOffset = frequency;
-    applySettings(QStringList("inputFrequencyOffset"), settings, false);
+    settings.m_frequency = m_centerFrequency + frequency;
+    applySettings(QStringList({"inputFrequencyOffset", "frequency"}), settings, false);
 
     if (m_guiMessageQueue) // forward to GUI if any
     {
-        MsgConfigureAMDemod *msgToGUI = MsgConfigureAMDemod::create(QStringList("inputFrequencyOffset"), settings, false);
+        MsgConfigureAMDemod *msgToGUI = MsgConfigureAMDemod::create(QStringList({"inputFrequencyOffset", "frequency"}), settings, false);
         m_guiMessageQueue->push(msgToGUI);
     }
 }
@@ -333,15 +334,24 @@ int AMDemod::webapiSettingsPutPatch(
 {
     (void) errorMessage;
     AMDemodSettings settings = m_settings;
-    webapiUpdateChannelSettings(settings, channelSettingsKeys, response);
+    QStringList settingsKeys = channelSettingsKeys;
+    webapiUpdateChannelSettings(settings, settingsKeys, response);
 
-    MsgConfigureAMDemod *msg = MsgConfigureAMDemod::create(channelSettingsKeys, settings, force);
+    // In the absolute frequency modes (E.g. airband), the GUI tunes from the frequency, so keep it consistent
+    // with an offset set on its own (E.g. by a linked channel or the address book)
+    if (settingsKeys.contains("inputFrequencyOffset") && !settingsKeys.contains("frequency"))
+    {
+        settings.m_frequency = m_centerFrequency + settings.m_inputFrequencyOffset;
+        settingsKeys.append("frequency");
+    }
+
+    MsgConfigureAMDemod *msg = MsgConfigureAMDemod::create(settingsKeys, settings, force);
     m_inputMessageQueue.push(msg);
 
     qDebug("AMDemod::webapiSettingsPutPatch: forward to GUI: %p", m_guiMessageQueue);
     if (m_guiMessageQueue) // forward to GUI if any
     {
-        MsgConfigureAMDemod *msgToGUI = MsgConfigureAMDemod::create(channelSettingsKeys, settings, force);
+        MsgConfigureAMDemod *msgToGUI = MsgConfigureAMDemod::create(settingsKeys, settings, force);
         m_guiMessageQueue->push(msgToGUI);
     }
 
@@ -363,6 +373,9 @@ void AMDemod::webapiUpdateChannelSettings(
     }
     if (channelSettingsKeys.contains("rfBandwidth")) {
         settings.m_rfBandwidth = response.getAmDemodSettings()->getRfBandwidth();
+    }
+    if (channelSettingsKeys.contains("linkFrequencyOffset")) {
+        settings.m_linkFrequencyOffset = response.getAmDemodSettings()->getLinkFrequencyOffset() != 0;
     }
     if (channelSettingsKeys.contains("afBandwidth")) {
         settings.m_afBandwidth = response.getAmDemodSettings()->getAfBandwidth();
@@ -451,6 +464,7 @@ void AMDemod::webapiFormatChannelSettings(SWGSDRangel::SWGChannelSettings& respo
     response.getAmDemodSettings()->setAudioMute(settings.m_audioMute ? 1 : 0);
     response.getAmDemodSettings()->setInputFrequencyOffset(settings.m_inputFrequencyOffset);
     response.getAmDemodSettings()->setRfBandwidth(settings.m_rfBandwidth);
+    response.getAmDemodSettings()->setLinkFrequencyOffset(settings.m_linkFrequencyOffset ? 1 : 0);
     response.getAmDemodSettings()->setAfBandwidth(settings.m_afBandwidth);
     response.getAmDemodSettings()->setRgbColor(settings.m_rgbColor);
     response.getAmDemodSettings()->setSquelch(settings.m_squelch);
@@ -609,6 +623,9 @@ void AMDemod::webapiFormatChannelSettings(
     }
     if (channelSettingsKeys.contains("rfBandwidth") || force) {
         swgAMDemodSettings->setRfBandwidth(settings.m_rfBandwidth);
+    }
+    if (channelSettingsKeys.contains("linkFrequencyOffset") || force) {
+        swgAMDemodSettings->setLinkFrequencyOffset(settings.m_linkFrequencyOffset ? 1 : 0);
     }
     if (channelSettingsKeys.contains("afBandwidth") || force) {
         swgAMDemodSettings->setAfBandwidth(settings.m_afBandwidth);
