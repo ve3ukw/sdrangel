@@ -5,6 +5,9 @@ PacketDemodSettings:
       type: integer
       format: int64
       description: "Channel frequency offset from the device center frequency in Hz."
+    linkFrequencyOffset:
+      type: integer
+      description: "Keep frequency offset in sync with other linked packet modulator and demodulator channels (1 for yes, 0 for no)"
     mode:
       type: integer
       description: >

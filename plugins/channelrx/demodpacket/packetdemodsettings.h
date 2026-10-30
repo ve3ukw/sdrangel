@@ -73,6 +73,7 @@ struct PacketDemodSettings
     int m_workspaceIndex;
     QByteArray m_geometryBytes;
     bool m_hidden;
+    bool m_linkFrequencyOffset; //!< keep frequency offset in sync with other linked packet channels
 
     int m_columnIndexes[PACKETDEMOD_COLUMNS];//!< How the columns are ordered in the table
     int m_columnSizes[PACKETDEMOD_COLUMNS];  //!< Size of the columns in the table

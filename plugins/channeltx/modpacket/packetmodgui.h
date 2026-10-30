@@ -98,6 +98,7 @@ private slots:
     void handleSourceMessages();
 
     void on_deltaFrequency_changed(qint64 value);
+    void on_linkFrequencyOffset_toggled(bool checked);
     void on_mode_currentIndexChanged(int value);
     void on_rfBW_valueChanged(int index);
     void on_fmDev_valueChanged(int value);

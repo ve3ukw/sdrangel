@@ -442,6 +442,9 @@ void PacketDemod::webapiUpdateChannelSettings(
     if (channelSettingsKeys.contains("rfBandwidth")) {
         settings.m_rfBandwidth = response.getPacketDemodSettings()->getRfBandwidth();
     }
+    if (channelSettingsKeys.contains("linkFrequencyOffset")) {
+        settings.m_linkFrequencyOffset = response.getPacketDemodSettings()->getLinkFrequencyOffset() != 0;
+    }
     if (channelSettingsKeys.contains("udpEnabled")) {
         settings.m_udpEnabled = response.getPacketDemodSettings()->getUdpEnabled();
     }
@@ -499,6 +502,7 @@ void PacketDemod::webapiFormatChannelSettings(SWGSDRangel::SWGChannelSettings& r
     response.getPacketDemodSettings()->setInputFrequencyOffset(settings.m_inputFrequencyOffset);
     response.getPacketDemodSettings()->setMode((int) settings.m_mode);
     response.getPacketDemodSettings()->setRfBandwidth(settings.m_rfBandwidth);
+    response.getPacketDemodSettings()->setLinkFrequencyOffset(settings.m_linkFrequencyOffset ? 1 : 0);
     response.getPacketDemodSettings()->setUdpEnabled(settings.m_udpEnabled);
     if (response.getPacketDemodSettings()->getUdpAddress()) {
         *response.getPacketDemodSettings()->getUdpAddress() = settings.m_udpAddress;
@@ -632,6 +636,9 @@ void PacketDemod::webapiFormatChannelSettings(
     }
     if (channelSettingsKeys.contains("rfBandwidth") || force) {
         swgPacketDemodSettings->setRfBandwidth(settings.m_rfBandwidth);
+    }
+    if (channelSettingsKeys.contains("linkFrequencyOffset") || force) {
+        swgPacketDemodSettings->setLinkFrequencyOffset(settings.m_linkFrequencyOffset ? 1 : 0);
     }
     if (channelSettingsKeys.contains("udpEnabled") || force) {
         swgPacketDemodSettings->setUdpEnabled(settings.m_udpEnabled);

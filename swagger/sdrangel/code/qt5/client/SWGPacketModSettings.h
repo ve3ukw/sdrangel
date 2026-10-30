@@ -47,6 +47,9 @@ public:
     qint64 getInputFrequencyOffset();
     void setInputFrequencyOffset(qint64 input_frequency_offset);
 
+    qint32 getLinkFrequencyOffset();
+    void setLinkFrequencyOffset(qint32 link_frequency_offset);
+
     qint32 getModulation();
     void setModulation(qint32 modulation);
 
@@ -212,6 +215,9 @@ public:
 private:
     qint64 input_frequency_offset;
     bool m_input_frequency_offset_isSet;
+
+    qint32 link_frequency_offset;
+    bool m_link_frequency_offset_isSet;
 
     qint32 modulation;
     bool m_modulation_isSet;

@@ -348,6 +348,9 @@ void PacketMod::webapiUpdateChannelSettings(
     if (channelSettingsKeys.contains("rfBandwidth")) {
         settings.m_rfBandwidth = response.getPacketModSettings()->getRfBandwidth();
     }
+    if (channelSettingsKeys.contains("linkFrequencyOffset")) {
+        settings.m_linkFrequencyOffset = response.getPacketModSettings()->getLinkFrequencyOffset() != 0;
+    }
     if (channelSettingsKeys.contains("fmDeviation")) {
         settings.m_fmDeviation = response.getPacketModSettings()->getFmDeviation();
     }
@@ -577,6 +580,7 @@ void PacketMod::webapiFormatChannelSettings(SWGSDRangel::SWGChannelSettings& res
     response.getPacketModSettings()->setModulation((int) settings.m_modulation);
     response.getPacketModSettings()->setBaud(settings.m_baud);
     response.getPacketModSettings()->setRfBandwidth(settings.m_rfBandwidth);
+    response.getPacketModSettings()->setLinkFrequencyOffset(settings.m_linkFrequencyOffset ? 1 : 0);
     response.getPacketModSettings()->setFmDeviation(settings.m_fmDeviation);
     response.getPacketModSettings()->setGain(settings.m_gain);
     response.getPacketModSettings()->setChannelMute(settings.m_channelMute ? 1 : 0);
@@ -779,6 +783,9 @@ void PacketMod::webapiFormatChannelSettings(
     }
     if (channelSettingsKeys.contains("rfBandwidth") || force) {
         swgPacketModSettings->setRfBandwidth(settings.m_rfBandwidth);
+    }
+    if (channelSettingsKeys.contains("linkFrequencyOffset") || force) {
+        swgPacketModSettings->setLinkFrequencyOffset(settings.m_linkFrequencyOffset ? 1 : 0);
     }
     if (channelSettingsKeys.contains("fmDeviation") || force) {
         swgPacketModSettings->setFmDeviation(settings.m_fmDeviation);

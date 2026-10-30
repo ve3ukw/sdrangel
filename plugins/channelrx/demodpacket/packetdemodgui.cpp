@@ -42,6 +42,7 @@
 #include "dsp/dspengine.h"
 #include "gui/dialogpositioner.h"
 #include "gui/tabletapandhold.h"
+#include "channel/channelwebapiutils.h"
 #include "maincore.h"
 
 #include "packetdemod.h"
@@ -254,6 +255,12 @@ void PacketDemodGUI::channelMarkerChangedByCursor()
 void PacketDemodGUI::channelMarkerHighlightedByCursor()
 {
     setHighlighted(m_channelMarker.getHighlighted());
+}
+
+void PacketDemodGUI::on_linkFrequencyOffset_toggled(bool checked)
+{
+    m_settings.m_linkFrequencyOffset = checked;
+    applySettings(QStringList("linkFrequencyOffset"));
 }
 
 void PacketDemodGUI::on_deltaFrequency_changed(qint64 value)
@@ -555,6 +562,13 @@ void PacketDemodGUI::applySettings(const QStringList& settingsKeys, bool force)
     {
         PacketDemod::MsgConfigurePacketDemod* message = PacketDemod::MsgConfigurePacketDemod::create(settingsKeys, m_settings, force);
         m_packetDemod->getInputMessageQueue()->push(message);
+
+        // Changes received from linked channels are displayed with applySettings blocked, so are not sent back
+        if (m_settings.m_linkFrequencyOffset
+            && (settingsKeys.contains("inputFrequencyOffset") || settingsKeys.contains("linkFrequencyOffset")))
+        {
+            ChannelWebAPIUtils::setLinkedFrequencyOffsets(m_packetDemod, QStringList{"sdrangel.channel.packetdemod", "sdrangel.channeltx.modpacket"}, m_settings.m_inputFrequencyOffset);
+        }
     }
 }
 
@@ -573,6 +587,7 @@ void PacketDemodGUI::displaySettings()
 
     blockApplySettings(true);
 
+    ui->linkFrequencyOffset->setChecked(m_settings.m_linkFrequencyOffset);
     ui->deltaFrequency->setValue(m_channelMarker.getCenterFrequency());
 
     ui->rfBWText->setText(QString("%1k").arg(m_settings.m_rfBandwidth / 1000.0, 0, 'f', 1));
@@ -749,6 +764,7 @@ void PacketDemodGUI::on_useFileTime_toggled(bool checked)
 void PacketDemodGUI::makeUIConnections()
 {
     QObject::connect(ui->deltaFrequency, &ValueDialZ::changed, this, &PacketDemodGUI::on_deltaFrequency_changed);
+    QObject::connect(ui->linkFrequencyOffset, &ButtonSwitch::toggled, this, &PacketDemodGUI::on_linkFrequencyOffset_toggled);
     QObject::connect(ui->mode, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &PacketDemodGUI::on_mode_currentIndexChanged);
     QObject::connect(ui->rfBW, &QSlider::valueChanged, this, &PacketDemodGUI::on_rfBW_valueChanged);
     QObject::connect(ui->mlse, &QCheckBox::toggled, this, &PacketDemodGUI::on_mlse_toggled);

@@ -86,6 +86,7 @@ void PacketModSettings::resetToDefaults()
     m_udpPort = 9998;
     m_workspaceIndex = 0;
     m_hidden = false;
+    m_linkFrequencyOffset = false;
 }
 
 bool PacketModSettings::setMode(QString mode)
@@ -235,6 +236,7 @@ QByteArray PacketModSettings::serialize() const
     s.writeS32(55, m_workspaceIndex);
     s.writeBlob(56, m_geometryBytes);
     s.writeBool(57, m_hidden);
+    s.writeBool(58, m_linkFrequencyOffset);
 
     return s.final();
 }
@@ -340,6 +342,7 @@ bool PacketModSettings::deserialize(const QByteArray& data)
         d.readS32(55, &m_workspaceIndex, 0);
         d.readBlob(56, &m_geometryBytes);
         d.readBool(57, &m_hidden, false);
+        d.readBool(58, &m_linkFrequencyOffset, false);
 
         return true;
     }
@@ -518,6 +521,9 @@ void PacketModSettings::applySettings(const QStringList& settingsKeys, const Pac
     if (settingsKeys.contains("hidden")) {
         m_hidden = settings.m_hidden;
     }
+    if (settingsKeys.contains("linkFrequencyOffset")) {
+        m_linkFrequencyOffset = settings.m_linkFrequencyOffset;
+    }
 }
 
 QString PacketModSettings::getDebugString(const QStringList& settingsKeys, bool force) const
@@ -685,6 +691,9 @@ QString PacketModSettings::getDebugString(const QStringList& settingsKeys, bool 
     }
     if (settingsKeys.contains("hidden") || force) {
         ostr << " m_hidden: " << m_hidden;
+    }
+    if (settingsKeys.contains("linkFrequencyOffset") || force) {
+        ostr << " m_linkFrequencyOffset: " << m_linkFrequencyOffset;
     }
 
     return QString(ostr.str().c_str());

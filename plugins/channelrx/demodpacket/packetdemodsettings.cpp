@@ -58,6 +58,7 @@ void PacketDemodSettings::resetToDefaults()
     m_reverseAPIChannelIndex = 0;
     m_workspaceIndex = 0;
     m_hidden = false;
+    m_linkFrequencyOffset = false;
 
     for (int i = 0; i < PACKETDEMOD_COLUMNS; i++)
     {
@@ -108,6 +109,7 @@ QByteArray PacketDemodSettings::serialize() const
     s.writeS32(32, m_chase);
     s.writeBool(33, m_mlse);
     s.writeS32(41, static_cast<int>(m_mode));
+    s.writeBool(42, m_linkFrequencyOffset);
 
     for (int i = 0; i < PACKETDEMOD_COLUMNS; i++) {
         s.writeS32(100 + i, m_columnIndexes[i]);
@@ -196,6 +198,7 @@ bool PacketDemodSettings::deserialize(const QByteArray& data)
         qint32 mode;
         d.readS32(41, &mode, ModeAFSK1200);
         m_mode = isValidMode(mode) ? static_cast<Mode>(mode) : ModeAFSK1200;
+        d.readBool(42, &m_linkFrequencyOffset, false);
 
         for (int i = 0; i < PACKETDEMOD_COLUMNS; i++) {
             d.readS32(100 + i, &m_columnIndexes[i], i);
@@ -291,6 +294,9 @@ void PacketDemodSettings::applySettings(const QStringList& settingsKeys, const P
     if (settingsKeys.contains("hidden")) {
         m_hidden = settings.m_hidden;
     }
+    if (settingsKeys.contains("linkFrequencyOffset")) {
+        m_linkFrequencyOffset = settings.m_linkFrequencyOffset;
+    }
     if (settingsKeys.contains("columnIndexes")) {
         for (int i = 0; i < PACKETDEMOD_COLUMNS; i++) {
             m_columnIndexes[i] = settings.m_columnIndexes[i];
@@ -378,6 +384,9 @@ QString PacketDemodSettings::getDebugString(const QStringList& settingsKeys, boo
     }
     if (settingsKeys.contains("hidden") || force) {
         ostr << " m_hidden: " << m_hidden;
+    }
+    if (settingsKeys.contains("linkFrequencyOffset") || force) {
+        ostr << " m_linkFrequencyOffset: " << m_linkFrequencyOffset;
     }
 
     return QString(ostr.str().c_str());

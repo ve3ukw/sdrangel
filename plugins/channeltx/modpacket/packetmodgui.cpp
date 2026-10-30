@@ -34,6 +34,7 @@
 #include "gui/fmpreemphasisdialog.h"
 #include "gui/dialpopup.h"
 #include "gui/dialogpositioner.h"
+#include "channel/channelwebapiutils.h"
 #include "maincore.h"
 
 #include "ui_packetmodgui.h"
@@ -130,6 +131,12 @@ void PacketModGUI::handleSourceMessages()
             delete message;
         }
     }
+}
+
+void PacketModGUI::on_linkFrequencyOffset_toggled(bool checked)
+{
+    m_settings.m_linkFrequencyOffset = checked;
+    applySettings(QStringList("linkFrequencyOffset"));
 }
 
 void PacketModGUI::on_deltaFrequency_changed(qint64 value)
@@ -557,6 +564,13 @@ void PacketModGUI::applySettings(const QStringList& settingsKeys, bool force)
     {
         PacketMod::MsgConfigurePacketMod *msg = PacketMod::MsgConfigurePacketMod::create(settingsKeys, m_settings, force);
         m_packetMod->getInputMessageQueue()->push(msg);
+
+        // Changes received from linked channels are displayed with applySettings blocked, so are not sent back
+        if (m_settings.m_linkFrequencyOffset
+            && (settingsKeys.contains("inputFrequencyOffset") || settingsKeys.contains("linkFrequencyOffset")))
+        {
+            ChannelWebAPIUtils::setLinkedFrequencyOffsets(m_packetMod, QStringList{"sdrangel.channel.packetdemod", "sdrangel.channeltx.modpacket"}, m_settings.m_inputFrequencyOffset);
+        }
     }
 }
 
@@ -576,6 +590,7 @@ void PacketModGUI::displaySettings()
 
     blockApplySettings(true);
 
+    ui->linkFrequencyOffset->setChecked(m_settings.m_linkFrequencyOffset);
     ui->deltaFrequency->setValue(m_channelMarker.getCenterFrequency());
     if ((m_settings.m_baud == 1200) && (m_settings.m_modulation == PacketModSettings::AFSK))
         ui->mode->setCurrentIndex(0);
@@ -638,6 +653,7 @@ void PacketModGUI::tick()
 void PacketModGUI::makeUIConnections()
 {
     QObject::connect(ui->deltaFrequency, &ValueDialZ::changed, this, &PacketModGUI::on_deltaFrequency_changed);
+    QObject::connect(ui->linkFrequencyOffset, &ButtonSwitch::toggled, this, &PacketModGUI::on_linkFrequencyOffset_toggled);
     QObject::connect(ui->mode, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &PacketModGUI::on_mode_currentIndexChanged);
     QObject::connect(ui->rfBW, &QSlider::valueChanged, this, &PacketModGUI::on_rfBW_valueChanged);
     QObject::connect(ui->fmDev, &QSlider::valueChanged, this, &PacketModGUI::on_fmDev_valueChanged);

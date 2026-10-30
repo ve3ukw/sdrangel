@@ -88,6 +88,7 @@ struct PacketModSettings
     int m_workspaceIndex;
     QByteArray m_geometryBytes;
     bool m_hidden;
+    bool m_linkFrequencyOffset; //!< keep frequency offset in sync with other linked packet channels
 
     PacketModSettings();
     void resetToDefaults();
