@@ -292,6 +292,17 @@ float GS232ControllerSettings::azimuthDifference(float az1, float az2)
     return diff - 180.0f;
 }
 
+// Convert a position with the elevation over the top (> 90 degrees), as used by rotators that flip to avoid
+// a long azimuth move, to the equivalent position with an elevation <= 90. E.g. az 1 el 174 is az 181 el 6
+void GS232ControllerSettings::unflipAzEl(float& azimuth, float& elevation)
+{
+    if (elevation > 90.0f)
+    {
+        azimuth = std::fmod(azimuth + 180.0f, 360.0f);
+        elevation = 180.0f - elevation;
+    }
+}
+
 // Whether changing any of these settings changes the position sent to the rotator
 bool GS232ControllerSettings::affectsTarget(const QStringList& settingsKeys)
 {

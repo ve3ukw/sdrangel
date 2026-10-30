@@ -285,9 +285,14 @@ bool GS232Controller::getOnTarget() const
     float targetAziumth, targetElevation;
     getTargetAzEl(targetAziumth, targetElevation);
     float readTolerance = m_settings.m_tolerance + 0.0f;
+    // Compare the direction pointed at, as the rotator may have flipped over the top to reach the target
+    float currentAzimuth = m_currentAzimuth;
+    float currentElevation = m_currentElevation;
+    GS232ControllerSettings::unflipAzEl(currentAzimuth, currentElevation);
+    GS232ControllerSettings::unflipAzEl(targetAziumth, targetElevation);
     // Compare azimuth modulo 360, as some controllers report e.g. 370 as 10
-    bool onTarget =   (std::fabs(GS232ControllerSettings::azimuthDifference(m_currentAzimuth, targetAziumth)) <= readTolerance)
-                   && (std::fabs(m_currentElevation - targetElevation) <= readTolerance);
+    bool onTarget =   (std::fabs(GS232ControllerSettings::azimuthDifference(currentAzimuth, targetAziumth)) <= readTolerance)
+                   && (std::fabs(currentElevation - targetElevation) <= readTolerance);
     return onTarget;
 }
 

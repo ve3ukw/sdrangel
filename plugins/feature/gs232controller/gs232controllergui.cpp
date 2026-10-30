@@ -152,8 +152,12 @@ bool GS232ControllerGUI::handleMessage(const Message& message)
     else if (GS232ControllerReport::MsgReportAzAl::match(message))
     {
         GS232ControllerReport::MsgReportAzAl& azAl = (GS232ControllerReport::MsgReportAzAl&) message;
+        float azimuth = azAl.getAzimuth();
+        float elevation = azAl.getElevation();
         float coord1, coord2;
-        azElToDisplay(azAl.getAzimuth(), azAl.getElevation(), coord1, coord2);
+        // Show the direction pointed at, if the rotator has flipped over the top
+        GS232ControllerSettings::unflipAzEl(azimuth, elevation);
+        azElToDisplay(azimuth, elevation, coord1, coord2);
         ui->coord1CurrentText->setText(QString::number(coord1, 'f', m_settings.m_precision));
         ui->coord2CurrentText->setText(QString::number(coord2, 'f', m_settings.m_precision));
         return true;

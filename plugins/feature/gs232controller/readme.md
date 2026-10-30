@@ -27,6 +27,10 @@ The value to the right of the target azimuth, is the current azimuth read from t
 Specifies the target elevation (angle in degrees) to point the antenna towards. Valid values range from 0 to 180 degrees, where 0 and 180 point towards the horizon and 90 degrees to zenith.
 The value to the right of the target elevation, is the current elevation read from the rotator.
 
+If the rotator has flipped over the top (elevation read is above 90 degrees), the current azimuth and elevation are shown as the
+direction the antenna is pointing at. E.g. azimuth 1 and elevation 174 is shown as 181 and 6. This is also used to determine whether
+the rotator is on target. The Web API report gives the position as read from the rotator.
+
 <h3>4: Track</h3>
 
 When checked, the target azimuth and elevation will be controlled by the Channel or Feature Source (5).

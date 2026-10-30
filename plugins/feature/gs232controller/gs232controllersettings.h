@@ -82,6 +82,7 @@ struct GS232ControllerSettings
     float fitAzimuth(float azimuth) const;
     float clampElevation(float elevation) const;
     static float azimuthDifference(float az1, float az2);
+    static void unflipAzEl(float& azimuth, float& elevation);
     static bool affectsTarget(const QStringList& settingsKeys);
     void applySettings(const QStringList& settingsKeys, const GS232ControllerSettings& settings);
     QString getDebugString(const QStringList& settingsKeys, bool force=false) const;
