@@ -114,6 +114,15 @@ AddressBookEntryDialog::AddressBookEntryDialog(const AddressBookEntry& entry, co
     m_ctcss->setToolTip("CTCSS tone in Hz");
     form->addRow("CTCSS", m_ctcss);
 
+    m_azimuth = new QDoubleSpinBox();
+    m_azimuth->setDecimals(1);
+    m_azimuth->setRange(-1.0, 360.0);
+    m_azimuth->setSuffix(" deg");
+    m_azimuth->setSpecialValueText("None");
+    m_azimuth->setValue(entry.m_azimuth < 0.0f ? -1.0 : entry.m_azimuth);
+    m_azimuth->setToolTip("Antenna azimuth in degrees. When set, tuning the entry also points the rotator (GS-232 Rotator Controller) to it");
+    form->addRow("Azimuth", m_azimuth);
+
     m_notes = new QPlainTextEdit(entry.m_notes);
     m_notes->setToolTip("Notes");
     form->addRow("Notes", m_notes);
@@ -147,6 +156,7 @@ AddressBookEntry AddressBookEntryDialog::getEntry() const
     entry.m_bandwidth = qRound(m_bandwidth->value() * 1e3);
     entry.m_txOffset = qRound64(m_txOffset->value() * 1e6);
     entry.m_ctcss = m_ctcss->value();
+    entry.m_azimuth = m_azimuth->value() < 0.0 ? -1.0f : m_azimuth->value();
     entry.m_notes = m_notes->toPlainText();
 
     return entry;

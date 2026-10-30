@@ -32,6 +32,7 @@ struct AddressBookEntry
     int m_bandwidth;        //!< RF bandwidth in Hz. 0 to leave the channel's bandwidth unchanged
     qint64 m_txOffset;      //!< Transmit frequency minus receive frequency in Hz (repeater shift / split)
     float m_ctcss;          //!< CTCSS tone in Hz. 0 for none
+    float m_azimuth;        //!< Antenna azimuth in degrees, for the rotator controller. Negative for none
     QString m_notes;
 
     AddressBookEntry();

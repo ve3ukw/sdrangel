@@ -25,10 +25,12 @@
 #include "settings/rollupstate.h"
 
 #include "addressbooksettings.h"
+#include "addressbook.h"
 
 class PluginAPI;
 class FeatureUISet;
 class AddressBook;
+class ChannelGUI;
 class Feature;
 
 namespace Ui {
@@ -64,6 +66,7 @@ private:
         ENTRY_COL_BANDWIDTH,
         ENTRY_COL_TX_OFFSET,
         ENTRY_COL_CTCSS,
+        ENTRY_COL_AZIMUTH,
         ENTRY_COL_NOTES
     };
 
@@ -91,6 +94,11 @@ private:
     void updateChannelList();
     void updateGroupFilter();
     void updateTable();
+    void applyChannelSwitches(const QList<AddressBook::ChannelSwitch>& channelSwitches);
+    void selectChannel(int deviceSetIndex, int channelIndex);
+    void watchChannelWindows();
+    void updateChannelMarker(ChannelGUI *gui);
+    bool eventFilter(QObject *obj, QEvent *event) override;
     QStringList getGroups() const;
     int selectedEntryIndex() const;
     void editEntry(int index, const AddressBookEntry& entry);
@@ -103,6 +111,7 @@ private slots:
     void channelsOrFeaturesChanged(const QStringList& renameFrom, const QStringList& renameTo, const QStringList& removed, const QStringList& added);
     void on_channels_currentIndexChanged(int index);
     void on_groupFilter_currentIndexChanged(int index);
+    void on_autoSwitchChannels_toggled(bool checked);
     void on_entries_cellDoubleClicked(int row, int column);
     void on_add_clicked();
     void on_addFromChannel_clicked();

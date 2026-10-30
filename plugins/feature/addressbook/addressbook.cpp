@@ -25,6 +25,7 @@
 #include "dsp/devicesamplesource.h"
 #include "dsp/devicesamplemimo.h"
 #include "dsp/ctcssfrequencies.h"
+#include "feature/featureset.h"
 #include "maincore.h"
 
 #include "addressbook.h"
@@ -57,10 +58,16 @@ bool AddressBook::handleMessage(const Message& cmd)
     {
         const MsgTune& tuneMsg = (const MsgTune&) cmd;
         QString errorMessage;
-        bool success = tune(tuneMsg.getEntry(), tuneMsg.getChannelId(), errorMessage);
+        QList<ChannelSwitch> channelSwitches;
+        ChannelAPI *tunedChannel = nullptr;
+        bool success = tune(tuneMsg.getEntry(), tuneMsg.getChannelId(), m_settings.m_autoSwitchChannels,
+            channelSwitches, tunedChannel, errorMessage);
 
-        if (m_guiMessageQueue) {
-            m_guiMessageQueue->push(MsgTuneResult::create(success, errorMessage));
+        if (m_guiMessageQueue)
+        {
+            m_guiMessageQueue->push(MsgTuneResult::create(success, errorMessage, channelSwitches,
+                tunedChannel ? (int) tunedChannel->getDeviceSetIndex() : -1,
+                tunedChannel ? tunedChannel->getIndexInDeviceSet() : -1));
         }
 
         return true;
@@ -102,7 +109,8 @@ void AddressBook::applySettings(const AddressBookSettings& settings, const QStri
     }
 }
 
-bool AddressBook::tune(const AddressBookEntry& entry, const QString& channelId, QString& errorMessage)
+bool AddressBook::tune(const AddressBookEntry& entry, const QString& channelId, bool autoSwitchChannels,
+    QList<ChannelSwitch>& channelSwitches, ChannelAPI*& tunedChannel, QString& errorMessage)
 {
     unsigned int deviceSetIndex;
     unsigned int channelIndex;
@@ -119,6 +127,22 @@ bool AddressBook::tune(const AddressBookEntry& entry, const QString& channelId, 
     {
         errorMessage = QString("Channel %1 not found").arg(channelId);
         return false;
+    }
+
+    // Switch to the channels for the entry's channel type (E.g. from SSB to NFM demodulator and modulator)
+    if (autoSwitchChannels && !entry.m_channelType.isEmpty())
+    {
+        if (ChannelAPI *switchedChannel = switchChannels(entry, channel, channelSwitches))
+        {
+            channel = switchedChannel;
+            deviceSetIndex = channel->getDeviceSetIndex();
+            channelIndex = channel->getIndexInDeviceSet();
+        }
+        else
+        {
+            errorMessage = QString("No %1 channel to switch to").arg(entry.m_channelType);
+            return false;
+        }
     }
 
     // If a transmit channel (E.g. NFM modulator) or a channel of a different type is selected,
@@ -149,6 +173,7 @@ bool AddressBook::tune(const AddressBookEntry& entry, const QString& channelId, 
         return false;
     }
 
+    tunedChannel = channel;
     qint64 centerFrequency;
     int sampleRate;
     int offset = 0;
@@ -202,7 +227,38 @@ bool AddressBook::tune(const AddressBookEntry& entry, const QString& channelId, 
         tuneLinkedChannels(entry, channel, rxOffset, ctcssIndex);
     }
 
+    if ((entry.m_azimuth >= 0.0f) && !setRotatorAzimuth(entry.m_azimuth))
+    {
+        errorMessage = "Tuned, but no GS-232 Rotator Controller found to set azimuth";
+        return false;
+    }
+
     return true;
+}
+
+// Point the antenna of the first GS-232 Rotator Controller to the given azimuth, leaving the elevation unchanged
+bool AddressBook::setRotatorAzimuth(float azimuth)
+{
+    std::vector<FeatureSet*>& featureSets = MainCore::instance()->getFeatureeSets();
+
+    for (unsigned int featureSetIndex = 0; featureSetIndex < featureSets.size(); featureSetIndex++)
+    {
+        FeatureSet *featureSet = featureSets[featureSetIndex];
+
+        for (int featureIndex = 0; featureIndex < featureSet->getNumberOfFeatures(); featureIndex++)
+        {
+            Feature *feature = featureSet->getFeatureAt(featureIndex);
+
+            if (feature && (feature->getURI() == "sdrangel.feature.gs232controller"))
+            {
+                // Tracking a target (E.g. a satellite) would override the azimuth
+                ChannelWebAPIUtils::patchFeatureSetting(featureSetIndex, featureIndex, "track", 0.0);
+                return ChannelWebAPIUtils::patchFeatureSetting(featureSetIndex, featureIndex, "azimuth", azimuth);
+            }
+        }
+    }
+
+    return false;
 }
 
 // Get a receive channel of the entry's type (any type if the entry doesn't have one), that is linked to channel
@@ -225,6 +281,83 @@ ChannelAPI *AddressBook::getLinkedRxChannel(const AddressBookEntry& entry, const
     }
 
     return nullptr;
+}
+
+// Unmute the receive channel of the entry's type, and the transmit channels that can be linked with it,
+// and mute the other channels that make up the radio, which are the channels that can be linked
+// (E.g. SSB, NFM, AM and packet demodulators and modulators) on the device set of the selected channel, and those
+// linked to them on other device sets. Returns the receive channel to tune, or nullptr if there is none
+ChannelAPI *AddressBook::switchChannels(const AddressBookEntry& entry, const ChannelAPI *channel, QList<ChannelSwitch>& channelSwitches)
+{
+    std::vector<DeviceSet*>& deviceSets = MainCore::instance()->getDeviceSets();
+    unsigned int selectedDeviceSetIndex = channel->getDeviceSetIndex();
+    QList<ChannelAPI*> radioChannels;
+    ChannelAPI *rxChannel = nullptr;
+
+    for (unsigned int deviceSetIndex = 0; deviceSetIndex < deviceSets.size(); deviceSetIndex++)
+    {
+        DeviceSet *deviceSet = deviceSets[deviceSetIndex];
+
+        for (int channelIndex = 0; channelIndex < deviceSet->getNumberOfChannels(); channelIndex++)
+        {
+            ChannelAPI *radioChannel = deviceSet->getChannelAt(channelIndex);
+            int link;
+
+            if (!radioChannel || ChannelWebAPIUtils::getLinkGroupURIs(radioChannel->getURI()).isEmpty()) {
+                continue;
+            }
+
+            if ((deviceSetIndex == selectedDeviceSetIndex)
+                || (ChannelWebAPIUtils::getChannelSetting(deviceSetIndex, channelIndex, "linkFrequencyOffset", link) && link))
+            {
+                radioChannels.append(radioChannel);
+            }
+        }
+    }
+
+    // Prefer the selected channel, then a channel on the same device set
+    for (ChannelAPI *radioChannel : radioChannels)
+    {
+        if ((radioChannel->getStreamType() == ChannelAPI::StreamSingleSink) && (radioChannel->getIdentifier() == entry.m_channelType))
+        {
+            if (radioChannel == channel)
+            {
+                rxChannel = radioChannel;
+                break;
+            }
+            else if (!rxChannel || ((rxChannel->getDeviceSetIndex() != selectedDeviceSetIndex) && (radioChannel->getDeviceSetIndex() == selectedDeviceSetIndex)))
+            {
+                rxChannel = radioChannel;
+            }
+        }
+    }
+
+    if (!rxChannel) {
+        return nullptr;
+    }
+
+    QStringList activeURIs = ChannelWebAPIUtils::getLinkGroupURIs(rxChannel->getURI());
+
+    // Mute the other channels first, then unmute the active ones
+    for (bool active : {false, true})
+    {
+        for (ChannelAPI *radioChannel : radioChannels)
+        {
+            bool isActive = (radioChannel == rxChannel)
+                || ((radioChannel->getStreamType() != ChannelAPI::StreamSingleSink) && activeURIs.contains(radioChannel->getURI()));
+
+            if (isActive != active) {
+                continue;
+            }
+
+            // Demodulators and the SSB modulator have audioMute, other modulators have channelMute
+            ChannelWebAPIUtils::patchChannelSettings(radioChannel->getDeviceSetIndex(), radioChannel->getIndexInDeviceSet(),
+                {{"audioMute", active ? 0 : 1}, {"channelMute", active ? 0 : 1}});
+            channelSwitches.append({(int) radioChannel->getDeviceSetIndex(), radioChannel->getIndexInDeviceSet(), active});
+        }
+    }
+
+    return rxChannel;
 }
 
 // Get index of the CTCSS tone in CTCSSFrequencies, or -1 if there is none

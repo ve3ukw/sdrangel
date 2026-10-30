@@ -16,6 +16,7 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.          //
 ///////////////////////////////////////////////////////////////////////////////////
 
+#include <QEvent>
 #include <QMessageBox>
 #include <QTableWidgetItem>
 
@@ -25,6 +26,10 @@
 #include "gui/dialogpositioner.h"
 #include "feature/featureuiset.h"
 #include "maincore.h"
+#include "mainwindow.h"
+#include "device/deviceuiset.h"
+#include "channel/channelgui.h"
+#include "dsp/channelmarker.h"
 
 #include "ui_addressbookgui.h"
 #include "addressbook.h"
@@ -77,6 +82,13 @@ bool AddressBookGUI::handleMessage(const Message& message)
     {
         const AddressBook::MsgTuneResult& result = (const AddressBook::MsgTuneResult&) message;
         ui->status->setText(result.getSuccess() ? QString() : result.getMessage());
+        applyChannelSwitches(result.getChannelSwitches());
+
+        // After switching, select the channel that was tuned, so the next entry is tuned from it
+        if (!result.getChannelSwitches().isEmpty() && (result.getTunedDeviceSetIndex() >= 0)) {
+            selectChannel(result.getTunedDeviceSetIndex(), result.getTunedChannelIndex());
+        }
+
         return true;
     }
 
@@ -199,6 +211,8 @@ void AddressBookGUI::displaySettings()
 
     updateChannelList();
     updateGroupFilter();
+    ui->autoSwitchChannels->setChecked(m_settings.m_autoSwitchChannels);
+    watchChannelWindows();
     updateTable();
 
     getRollupContents()->restoreState(m_rollupState);
@@ -316,6 +330,7 @@ void AddressBookGUI::channelsOrFeaturesChanged(const QStringList& renameFrom, co
     }
 
     updateChannelList();
+    watchChannelWindows();
     applySetting("selectedChannel");
 }
 
@@ -386,6 +401,8 @@ void AddressBookGUI::updateTable()
             entry.m_txOffset != 0 ? QString::number(entry.m_txOffset / 1e6, 'f', 6) : QString(), entry.m_txOffset));
         ui->entries->setItem(row, ENTRY_COL_CTCSS, new NumericTableWidgetItem(
             entry.m_ctcss > 0.0f ? QString::number(entry.m_ctcss, 'f', 1) : QString(), entry.m_ctcss));
+        ui->entries->setItem(row, ENTRY_COL_AZIMUTH, new NumericTableWidgetItem(
+            entry.m_azimuth >= 0.0f ? QString::number(entry.m_azimuth, 'f', 1) : QString(), entry.m_azimuth));
         QTableWidgetItem *notesItem = new QTableWidgetItem(entry.m_notes.section('\n', 0, 0));
         notesItem->setToolTip(entry.m_notes);
         ui->entries->setItem(row, ENTRY_COL_NOTES, notesItem);
@@ -444,6 +461,106 @@ void AddressBookGUI::on_channels_currentIndexChanged(int index)
     {
         m_settings.m_selectedChannel = m_availableChannels.at(index).getLongId();
         applySetting("selectedChannel");
+    }
+}
+
+void AddressBookGUI::on_autoSwitchChannels_toggled(bool checked)
+{
+    m_settings.m_autoSwitchChannels = checked;
+    watchChannelWindows();
+    applySetting("autoSwitchChannels");
+}
+
+// Watch windows of channels that can be switched (E.g. SSB, NFM, AM and packet demodulators and modulators), so their channel
+// markers can be hidden from the spectrum while their windows are hidden, however they were hidden or shown
+void AddressBookGUI::watchChannelWindows()
+{
+    std::vector<DeviceUISet*>& deviceUISets = MainWindow::getInstance()->getDeviceUISets();
+
+    for (unsigned int deviceSetIndex = 0; deviceSetIndex < deviceUISets.size(); deviceSetIndex++)
+    {
+        DeviceUISet *deviceUISet = deviceUISets[deviceSetIndex];
+
+        for (int i = 0; i < deviceUISet->getNumberOfChannels(); i++)
+        {
+            ChannelGUI *gui = deviceUISet->getChannelGUIAt(i);
+            ChannelAPI *channel = gui ? MainCore::instance()->getChannel(deviceSetIndex, gui->getIndex()) : nullptr;
+
+            if (channel && !ChannelWebAPIUtils::getLinkGroupURIs(channel->getURI()).isEmpty())
+            {
+                gui->installEventFilter(this); // Installing it again doesn't add a second filter
+                updateChannelMarker(gui);
+            }
+        }
+    }
+}
+
+// Show the channel marker only when the channel window is, if channels are auto-switched, else always show it.
+// isHidden() rather than isVisible(), so markers stay when a whole workspace is hidden
+void AddressBookGUI::updateChannelMarker(ChannelGUI *gui)
+{
+    bool visible = !m_settings.m_autoSwitchChannels || !gui->isHidden();
+    ChannelMarker& channelMarker = gui->getChannelMarker();
+
+    if (channelMarker.getVisible() != visible) {
+        channelMarker.setVisible(visible);
+    }
+}
+
+bool AddressBookGUI::eventFilter(QObject *obj, QEvent *event)
+{
+    if ((event->type() == QEvent::Show) || (event->type() == QEvent::Hide))
+    {
+        if (ChannelGUI *gui = qobject_cast<ChannelGUI*>(obj)) {
+            updateChannelMarker(gui);
+        }
+    }
+
+    return FeatureGUI::eventFilter(obj, event);
+}
+
+// Show active channel windows and hide the others. Muting is done by AddressBook, as it's available via the API,
+// but whether a channel window is shown isn't
+void AddressBookGUI::applyChannelSwitches(const QList<AddressBook::ChannelSwitch>& channelSwitches)
+{
+    std::vector<DeviceUISet*>& deviceUISets = MainWindow::getInstance()->getDeviceUISets();
+
+    for (const auto& channelSwitch : channelSwitches)
+    {
+        if ((channelSwitch.m_deviceSetIndex < 0) || (channelSwitch.m_deviceSetIndex >= (int) deviceUISets.size())) {
+            continue;
+        }
+
+        DeviceUISet *deviceUISet = deviceUISets[channelSwitch.m_deviceSetIndex];
+
+        for (int i = 0; i < deviceUISet->getNumberOfChannels(); i++)
+        {
+            ChannelGUI *gui = deviceUISet->getChannelGUIAt(i);
+
+            if (gui && (gui->getIndex() == channelSwitch.m_channelIndex))
+            {
+                if (channelSwitch.m_active) {
+                    gui->show();
+                } else {
+                    gui->hide();
+                }
+                break;
+            }
+        }
+    }
+}
+
+void AddressBookGUI::selectChannel(int deviceSetIndex, int channelIndex)
+{
+    for (int i = 0; i < m_availableChannels.size(); i++)
+    {
+        const AvailableChannelOrFeature& channel = m_availableChannels.at(i);
+
+        if ((channel.m_superIndex == deviceSetIndex) && (channel.m_index == channelIndex))
+        {
+            ui->channels->setCurrentIndex(i); // Calls on_channels_currentIndexChanged to save it
+            break;
+        }
     }
 }
 
@@ -547,6 +664,7 @@ void AddressBookGUI::makeUIConnections()
 {
     connect(ui->channels, qOverload<int>(&QComboBox::currentIndexChanged), this, &AddressBookGUI::on_channels_currentIndexChanged);
     connect(ui->groupFilter, qOverload<int>(&QComboBox::currentIndexChanged), this, &AddressBookGUI::on_groupFilter_currentIndexChanged);
+    connect(ui->autoSwitchChannels, &QCheckBox::toggled, this, &AddressBookGUI::on_autoSwitchChannels_toggled);
     connect(ui->entries, &QTableWidget::cellDoubleClicked, this, &AddressBookGUI::on_entries_cellDoubleClicked);
     connect(ui->add, &QToolButton::clicked, this, &AddressBookGUI::on_add_clicked);
     connect(ui->addFromChannel, &QToolButton::clicked, this, &AddressBookGUI::on_addFromChannel_clicked);

@@ -95,6 +95,16 @@
         </property>
        </widget>
       </item>
+      <item>
+       <widget class="QCheckBox" name="autoSwitchChannels">
+        <property name="toolTip">
+         <string>When tuning, show and unmute the demodulator and modulator for the entry's channel type, and hide and mute the other SSB, NFM and AM channels</string>
+        </property>
+        <property name="text">
+         <string>Auto-switch</string>
+        </property>
+       </widget>
+      </item>
      </layout>
     </item>
     <item>
@@ -179,6 +189,14 @@
        </property>
        <property name="toolTip">
         <string>CTCSS tone in Hz</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>Az</string>
+       </property>
+       <property name="toolTip">
+        <string>Antenna azimuth in degrees, set on the GS-232 Rotator Controller when tuned</string>
        </property>
       </column>
       <column>

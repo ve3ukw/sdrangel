@@ -34,6 +34,7 @@ void AddressBookSettings::resetToDefaults()
     m_entries.clear();
     m_selectedChannel.clear();
     m_groupFilter.clear();
+    m_autoSwitchChannels = false;
     m_title = "Address Book";
     m_rgbColor = QColor(212, 170, 0).rgb();
     m_useReverseAPI = false;
@@ -66,6 +67,7 @@ QByteArray AddressBookSettings::serialize() const
 
     s.writeS32(12, m_workspaceIndex);
     s.writeBlob(13, m_geometryBytes);
+    s.writeBool(14, m_autoSwitchChannels);
 
     return s.final();
 }
@@ -114,6 +116,7 @@ bool AddressBookSettings::deserialize(const QByteArray& data)
 
         d.readS32(12, &m_workspaceIndex, 0);
         d.readBlob(13, &m_geometryBytes);
+        d.readBool(14, &m_autoSwitchChannels, false);
 
         return true;
     }
@@ -175,6 +178,9 @@ void AddressBookSettings::applySettings(const QStringList& settingsKeys, const A
     }
     if (settingsKeys.contains("groupFilter")) {
         m_groupFilter = settings.m_groupFilter;
+    }
+    if (settingsKeys.contains("autoSwitchChannels")) {
+        m_autoSwitchChannels = settings.m_autoSwitchChannels;
     }
     if (settingsKeys.contains("title")) {
         m_title = settings.m_title;

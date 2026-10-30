@@ -49,6 +49,7 @@ private:
     QDoubleSpinBox *m_bandwidth;
     QDoubleSpinBox *m_txOffset;
     QDoubleSpinBox *m_ctcss;
+    QDoubleSpinBox *m_azimuth;
     QPlainTextEdit *m_notes;
 
     void accept() override;

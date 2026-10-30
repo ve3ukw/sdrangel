@@ -33,6 +33,7 @@ struct AddressBookSettings
     QList<AddressBookEntry> m_entries;
     QString m_selectedChannel;      //!< Channel to tune, e.g. "R0:1 NFMDemod"
     QString m_groupFilter;          //!< Only show entries in this group. Empty for all
+    bool m_autoSwitchChannels;      //!< Show and unmute the channels for the entry's channel type, hide and mute the others
     QString m_title;
     quint32 m_rgbColor;
     bool m_useReverseAPI;

@@ -35,6 +35,7 @@ void AddressBookEntry::resetToDefaults()
     m_bandwidth = 0;
     m_txOffset = 0;
     m_ctcss = 0.0f;
+    m_azimuth = -1.0f;
     m_notes.clear();
 }
 
@@ -51,6 +52,7 @@ QByteArray AddressBookEntry::serialize() const
     s.writeS64(7, m_txOffset);
     s.writeFloat(8, m_ctcss);
     s.writeString(9, m_notes);
+    s.writeFloat(10, m_azimuth);
 
     return s.final();
 }
@@ -76,6 +78,7 @@ bool AddressBookEntry::deserialize(const QByteArray& data)
         d.readS64(7, &m_txOffset, 0);
         d.readFloat(8, &m_ctcss, 0.0f);
         d.readString(9, &m_notes, "");
+        d.readFloat(10, &m_azimuth, -1.0f);
 
         return true;
     }

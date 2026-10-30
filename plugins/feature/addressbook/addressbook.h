@@ -81,6 +81,13 @@ public:
         { }
     };
 
+    /// Channel shown or hidden when channels are switched for an entry's channel type
+    struct ChannelSwitch {
+        int m_deviceSetIndex;
+        int m_channelIndex;
+        bool m_active;          //!< Shown and unmuted if true, else hidden and muted
+    };
+
     /// Result of a MsgTune, sent to the GUI
     class MsgTuneResult : public Message {
         MESSAGE_CLASS_DECLARATION
@@ -88,19 +95,30 @@ public:
     public:
         bool getSuccess() const { return m_success; }
         const QString& getMessage() const { return m_message; }
+        const QList<ChannelSwitch>& getChannelSwitches() const { return m_channelSwitches; }
+        int getTunedDeviceSetIndex() const { return m_tunedDeviceSetIndex; }
+        int getTunedChannelIndex() const { return m_tunedChannelIndex; }
 
-        static MsgTuneResult* create(bool success, const QString& message) {
-            return new MsgTuneResult(success, message);
+        static MsgTuneResult* create(bool success, const QString& message, const QList<ChannelSwitch>& channelSwitches,
+            int tunedDeviceSetIndex, int tunedChannelIndex) {
+            return new MsgTuneResult(success, message, channelSwitches, tunedDeviceSetIndex, tunedChannelIndex);
         }
 
     private:
         bool m_success;
         QString m_message;
+        QList<ChannelSwitch> m_channelSwitches;
+        int m_tunedDeviceSetIndex; //!< Channel that was tuned, which may differ from the selected channel. -1 if none
+        int m_tunedChannelIndex;
 
-        MsgTuneResult(bool success, const QString& message) :
+        MsgTuneResult(bool success, const QString& message, const QList<ChannelSwitch>& channelSwitches,
+                int tunedDeviceSetIndex, int tunedChannelIndex) :
             Message(),
             m_success(success),
-            m_message(message)
+            m_message(message),
+            m_channelSwitches(channelSwitches),
+            m_tunedDeviceSetIndex(tunedDeviceSetIndex),
+            m_tunedChannelIndex(tunedChannelIndex)
         { }
     };
 
@@ -117,8 +135,10 @@ public:
     QByteArray serialize() const override;
     bool deserialize(const QByteArray& data) override;
 
-    /// Tune the channel with the given ID (e.g. "R0:1") to the entry. Returns false and sets errorMessage on failure
-    static bool tune(const AddressBookEntry& entry, const QString& channelId, QString& errorMessage);
+    /// Tune the channel with the given ID (e.g. "R0:1") to the entry. Returns false and sets errorMessage on failure.
+    /// If autoSwitchChannels is set, channelSwitches is set to the channels to show and hide
+    static bool tune(const AddressBookEntry& entry, const QString& channelId, bool autoSwitchChannels,
+        QList<ChannelSwitch>& channelSwitches, ChannelAPI*& tunedChannel, QString& errorMessage);
     /// Get center frequency and sample rate of the Rx device, or Rx stream of a MIMO device, that a receive channel is attached to
     static bool getRxCenterFrequency(unsigned int deviceSetIndex, const ChannelAPI *channel, qint64& centerFrequency, int& sampleRate);
     /// Set center frequency of the Rx device, or Rx stream of a MIMO device, that a receive channel is attached to
@@ -129,6 +149,8 @@ public:
 
 private:
     static ChannelAPI *getLinkedRxChannel(const AddressBookEntry& entry, const ChannelAPI *channel);
+    static ChannelAPI *switchChannels(const AddressBookEntry& entry, const ChannelAPI *channel, QList<ChannelSwitch>& channelSwitches);
+    static bool setRotatorAzimuth(float azimuth);
     static int getCTCSSIndex(float ctcss);
     static void tuneLinkedChannels(const AddressBookEntry& entry, const ChannelAPI *channel, qint64 rxOffset, int ctcssIndex);
     AddressBookSettings m_settings;
