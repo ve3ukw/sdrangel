@@ -62,7 +62,7 @@ AddressBookEntryDialog::AddressBookEntryDialog(const AddressBookEntry& entry, co
 
     m_mode = new QComboBox();
     m_mode->setEditable(true);
-    m_mode->addItems({"NFM", "WFM", "AM", "USB", "LSB", "CW", "DATA", "SSTV", "PKT", "DMR", "D-STAR", "C4FM"});
+    m_mode->addItems({"NFM", "WFM", "AM", "USB", "LSB", "CW", "DATA", "SSTV", "PKT", "VARA", "DMR", "D-STAR", "C4FM"});
     m_mode->setCurrentText(entry.m_mode);
     m_mode->setToolTip("Mode. Free text, for display and filtering");
     form->addRow("Mode", m_mode);

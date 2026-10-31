@@ -1197,7 +1197,8 @@ QStringList ChannelWebAPIUtils::getLinkGroupURIs(const QString& channelURI)
         {"sdrangel.channel.ssbdemod", "sdrangel.channeltx.modssb"},
         {"sdrangel.channel.nfmdemod", "sdrangel.channeltx.modnfm"},
         {"sdrangel.channel.amdemod", "sdrangel.channeltx.modam"},
-        {"sdrangel.channel.packetdemod", "sdrangel.channeltx.modpacket"}
+        {"sdrangel.channel.packetdemod", "sdrangel.channeltx.modpacket"},
+        {"sdrangel.channel.varademod", "sdrangel.channeltx.modvara"}
     };
 
     for (const auto& linkGroup : linkGroups)

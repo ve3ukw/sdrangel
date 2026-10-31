@@ -22,11 +22,12 @@ Only shows entries in the selected group. Select All to show every entry.
 When checked, tuning an entry switches channels to the entry's channel type, so a set of demodulators and modulators
 for different modes (E.g. NFM, AM and SSB) can be kept open, with only one mode active at a time:
 
-* The channels that make up the radio are the SSB, NFM, AM and packet demodulators and modulators on the device set of the selected
+* The channels that make up the radio are the SSB, NFM, AM, packet and VARA demodulators and modulators on the device set of the selected
   channel (1), plus those on other device sets that have their link button on.
 * The demodulator of the entry's channel type (the selected channel if it's of that type) and the modulators of the same mode
-  are unmuted and their windows shown. The other channels are muted (channel mute for NFM, AM and packet modulators, audio mute for
-  the others; packet demodulators have no mute, so keep decoding) and their windows hidden. Hidden windows can be shown
+  are unmuted and their windows shown. The other channels are muted (channel mute for NFM, AM, packet and VARA modulators, audio mute for
+  the others; packet demodulators have no mute, so keep decoding, and a VARA demodulator's modem keeps running, but can't transmit
+  while its modulator is muted) and their windows hidden. Hidden windows can be shown
   again from the main window's Window > Show menu.
 * The tuned demodulator becomes the selected channel (1).
 * While Auto-switch is checked, the channel markers of these channels are only shown on the spectrum while their windows are shown,
@@ -60,7 +61,7 @@ Tunes the channel to the selected entry:
 * If a bandwidth is set, the channel's RF bandwidth is set.
 * The channel can be on a single Rx device or on an Rx stream of a MIMO device (E.g. PlutoSDR MIMO).
 * The CTCSS tone of an NFM demodulator is set to the entry's CTCSS tone (`--` if the entry has none).
-* If the channel's link button is on (SSB, NFM, AM and packet demodulators), the channels linked to it are set to the same frequency.
+* If the channel's link button is on (SSB, NFM, AM, packet and VARA demodulators), the channels linked to it are set to the same frequency.
   Linked NFM modulators also get the entry's Tx offset as their repeater shift, and the entry's CTCSS tone, with CTCSS
   switched on if the entry has a tone and off if it doesn't.
 * If the entry has an azimuth, the first GS-232 Rotator Controller feature is switched out of tracking and its azimuth
