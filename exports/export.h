@@ -155,6 +155,18 @@
 #  define MODEMM17_API
 #endif
 
+/* the 'MODEMVARA_API' controls the import/export of 'modemvara' symbols
+ */
+#if !defined(sdrangel_STATIC)
+#  ifdef modemvara_EXPORTS
+#    define MODEMVARA_API __SDR_EXPORT
+#  else
+#    define MODEMVARA_API __SDR_IMPORT
+#  endif
+#else
+#  define MODEMVARA_API
+#endif
+
 /* the 'MODEMMESHTASTIC_API' controls the import/export of 'modemmeshtastic' symbols
  */
 #if !defined(sdrangel_STATIC)

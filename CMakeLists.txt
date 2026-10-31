@@ -133,6 +133,10 @@ option(ENABLE_PACK_MIRSDRAPI "Enable inclusion of the mirsdr-api library - for p
 option(ENABLE_USRP "Enable USRP support" ON)
 option(ENABLE_FOBOS "Enable Fobos SDR support" ON)
 
+# xara VARA modem, a Rust library built with cargo from a local source tree
+option(ENABLE_XARA "Build the VARA plugins with the xara modem (needs cargo)" OFF)
+set(XARA_DIR "${CMAKE_SOURCE_DIR}/../xara" CACHE PATH "xara source tree (with crates/xara-ffi)")
+
 # Channel Rx enablers
 option(ENABLE_CHANNELRX "Enable channelrx plugins" ON)
 option(ENABLE_CHANNELRX_DEMODADSB "Enable channelrx demodadsb plugin" ON)
@@ -171,6 +175,7 @@ option(ENABLE_CHANNELRX_DEMODPACKET "Enable channelrx demodpacket plugin" ON)
 option(ENABLE_CHANNELRX_DEMODAPT "Enable channelrx demodapt plugin" ON)
 option(ENABLE_CHANNELRX_DEMODWEFAX "Enable channelrx demodwefax plugin" ON)
 option(ENABLE_CHANNELRX_DEMODSSTV "Enable channelrx demodsstv plugin" ON)
+option(ENABLE_CHANNELRX_DEMODVARA "Enable channelrx demodvara plugin (needs ENABLE_XARA)" ON)
 option(ENABLE_CHANNELRX_DEMODDSD "Enable channelrx demoddsd plugin" ON)
 option(ENABLE_CHANNELRX_DEMODFT8 "Enable channelrx demodft8 plugin" ON)
 option(ENABLE_CHANNELRX_DEMODNAVTEX "Enable channelrx demodnavtex plugin" ON)
@@ -197,6 +202,7 @@ option(ENABLE_CHANNELTX_MODDATV "Enable channeltx moddatv plugin" ON)
 option(ENABLE_CHANNELTX_MODAM "Enable channeltx modam plugin" ON)
 option(ENABLE_CHANNELTX_MODFREEDV "Enable channeltx modfreedv plugin" ON)
 option(ENABLE_CHANNELTX_MODPACKET "Enable channeltx modpacket plugin" ON)
+option(ENABLE_CHANNELTX_MODVARA "Enable channeltx modvara plugin (needs ENABLE_XARA)" ON)
 option(ENABLE_CHANNELTX_MODSSB "Enable channeltx modssb plugin" ON)
 option(ENABLE_CHANNELTX_UDPSOURCE "Enable channeltx udpsource plugin" ON)
 option(ENABLE_CHANNELTX_MODCHIRPCHAT "Enable channeltx modchirpchat plugin" ON)
@@ -1123,6 +1129,40 @@ add_subdirectory(swagger)
 add_subdirectory(devices)
 
 add_subdirectory(modemm17)
+if (ENABLE_XARA)
+    find_program(CARGO_EXECUTABLE cargo HINTS $ENV{HOME}/.cargo/bin)
+    if (CARGO_EXECUTABLE AND EXISTS "${XARA_DIR}/crates/xara-ffi/include/xara.h")
+        include(ExternalProject)
+        find_package(Threads REQUIRED)
+        set(XARA_TARGET_DIR ${CMAKE_BINARY_DIR}/xara)
+        set(XARA_LIBRARY ${XARA_TARGET_DIR}/release/${CMAKE_STATIC_LIBRARY_PREFIX}xara_ffi${CMAKE_STATIC_LIBRARY_SUFFIX})
+        # cargo rebuilds only what changed, so run it on every build
+        ExternalProject_Add(xara
+            SOURCE_DIR ${XARA_DIR}
+            CONFIGURE_COMMAND ""
+            BUILD_COMMAND ${CARGO_EXECUTABLE} build --release --locked -p xara-ffi --target-dir ${XARA_TARGET_DIR}
+            BUILD_IN_SOURCE ON
+            BUILD_ALWAYS ON
+            INSTALL_COMMAND ""
+            BUILD_BYPRODUCTS ${XARA_LIBRARY}
+        )
+        add_library(xara_ffi STATIC IMPORTED GLOBAL)
+        set_target_properties(xara_ffi PROPERTIES
+            IMPORTED_LOCATION ${XARA_LIBRARY}
+            INTERFACE_INCLUDE_DIRECTORIES ${XARA_DIR}/crates/xara-ffi/include
+            INTERFACE_LINK_LIBRARIES "Threads::Threads;${CMAKE_DL_LIBS};m"
+        )
+        add_dependencies(xara_ffi xara)
+        set(XARA_FOUND ON CACHE INTERNAL "")
+        message(STATUS "Building xara from ${XARA_DIR} with ${CARGO_EXECUTABLE}")
+        add_subdirectory(modemvara)
+    else()
+        set(XARA_FOUND OFF CACHE INTERNAL "")
+        message(STATUS "Not building xara (cargo: ${CARGO_EXECUTABLE}, XARA_DIR: ${XARA_DIR})")
+    endif()
+else()
+    set(XARA_FOUND OFF CACHE INTERNAL "")
+endif()
 add_subdirectory(modemmeshtastic)
 add_subdirectory(modemmeshcore)
 add_subdirectory(modemdvb)
