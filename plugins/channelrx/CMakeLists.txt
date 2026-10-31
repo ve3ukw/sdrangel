@@ -175,6 +175,12 @@ else()
     message(STATUS "Not building demodsstv (ENABLE_CHANNELRX_DEMODSSTV=${ENABLE_CHANNELRX_DEMODSSTV})")
 endif()
 
+if(ENABLE_CHANNELRX_DEMODVARA AND XARA_FOUND)
+    add_subdirectory(demodvara)
+else()
+    message(STATUS "Not building demodvara (ENABLE_CHANNELRX_DEMODVARA=${ENABLE_CHANNELRX_DEMODVARA} XARA_FOUND=${XARA_FOUND})")
+endif()
+
 if(ENABLE_CHANNELRX_DEMODDSD AND LIBDSDCC_FOUND AND LIBMBE_FOUND)
     add_subdirectory(demoddsd)
 else()
