@@ -294,6 +294,7 @@ set(sdrbase_SOURCES
     util/stringlist.cpp
     util/rds.cpp
     util/rtty.cpp
+    util/udpptt.cpp
     util/uid.cpp
     util/units.cpp
     util/timeutil.cpp
@@ -581,6 +582,7 @@ set(sdrbase_HEADERS
     util/spyserverlist.h
     util/stix.h
     util/stringlist.h
+    util/udpptt.h
     util/uid.h
     util/units.h
     util/timeutil.h
