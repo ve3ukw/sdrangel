@@ -24,3 +24,22 @@ target_link_libraries(modemvara
 )
 
 install(TARGETS modemvara DESTINATION ${INSTALL_LIB_DIR})
+
+# Two VARA stations back to back through the VARA Demod/Mod DSP, with no radio. Not built by default:
+#   make varaloopback && bin/varaloopback
+if (ENABLE_CHANNELRX_DEMODVARA AND ENABLE_CHANNELTX_MODVARA)
+    add_executable(varaloopback EXCLUDE_FROM_ALL
+        test/varaloopback.cpp
+        ${CMAKE_SOURCE_DIR}/plugins/channelrx/demodvara/varademodsink.cpp
+        ${CMAKE_SOURCE_DIR}/plugins/channelrx/demodvara/varademodsettings.cpp
+        ${CMAKE_SOURCE_DIR}/plugins/channeltx/modvara/varamodsource.cpp
+        ${CMAKE_SOURCE_DIR}/plugins/channeltx/modvara/varamodsettings.cpp
+    )
+    target_include_directories(varaloopback PRIVATE
+        ${CMAKE_SOURCE_DIR}/sdrbase
+        ${CMAKE_SOURCE_DIR}/modemvara
+        ${CMAKE_SOURCE_DIR}/plugins/channelrx/demodvara
+        ${CMAKE_SOURCE_DIR}/plugins/channeltx/modvara
+    )
+    target_link_libraries(varaloopback modemvara sdrbase Qt::Core)
+endif()

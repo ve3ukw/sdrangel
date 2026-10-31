@@ -48,6 +48,12 @@ if (ENABLE_CHANNELTX_MODPACKET)
     add_subdirectory(modpacket)
 endif()
 
+if (ENABLE_CHANNELTX_MODVARA AND XARA_FOUND)
+    add_subdirectory(modvara)
+else()
+    message(STATUS "Not building modvara (ENABLE_CHANNELTX_MODVARA=${ENABLE_CHANNELTX_MODVARA} XARA_FOUND=${XARA_FOUND})")
+endif()
+
 if (ENABLE_CHANNELTX_MOD802.15.4)
     add_subdirectory(mod802.15.4)
 endif()
