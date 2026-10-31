@@ -1,0 +1,146 @@
+VARADemodSettings:
+  description: VARADemod
+  properties:
+    inputFrequencyOffset:
+      description: "channel center frequency shift from baseband center in Hz"
+      type: integer
+      format: int64
+    mode:
+      description: >
+        VARA mode (as xara_mode)
+          * 0 - HF 500
+          * 1 - HF 2300
+          * 2 - HF 2750
+          * 3 - FM narrow
+          * 4 - FM wide
+      type: integer
+    callsign:
+      description: "Station call sign"
+      type: string
+    address:
+      description: "Listen address of the VARA command/data and KISS TCP ports"
+      type: string
+    cmdPort:
+      description: "VARA command TCP port. The data port is cmdPort + 1"
+      type: integer
+    kissEnabled:
+      description: "Open the KISS TCP port (1 for yes, 0 for no)"
+      type: integer
+    kissPort:
+      description: "KISS TCP port"
+      type: integer
+    driveDb:
+      description: "Transmit drive level, -30 to 0 dB"
+      type: number
+      format: float
+    rxLagMs:
+      description: "Delay from RF to the modem input in ms"
+      type: integer
+    fmDeviation:
+      description: "FM peak deviation in Hz, which gives full scale modem input"
+      type: number
+      format: float
+    agc:
+      description: "Automatic gain control in HF modes (1 for yes, 0 for no)"
+      type: integer
+    rxGainDb:
+      description: "Receive gain in HF modes when the AGC is off, in dB"
+      type: number
+      format: float
+    volume:
+      description: "Monitor audio volume"
+      type: number
+      format: float
+    audioMute:
+      description: "Mute the monitor audio (1 for yes, 0 for no)"
+      type: integer
+    audioDeviceName:
+      description: "Name of the audio device to use."
+      type: string
+    linkFrequencyOffset:
+      description: "Keep the frequency offset of linked VARA modulators in sync (1 for yes, 0 for no)"
+      type: integer
+    rgbColor:
+      description: "Display color encoded as an RGB integer."
+      type: integer
+    title:
+      description: "User-visible title."
+      type: string
+    streamIndex:
+      description: "MIMO channel. Not relevant when connected to SI (single Rx)."
+      type: integer
+    useReverseAPI:
+      description: "Synchronize with reverse API (1 for yes, 0 for no)"
+      type: integer
+    reverseAPIAddress:
+      description: "IPv4 address or host name of the reverse API peer."
+      type: string
+    reverseAPIPort:
+      description: "TCP port of the reverse API peer."
+      type: integer
+    reverseAPIDeviceIndex:
+      description: "Device-set index used by the reverse API peer."
+      type: integer
+    reverseAPIChannelIndex:
+      description: "Channel index used by the reverse API peer."
+      type: integer
+    channelMarker:
+      $ref: "http://swgserver:8081/api/swagger/include/ChannelMarker.yaml#/ChannelMarker"
+      description: "Channel-marker display configuration."
+    rollupState:
+      $ref: "http://swgserver:8081/api/swagger/include/RollupState.yaml#/RollupState"
+      description: "Rollup display state."
+
+VARADemodReport:
+  description: VARADemod
+  properties:
+    channelPowerDB:
+      description: "power received in channel (dB)"
+      type: number
+      format: float
+    channelSampleRate:
+      description: "Channel sample rate in Hz."
+      type: integer
+    running:
+      description: "The modem is running and its TCP ports are open (1 for yes, 0 for no)"
+      type: integer
+    error:
+      description: "Why the modem is not running"
+      type: string
+    state:
+      description: "Session state, E.g. Listen"
+      type: string
+    peer:
+      description: "Call sign of the remote station while linked"
+      type: string
+    bandwidth:
+      description: "Link bandwidth"
+      type: string
+    level:
+      description: "Speed level"
+      type: integer
+    attempts:
+      description: "Connection attempts"
+      type: integer
+    afcHz:
+      description: "Frequency offset of the received signal in Hz"
+      type: number
+      format: float
+    keyed:
+      description: "Transmitting (1 for yes, 0 for no)"
+      type: integer
+    busy:
+      description: "Channel busy detected (1 for yes, 0 for no)"
+      type: integer
+    txLinked:
+      description: "A VARA modulator is attached to the modem (1 for yes, 0 for no)"
+      type: integer
+    cmdPort:
+      description: "Bound command TCP port"
+      type: integer
+    dataPort:
+      description: "Bound data TCP port"
+      type: integer
+    kissPort:
+      description: "Bound KISS TCP port, 0 for none"
+      type: integer

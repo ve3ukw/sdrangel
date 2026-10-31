@@ -89,6 +89,8 @@
 #include "SWGRemoteTCPSinkSettings.h"
 #include "SWGSSBDemodSettings.h"
 #include "SWGSSTVDemodSettings.h"
+#include "SWGVARADemodSettings.h"
+#include "SWGVARAModSettings.h"
 #include "SWGSSBModSettings.h"
 #include "SWGSigMFFileSinkSettings.h"
 #include "SWGUDPSinkSettings.h"
@@ -335,6 +337,12 @@ public:
     SWGSSTVDemodSettings* getSstvDemodSettings();
     void setSstvDemodSettings(SWGSSTVDemodSettings* sstv_demod_settings);
 
+    SWGVARADemodSettings* getVaraDemodSettings();
+    void setVaraDemodSettings(SWGVARADemodSettings* vara_demod_settings);
+
+    SWGVARAModSettings* getVaraModSettings();
+    void setVaraModSettings(SWGVARAModSettings* vara_mod_settings);
+
     SWGUDPSourceSettings* getUdpSourceSettings();
     void setUdpSourceSettings(SWGUDPSourceSettings* udp_source_settings);
 
@@ -574,6 +582,12 @@ private:
 
     SWGSSTVDemodSettings* sstv_demod_settings;
     bool m_sstv_demod_settings_isSet;
+
+    SWGVARADemodSettings* vara_demod_settings;
+    bool m_vara_demod_settings_isSet;
+
+    SWGVARAModSettings* vara_mod_settings;
+    bool m_vara_mod_settings_isSet;
 
     SWGUDPSourceSettings* udp_source_settings;
     bool m_udp_source_settings_isSet;

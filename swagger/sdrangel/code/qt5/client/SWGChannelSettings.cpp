@@ -174,6 +174,10 @@ SWGChannelSettings::SWGChannelSettings() {
     m_ssb_demod_settings_isSet = false;
     sstv_demod_settings = nullptr;
     m_sstv_demod_settings_isSet = false;
+    vara_demod_settings = nullptr;
+    m_vara_demod_settings_isSet = false;
+    vara_mod_settings = nullptr;
+    m_vara_mod_settings_isSet = false;
     udp_source_settings = nullptr;
     m_udp_source_settings_isSet = false;
     udp_sink_settings = nullptr;
@@ -340,6 +344,10 @@ SWGChannelSettings::init() {
     m_ssb_demod_settings_isSet = false;
     sstv_demod_settings = new SWGSSTVDemodSettings();
     m_sstv_demod_settings_isSet = false;
+    vara_demod_settings = new SWGVARADemodSettings();
+    m_vara_demod_settings_isSet = false;
+    vara_mod_settings = new SWGVARAModSettings();
+    m_vara_mod_settings_isSet = false;
     udp_source_settings = new SWGUDPSourceSettings();
     m_udp_source_settings_isSet = false;
     udp_sink_settings = new SWGUDPSinkSettings();
@@ -569,6 +577,12 @@ SWGChannelSettings::cleanup() {
     if(sstv_demod_settings != nullptr) { 
         delete sstv_demod_settings;
     }
+    if(vara_demod_settings != nullptr) { 
+        delete vara_demod_settings;
+    }
+    if(vara_mod_settings != nullptr) { 
+        delete vara_mod_settings;
+    }
     if(udp_source_settings != nullptr) { 
         delete udp_source_settings;
     }
@@ -741,6 +755,10 @@ SWGChannelSettings::fromJsonObject(QJsonObject &pJson) {
     ::SWGSDRangel::setValue(&ssb_demod_settings, pJson["SSBDemodSettings"], "SWGSSBDemodSettings", "SWGSSBDemodSettings");
     
     ::SWGSDRangel::setValue(&sstv_demod_settings, pJson["SSTVDemodSettings"], "SWGSSTVDemodSettings", "SWGSSTVDemodSettings");
+    
+    ::SWGSDRangel::setValue(&vara_demod_settings, pJson["VARADemodSettings"], "SWGVARADemodSettings", "SWGVARADemodSettings");
+    
+    ::SWGSDRangel::setValue(&vara_mod_settings, pJson["VARAModSettings"], "SWGVARAModSettings", "SWGVARAModSettings");
     
     ::SWGSDRangel::setValue(&udp_source_settings, pJson["UDPSourceSettings"], "SWGUDPSourceSettings", "SWGUDPSourceSettings");
     
@@ -988,6 +1006,12 @@ SWGChannelSettings::asJsonObject() {
     }
     if((sstv_demod_settings != nullptr) && (sstv_demod_settings->isSet())){
         toJsonValue(QString("SSTVDemodSettings"), sstv_demod_settings, obj, QString("SWGSSTVDemodSettings"));
+    }
+    if((vara_demod_settings != nullptr) && (vara_demod_settings->isSet())){
+        toJsonValue(QString("VARADemodSettings"), vara_demod_settings, obj, QString("SWGVARADemodSettings"));
+    }
+    if((vara_mod_settings != nullptr) && (vara_mod_settings->isSet())){
+        toJsonValue(QString("VARAModSettings"), vara_mod_settings, obj, QString("SWGVARAModSettings"));
     }
     if((udp_source_settings != nullptr) && (udp_source_settings->isSet())){
         toJsonValue(QString("UDPSourceSettings"), udp_source_settings, obj, QString("SWGUDPSourceSettings"));
@@ -1744,6 +1768,26 @@ SWGChannelSettings::setSstvDemodSettings(SWGSSTVDemodSettings* sstv_demod_settin
     this->m_sstv_demod_settings_isSet = true;
 }
 
+SWGVARADemodSettings*
+SWGChannelSettings::getVaraDemodSettings() {
+    return vara_demod_settings;
+}
+void
+SWGChannelSettings::setVaraDemodSettings(SWGVARADemodSettings* vara_demod_settings) {
+    this->vara_demod_settings = vara_demod_settings;
+    this->m_vara_demod_settings_isSet = true;
+}
+
+SWGVARAModSettings*
+SWGChannelSettings::getVaraModSettings() {
+    return vara_mod_settings;
+}
+void
+SWGChannelSettings::setVaraModSettings(SWGVARAModSettings* vara_mod_settings) {
+    this->vara_mod_settings = vara_mod_settings;
+    this->m_vara_mod_settings_isSet = true;
+}
+
 SWGUDPSourceSettings*
 SWGChannelSettings::getUdpSourceSettings() {
     return udp_source_settings;
@@ -2026,6 +2070,12 @@ SWGChannelSettings::isSet(){
             isObjectUpdated = true; break;
         }
         if(sstv_demod_settings && sstv_demod_settings->isSet()){
+            isObjectUpdated = true; break;
+        }
+        if(vara_demod_settings && vara_demod_settings->isSet()){
+            isObjectUpdated = true; break;
+        }
+        if(vara_mod_settings && vara_mod_settings->isSet()){
             isObjectUpdated = true; break;
         }
         if(udp_source_settings && udp_source_settings->isSet()){

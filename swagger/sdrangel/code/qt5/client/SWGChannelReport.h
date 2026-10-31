@@ -80,6 +80,8 @@
 #include "SWGRemoteSourceReport.h"
 #include "SWGSSBDemodReport.h"
 #include "SWGSSTVDemodReport.h"
+#include "SWGVARADemodReport.h"
+#include "SWGVARAModReport.h"
 #include "SWGSSBModReport.h"
 #include "SWGSigMFFileSinkReport.h"
 #include "SWGUDPSinkReport.h"
@@ -253,6 +255,12 @@ public:
 
     SWGSSTVDemodReport* getSstvDemodReport();
     void setSstvDemodReport(SWGSSTVDemodReport* sstv_demod_report);
+
+    SWGVARADemodReport* getVaraDemodReport();
+    void setVaraDemodReport(SWGVARADemodReport* vara_demod_report);
+
+    SWGVARAModReport* getVaraModReport();
+    void setVaraModReport(SWGVARAModReport* vara_mod_report);
 
     SWGRadioAstronomyReport* getRadioAstronomyReport();
     void setRadioAstronomyReport(SWGRadioAstronomyReport* radio_astronomy_report);
@@ -460,6 +468,12 @@ private:
 
     SWGSSTVDemodReport* sstv_demod_report;
     bool m_sstv_demod_report_isSet;
+
+    SWGVARADemodReport* vara_demod_report;
+    bool m_vara_demod_report_isSet;
+
+    SWGVARAModReport* vara_mod_report;
+    bool m_vara_mod_report_isSet;
 
     SWGRadioAstronomyReport* radio_astronomy_report;
     bool m_radio_astronomy_report_isSet;

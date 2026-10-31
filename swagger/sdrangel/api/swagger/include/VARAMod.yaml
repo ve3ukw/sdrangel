@@ -1,0 +1,98 @@
+VARAModSettings:
+  description: VARAMod
+  properties:
+    inputFrequencyOffset:
+      description: "channel center frequency shift from baseband center in Hz"
+      type: integer
+      format: int64
+    cmdPort:
+      description: "Command TCP port of the VARA demodulator whose modem this modulator transmits"
+      type: integer
+    fmDeviation:
+      description: "FM peak deviation in Hz for full scale modem output"
+      type: number
+      format: float
+    gain:
+      description: "Output gain in dB"
+      type: number
+      format: float
+    channelMute:
+      description: "Mute the channel, which also stops the modem from keying (1 for yes, 0 for no)"
+      type: integer
+    pttEnabled:
+      description: "Key a UDP PTT sequencer (1 for yes, 0 for no)"
+      type: integer
+    pttAddress:
+      description: "Host of the UDP PTT sequencer"
+      type: string
+    pttPort:
+      description: "UDP port of the PTT sequencer"
+      type: integer
+    pttLeadMs:
+      description: "Time from keying PTT to the first transmitted sample in ms"
+      type: integer
+    pttTailMs:
+      description: "Time PTT is held after the last transmitted sample in ms"
+      type: integer
+    txPathMs:
+      description: "Delay from the modulator to RF in ms"
+      type: integer
+    linkFrequencyOffset:
+      description: "Keep the frequency offset of linked VARA demodulators in sync (1 for yes, 0 for no)"
+      type: integer
+    rgbColor:
+      description: "Display color encoded as an RGB integer."
+      type: integer
+    title:
+      description: "User-visible title."
+      type: string
+    streamIndex:
+      description: "MIMO channel. Not relevant when connected to SI (single Rx)."
+      type: integer
+    useReverseAPI:
+      description: "Synchronize with reverse API (1 for yes, 0 for no)"
+      type: integer
+    reverseAPIAddress:
+      description: "IPv4 address or host name of the reverse API peer."
+      type: string
+    reverseAPIPort:
+      description: "TCP port of the reverse API peer."
+      type: integer
+    reverseAPIDeviceIndex:
+      description: "Device-set index used by the reverse API peer."
+      type: integer
+    reverseAPIChannelIndex:
+      description: "Channel index used by the reverse API peer."
+      type: integer
+    channelMarker:
+      $ref: "http://swgserver:8081/api/swagger/include/ChannelMarker.yaml#/ChannelMarker"
+      description: "Channel-marker display configuration."
+    rollupState:
+      $ref: "http://swgserver:8081/api/swagger/include/RollupState.yaml#/RollupState"
+      description: "Rollup display state."
+
+VARAModReport:
+  description: VARAMod
+  properties:
+    channelPowerDB:
+      description: "Channel power in dB"
+      type: number
+      format: float
+    channelSampleRate:
+      description: "Channel sample rate in Hz."
+      type: integer
+    engineAttached:
+      description: "A VARA demodulator's modem is attached (1 for yes, 0 for no)"
+      type: integer
+    keyed:
+      description: "Transmitting (1 for yes, 0 for no)"
+      type: integer
+    fifoMs:
+      description: "Transmit audio buffered in ms"
+      type: integer
+    underflows:
+      description: "Times the transmit audio ran out while keyed"
+      type: integer
+    pttReply:
+      description: "Last reply from the PTT sequencer"
+      type: string

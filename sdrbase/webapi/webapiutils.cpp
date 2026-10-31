@@ -90,6 +90,8 @@ const QMap<QString, QString> WebAPIUtils::m_channelURIToSettingsKey = {
     {"sdrangel.channeltx.modssb", "SSBModSettings"},
     {"sdrangel.channel.ssbdemod", "SSBDemodSettings"},
     {"sdrangel.channel.sstvdemod", "SSTVDemodSettings"},
+    {"sdrangel.channel.varademod", "VARADemodSettings"},
+    {"sdrangel.channeltx.modvara", "VARAModSettings"},
     {"sdrangel.channel.wdsprx", "WDSPRxSettings"},
     {"sdrangel.channel.ft8demod", "FT8DemodSettings"},
     {"de.maintech.sdrangelove.channel.ssb", "SSBDemodSettings"}, // remap
@@ -226,6 +228,8 @@ const QMap<QString, QString> WebAPIUtils::m_channelTypeToSettingsKey = {
     {"SSBMod", "SSBModSettings"},
     {"SSBDemod", "SSBDemodSettings"},
     {"SSTVDemod", "SSTVDemodSettings"},
+    {"VARADemod", "VARADemodSettings"},
+    {"VARAMod", "VARAModSettings"},
     {"WDSPRx", "WDSPRxSettings"},
     {"FT8Demod", "FT8DemodSettings"},
     {"UDPSink", "UDPSinkSettings"},
