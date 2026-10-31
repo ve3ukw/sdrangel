@@ -4673,7 +4673,9 @@ void GLSpectrumView::mouseMoveEvent(QMouseEvent* event)
     {
         for (int i = 0; i < m_channelMarkerStates.size(); ++i)
         {
-            if ((m_channelMarkerStates[i]->m_channelMarker->getSourceOrSinkStream() != m_displaySourceOrSink)
+            // Hidden markers (E.g. of hidden channel windows) are not drawn, so shouldn't be grabbed
+            if (!m_channelMarkerStates[i]->m_channelMarker->getVisible()
+                || (m_channelMarkerStates[i]->m_channelMarker->getSourceOrSinkStream() != m_displaySourceOrSink)
                 || !m_channelMarkerStates[i]->m_channelMarker->streamIndexApplies(m_displayStreamIndex))
             {
                 continue;
@@ -4993,6 +4995,7 @@ void GLSpectrumView::mousePressEvent(QMouseEvent* event)
         }
         else if ((m_cursorState == CSNormal) &&
             (m_channelMarkerStates.size() == 1) &&
+            m_channelMarkerStates[0]->m_channelMarker->getVisible() &&
             !(event->modifiers() & Qt::ShiftModifier) &&
             !(event->modifiers() & Qt::AltModifier) &&
             !(event->modifiers() & Qt::ControlModifier) &&
@@ -5347,7 +5350,8 @@ void GLSpectrumView::channelMarkerMove(QWheelEvent *event, int mul)
 {
     for (int i = 0; i < m_channelMarkerStates.size(); ++i)
     {
-        if ((m_channelMarkerStates[i]->m_channelMarker->getSourceOrSinkStream() != m_displaySourceOrSink)
+        if (!m_channelMarkerStates[i]->m_channelMarker->getVisible()
+            || (m_channelMarkerStates[i]->m_channelMarker->getSourceOrSinkStream() != m_displaySourceOrSink)
             || !m_channelMarkerStates[i]->m_channelMarker->streamIndexApplies(m_displayStreamIndex))
         {
             continue;
