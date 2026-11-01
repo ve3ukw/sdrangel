@@ -44,12 +44,18 @@ public:
     qint32 getRun();
     void setRun(qint32 run);
 
+    qint32 getPark();
+    void setPark(qint32 park);
+
 
     virtual bool isSet() override;
 
 private:
     qint32 run;
     bool m_run_isSet;
+
+    qint32 park;
+    bool m_park_isSet;
 
 };
 

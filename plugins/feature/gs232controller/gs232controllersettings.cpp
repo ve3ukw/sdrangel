@@ -60,6 +60,8 @@ void GS232ControllerSettings::resetToDefaults()
     m_elevationMin = 0;
     m_elevationMax = 180;
     m_tolerance = 1.0f;
+    m_parkAzimuth = 0.0f;
+    m_parkElevation = 0.0f;
     m_protocol = GS232;
     m_connection = SERIAL;
     m_precision = 0;
@@ -134,6 +136,8 @@ QByteArray GS232ControllerSettings::serialize() const
     s.writeBool(38, m_offsetControlEnabled);
     s.writeBool(39, m_highSensitivity);
     s.writeS32(40, m_lineEnding);
+    s.writeFloat(41, m_parkAzimuth);
+    s.writeFloat(42, m_parkElevation);
 
     s.writeFloat(50, m_inputControllerSettings.m_lowSensitivity);
     s.writeFloat(51, m_inputControllerSettings.m_highSensitivity);
@@ -213,6 +217,8 @@ bool GS232ControllerSettings::deserialize(const QByteArray& data)
         d.readBool(38, &m_offsetControlEnabled, true);
         d.readBool(39, &m_highSensitivity, true);
         d.readS32(40, (int *) &m_lineEnding, (int) CRLF);
+        d.readFloat(41, &m_parkAzimuth, 0.0f);
+        d.readFloat(42, &m_parkElevation, 0.0f);
 
         d.readFloat(50, &m_inputControllerSettings.m_lowSensitivity, 5.0f);
         d.readFloat(51, &m_inputControllerSettings.m_highSensitivity, 50.0f);
@@ -351,6 +357,12 @@ void GS232ControllerSettings::applySettings(const QStringList& settingsKeys, con
     if (settingsKeys.contains("elevationOffset")) {
         m_elevationOffset = settings.m_elevationOffset;
     }
+    if (settingsKeys.contains("parkAzimuth")) {
+        m_parkAzimuth = settings.m_parkAzimuth;
+    }
+    if (settingsKeys.contains("parkElevation")) {
+        m_parkElevation = settings.m_parkElevation;
+    }
     if (settingsKeys.contains("azimuthMin")) {
         m_azimuthMin = settings.m_azimuthMin;
     }
@@ -467,6 +479,12 @@ QString GS232ControllerSettings::getDebugString(const QStringList& settingsKeys,
     }
     if (settingsKeys.contains("elevationOffset") || force) {
         ostr << " m_elevationOffset: " << m_elevationOffset;
+    }
+    if (settingsKeys.contains("parkAzimuth") || force) {
+        ostr << " m_parkAzimuth: " << m_parkAzimuth;
+    }
+    if (settingsKeys.contains("parkElevation") || force) {
+        ostr << " m_parkElevation: " << m_parkElevation;
     }
     if (settingsKeys.contains("azimuthMin") || force) {
         ostr << " m_azimuthMin: " << m_azimuthMin;

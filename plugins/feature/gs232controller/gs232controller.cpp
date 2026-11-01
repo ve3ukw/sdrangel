@@ -47,6 +47,7 @@ MESSAGE_CLASS_DEFINITION(GS232Controller::MsgReportAvailableChannelOrFeatures, M
 MESSAGE_CLASS_DEFINITION(GS232Controller::MsgScanAvailableChannelOrFeatures, Message)
 MESSAGE_CLASS_DEFINITION(GS232Controller::MsgReportSerialPorts, Message)
 MESSAGE_CLASS_DEFINITION(GS232Controller::MsgGoTo, Message)
+MESSAGE_CLASS_DEFINITION(GS232Controller::MsgPark, Message)
 
 const char* const GS232Controller::m_featureIdURI = "sdrangel.feature.gs232controller";
 const char* const GS232Controller::m_featureId = "GS232Controller";
@@ -139,6 +140,27 @@ void GS232Controller::start()
     m_worker->getInputMessageQueue()->push(msg);
 }
 
+// Stop tracking and set the target to the park position, so it stays parked until tracking is enabled again
+void GS232Controller::park()
+{
+    qDebug() << "GS232Controller::park: az:" << m_settings.m_parkAzimuth << "el:" << m_settings.m_parkElevation;
+
+    GS232ControllerSettings settings = m_settings;
+    QList<QString> settingsKeys = {"track", "azimuth", "elevation"};
+    settings.m_track = false;
+    settings.m_azimuth = m_settings.m_parkAzimuth;
+    settings.m_elevation = m_settings.m_parkElevation;
+    applySettings(settings, settingsKeys);
+
+    if (getMessageQueueToGUI()) {
+        getMessageQueueToGUI()->push(MsgConfigureGS232Controller::create(m_settings, settingsKeys, false));
+    }
+
+    if (m_state != StRunning) {
+        start();
+    }
+}
+
 void GS232Controller::stop()
 {
     qDebug("GS232Controller::stop");
@@ -204,6 +226,11 @@ bool GS232Controller::handleMessage(const Message& cmd)
         {
             qDebug() << "GS232Controller::handleMessage: MsgGoTo: ignored as not running";
         }
+        return true;
+    }
+    else if (MsgPark::match(cmd))
+    {
+        park();
         return true;
     }
     else if (MsgScanAvailableChannelOrFeatures::match(cmd))
@@ -431,6 +458,13 @@ int GS232Controller::webapiActionsPost(
             getInputMessageQueue()->push(msg);
             return 202;
         }
+        else if (featureActionsKeys.contains("park"))
+        {
+            if (swgGS232ControllerActions->getPark() != 0) {
+                getInputMessageQueue()->push(MsgPark::create());
+            }
+            return 202;
+        }
         else
         {
             errorMessage = "Unknown action";
@@ -470,6 +504,8 @@ void GS232Controller::webapiFormatFeatureSettings(
     }
     response.getGs232ControllerSettings()->setAzimuthOffset(settings.m_azimuthOffset);
     response.getGs232ControllerSettings()->setElevationOffset(settings.m_elevationOffset);
+    response.getGs232ControllerSettings()->setParkAzimuth(settings.m_parkAzimuth);
+    response.getGs232ControllerSettings()->setParkElevation(settings.m_parkElevation);
     response.getGs232ControllerSettings()->setAzimuthMin(settings.m_azimuthMin);
     response.getGs232ControllerSettings()->setAzimuthMax(settings.m_azimuthMax);
     response.getGs232ControllerSettings()->setElevationMin(settings.m_elevationMin);
@@ -553,6 +589,12 @@ void GS232Controller::webapiUpdateFeatureSettings(
     }
     if (featureSettingsKeys.contains("elevationOffset")) {
         settings.m_elevationOffset = response.getGs232ControllerSettings()->getElevationOffset();
+    }
+    if (featureSettingsKeys.contains("parkAzimuth")) {
+        settings.m_parkAzimuth = response.getGs232ControllerSettings()->getParkAzimuth();
+    }
+    if (featureSettingsKeys.contains("parkElevation")) {
+        settings.m_parkElevation = response.getGs232ControllerSettings()->getParkElevation();
     }
     if (featureSettingsKeys.contains("azimuthMin")) {
         settings.m_azimuthMin = response.getGs232ControllerSettings()->getAzimuthMin();
@@ -650,6 +692,12 @@ void GS232Controller::webapiReverseSendSettings(const QList<QString>& featureSet
     }
     if (featureSettingsKeys.contains("elevationOffset") || force) {
         swgGS232ControllerSettings->setElevationOffset(settings.m_elevationOffset);
+    }
+    if (featureSettingsKeys.contains("parkAzimuth") || force) {
+        swgGS232ControllerSettings->setParkAzimuth(settings.m_parkAzimuth);
+    }
+    if (featureSettingsKeys.contains("parkElevation") || force) {
+        swgGS232ControllerSettings->setParkElevation(settings.m_parkElevation);
     }
     if (featureSettingsKeys.contains("azimuthMin") || force) {
         swgGS232ControllerSettings->setAzimuthMin(settings.m_azimuthMin);

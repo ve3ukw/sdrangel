@@ -131,6 +131,9 @@ private slots:
     void on_dfmDrives_clicked(bool checked=false);
     void on_dfmShowStatus_clicked();
     void on_goTo_clicked();
+    void on_park_clicked();
+    void on_parkAzimuth_valueChanged(double value);
+    void on_parkElevation_valueChanged(double value);
     void updateStatus();
     void updateFeatureState();
     void on_inputController_currentIndexChanged(int index);

@@ -53,6 +53,13 @@ When checked, the azimuth and elevation offsets are added first, so the alignmen
 The position is always sent, even if within the tolerance of the previous position, so small steps can be made.
 The position is held until the target, offsets, limits or tracking settings are changed. Go to is not available while tracking.
 
+<h3>Park</h3>
+
+Pressing Park moves the rotator to the park position given by the azimuth and elevation next to the button, E.g. for when the antenna is not in use.
+Tracking is switched off and the park position becomes the target, so the rotator stays parked until Track (4) is checked again or a new target is set.
+If the controller isn't running, it is started. The azimuth and elevation offsets are applied, so the park position is the direction the antenna points at.
+Park is also available while tracking, and can be triggered from the Satellite Tracker or the Web API (`park` action).
+
 <h3>7: Protocol</h3>
 
 Selects which protocol to use. This can be GS-232, SPID (rot2prog) or rotctld.

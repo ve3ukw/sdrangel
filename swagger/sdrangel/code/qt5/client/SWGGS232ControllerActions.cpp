@@ -30,6 +30,8 @@ SWGGS232ControllerActions::SWGGS232ControllerActions(QString* json) {
 SWGGS232ControllerActions::SWGGS232ControllerActions() {
     run = 0;
     m_run_isSet = false;
+    park = 0;
+    m_park_isSet = false;
 }
 
 SWGGS232ControllerActions::~SWGGS232ControllerActions() {
@@ -40,6 +42,8 @@ void
 SWGGS232ControllerActions::init() {
     run = 0;
     m_run_isSet = false;
+    park = 0;
+    m_park_isSet = false;
 }
 
 void
@@ -60,6 +64,8 @@ void
 SWGGS232ControllerActions::fromJsonObject(QJsonObject &pJson) {
     ::SWGSDRangel::setValue(&run, pJson["run"], "qint32", "");
     
+    ::SWGSDRangel::setValue(&park, pJson["park"], "qint32", "");
+    
 }
 
 QString
@@ -79,6 +85,9 @@ SWGGS232ControllerActions::asJsonObject() {
     if(m_run_isSet){
         obj->insert("run", QJsonValue(run));
     }
+    if(m_park_isSet){
+        obj->insert("park", QJsonValue(park));
+    }
 
     return obj;
 }
@@ -93,12 +102,25 @@ SWGGS232ControllerActions::setRun(qint32 run) {
     this->m_run_isSet = true;
 }
 
+qint32
+SWGGS232ControllerActions::getPark() {
+    return park;
+}
+void
+SWGGS232ControllerActions::setPark(qint32 park) {
+    this->park = park;
+    this->m_park_isSet = true;
+}
+
 
 bool
 SWGGS232ControllerActions::isSet(){
     bool isObjectUpdated = false;
     do{
         if(m_run_isSet){
+            isObjectUpdated = true; break;
+        }
+        if(m_park_isSet){
             isObjectUpdated = true; break;
         }
     }while(false);

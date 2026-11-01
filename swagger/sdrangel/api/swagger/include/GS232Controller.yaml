@@ -37,6 +37,14 @@ GS232ControllerSettings:
       description: Elevation offset in degrees
       type: number
       format: float
+    parkAzimuth:
+      description: Azimuth in degrees to park the rotator at, with offsets applied
+      type: number
+      format: float
+    parkElevation:
+      description: Elevation in degrees to park the rotator at, with offsets applied
+      type: number
+      format: float
     azimuthMin:
       description: Minimum azimuth the controller will output
       type: integer
@@ -152,3 +160,7 @@ GS232ControllerActions:
         Set the plugin running state
           * 0 - idle
           * 1 - run
+    park:
+      type: integer
+      description: >
+        Set to 1 to stop tracking and move the rotator to the park position, starting the controller if needed

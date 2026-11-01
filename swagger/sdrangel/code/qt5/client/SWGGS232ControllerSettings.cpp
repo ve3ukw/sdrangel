@@ -48,6 +48,10 @@ SWGGS232ControllerSettings::SWGGS232ControllerSettings() {
     m_azimuth_offset_isSet = false;
     elevation_offset = 0.0f;
     m_elevation_offset_isSet = false;
+    park_azimuth = 0.0f;
+    m_park_azimuth_isSet = false;
+    park_elevation = 0.0f;
+    m_park_elevation_isSet = false;
     azimuth_min = 0;
     m_azimuth_min_isSet = false;
     azimuth_max = 0;
@@ -112,6 +116,10 @@ SWGGS232ControllerSettings::init() {
     m_azimuth_offset_isSet = false;
     elevation_offset = 0.0f;
     m_elevation_offset_isSet = false;
+    park_azimuth = 0.0f;
+    m_park_azimuth_isSet = false;
+    park_elevation = 0.0f;
+    m_park_elevation_isSet = false;
     azimuth_min = 0;
     m_azimuth_min_isSet = false;
     azimuth_max = 0;
@@ -227,6 +235,10 @@ SWGGS232ControllerSettings::fromJsonObject(QJsonObject &pJson) {
     
     ::SWGSDRangel::setValue(&elevation_offset, pJson["elevationOffset"], "float", "");
     
+    ::SWGSDRangel::setValue(&park_azimuth, pJson["parkAzimuth"], "float", "");
+    
+    ::SWGSDRangel::setValue(&park_elevation, pJson["parkElevation"], "float", "");
+    
     ::SWGSDRangel::setValue(&azimuth_min, pJson["azimuthMin"], "qint32", "");
     
     ::SWGSDRangel::setValue(&azimuth_max, pJson["azimuthMax"], "qint32", "");
@@ -308,6 +320,12 @@ SWGGS232ControllerSettings::asJsonObject() {
     }
     if(m_elevation_offset_isSet){
         obj->insert("elevationOffset", QJsonValue(elevation_offset));
+    }
+    if(m_park_azimuth_isSet){
+        obj->insert("parkAzimuth", QJsonValue(park_azimuth));
+    }
+    if(m_park_elevation_isSet){
+        obj->insert("parkElevation", QJsonValue(park_elevation));
     }
     if(m_azimuth_min_isSet){
         obj->insert("azimuthMin", QJsonValue(azimuth_min));
@@ -465,6 +483,26 @@ void
 SWGGS232ControllerSettings::setElevationOffset(float elevation_offset) {
     this->elevation_offset = elevation_offset;
     this->m_elevation_offset_isSet = true;
+}
+
+float
+SWGGS232ControllerSettings::getParkAzimuth() {
+    return park_azimuth;
+}
+void
+SWGGS232ControllerSettings::setParkAzimuth(float park_azimuth) {
+    this->park_azimuth = park_azimuth;
+    this->m_park_azimuth_isSet = true;
+}
+
+float
+SWGGS232ControllerSettings::getParkElevation() {
+    return park_elevation;
+}
+void
+SWGGS232ControllerSettings::setParkElevation(float park_elevation) {
+    this->park_elevation = park_elevation;
+    this->m_park_elevation_isSet = true;
 }
 
 qint32
@@ -680,6 +718,12 @@ SWGGS232ControllerSettings::isSet(){
             isObjectUpdated = true; break;
         }
         if(m_elevation_offset_isSet){
+            isObjectUpdated = true; break;
+        }
+        if(m_park_azimuth_isSet){
+            isObjectUpdated = true; break;
+        }
+        if(m_park_elevation_isSet){
             isObjectUpdated = true; break;
         }
         if(m_azimuth_min_isSet){

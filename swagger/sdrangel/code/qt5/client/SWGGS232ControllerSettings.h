@@ -73,6 +73,12 @@ public:
     float getElevationOffset();
     void setElevationOffset(float elevation_offset);
 
+    float getParkAzimuth();
+    void setParkAzimuth(float park_azimuth);
+
+    float getParkElevation();
+    void setParkElevation(float park_elevation);
+
     qint32 getAzimuthMin();
     void setAzimuthMin(qint32 azimuth_min);
 
@@ -160,6 +166,12 @@ private:
 
     float elevation_offset;
     bool m_elevation_offset_isSet;
+
+    float park_azimuth;
+    bool m_park_azimuth_isSet;
+
+    float park_elevation;
+    bool m_park_elevation_isSet;
 
     qint32 azimuth_min;
     bool m_azimuth_min_isSet;

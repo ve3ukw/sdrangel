@@ -498,6 +498,8 @@ void GS232ControllerGUI::displaySettings()
     ui->sources->setCurrentIndex(ui->sources->findText(m_settings.m_source));
     ui->azimuthOffset->setValue(m_settings.m_azimuthOffset);
     ui->elevationOffset->setValue(m_settings.m_elevationOffset);
+    ui->parkAzimuth->setValue(m_settings.m_parkAzimuth);
+    ui->parkElevation->setValue(m_settings.m_parkElevation);
     ui->azimuthMin->setValue(m_settings.m_azimuthMin);
     ui->azimuthMax->setValue(m_settings.m_azimuthMax);
     ui->elevationMin->setValue(m_settings.m_elevationMin);
@@ -931,6 +933,23 @@ void GS232ControllerGUI::on_goTo_clicked()
     m_gs232Controller->getInputMessageQueue()->push(msg);
 }
 
+void GS232ControllerGUI::on_park_clicked()
+{
+    m_gs232Controller->getInputMessageQueue()->push(GS232Controller::MsgPark::create());
+}
+
+void GS232ControllerGUI::on_parkAzimuth_valueChanged(double value)
+{
+    m_settings.m_parkAzimuth = (float) value;
+    applySetting("parkAzimuth");
+}
+
+void GS232ControllerGUI::on_parkElevation_valueChanged(double value)
+{
+    m_settings.m_parkElevation = (float) value;
+    applySetting("parkElevation");
+}
+
 void GS232ControllerGUI::on_dfmShowStatus_clicked()
 {
     m_dfmStatusDialog.show();
@@ -1023,5 +1042,8 @@ void GS232ControllerGUI::makeUIConnections()
     QObject::connect(ui->dfmDrives, &QToolButton::toggled, this, &GS232ControllerGUI::on_dfmDrives_clicked);
     QObject::connect(ui->dfmShowStatus, &QToolButton::clicked, this, &GS232ControllerGUI::on_dfmShowStatus_clicked);
     QObject::connect(ui->goTo, &QPushButton::clicked, this, &GS232ControllerGUI::on_goTo_clicked);
+    QObject::connect(ui->park, &QPushButton::clicked, this, &GS232ControllerGUI::on_park_clicked);
+    QObject::connect(ui->parkAzimuth, qOverload<double>(&QDoubleSpinBox::valueChanged), this, &GS232ControllerGUI::on_parkAzimuth_valueChanged);
+    QObject::connect(ui->parkElevation, qOverload<double>(&QDoubleSpinBox::valueChanged), this, &GS232ControllerGUI::on_parkElevation_valueChanged);
 }
 

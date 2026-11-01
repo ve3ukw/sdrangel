@@ -299,6 +299,60 @@
         </property>
        </widget>
       </item>
+      <item row="2" column="0">
+       <widget class="QPushButton" name="park">
+        <property name="toolTip">
+         <string>Stop tracking and move the rotator to the park position, starting the controller if needed. Tracking resumes when Track is checked again</string>
+        </property>
+        <property name="text">
+         <string>Park</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QDoubleSpinBox" name="parkAzimuth">
+        <property name="toolTip">
+         <string>Azimuth in degrees to park the rotator at. The azimuth offset is applied</string>
+        </property>
+        <property name="prefix">
+         <string>Az </string>
+        </property>
+        <property name="suffix">
+         <string>°</string>
+        </property>
+        <property name="decimals">
+         <number>1</number>
+        </property>
+        <property name="minimum">
+         <double>-360.000000000000000</double>
+        </property>
+        <property name="maximum">
+         <double>540.000000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="2">
+       <widget class="QDoubleSpinBox" name="parkElevation">
+        <property name="toolTip">
+         <string>Elevation in degrees to park the rotator at. The elevation offset is applied</string>
+        </property>
+        <property name="prefix">
+         <string>El </string>
+        </property>
+        <property name="suffix">
+         <string>°</string>
+        </property>
+        <property name="decimals">
+         <number>1</number>
+        </property>
+        <property name="minimum">
+         <double>-90.000000000000000</double>
+        </property>
+        <property name="maximum">
+         <double>180.000000000000000</double>
+        </property>
+       </widget>
+      </item>
      </layout>
     </item>
     <item>

@@ -45,6 +45,8 @@ struct GS232ControllerSettings
     int m_elevationMin;
     int m_elevationMax;
     float m_tolerance;
+    float m_parkAzimuth;        //!< Position to park the rotator in when not in use, with offsets applied
+    float m_parkElevation;
     enum Protocol { GS232, SPID, ROTCTLD, DFM } m_protocol;
     enum Connection { SERIAL, TCP } m_connection;
     int m_precision;

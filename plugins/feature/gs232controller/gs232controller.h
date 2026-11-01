@@ -193,6 +193,21 @@ public:
         {}
     };
 
+    /// Stop tracking and set the target to the park position, starting the controller if needed
+    class MsgPark : public Message {
+        MESSAGE_CLASS_DECLARATION
+
+    public:
+        static MsgPark* create() {
+            return new MsgPark();
+        }
+
+    private:
+        MsgPark() :
+            Message()
+        {}
+    };
+
     GS232Controller(WebAPIAdapterInterface *webAPIAdapterInterface);
     virtual ~GS232Controller();
     virtual void destroy() { delete this; }
@@ -266,6 +281,7 @@ private:
 
     void start();
     void stop();
+    void park();
     void applySettings(const GS232ControllerSettings& settings, const QList<QString>& settingsKeys, bool force = false);
     void webapiReverseSendSettings(const QList<QString>& featureSettingsKeys, const GS232ControllerSettings& settings, bool force);
     void webapiFormatFeatureReport(SWGSDRangel::SWGFeatureReport& response);
