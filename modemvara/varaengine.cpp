@@ -31,15 +31,23 @@ static_assert(VARAEngine::m_blockSize == XARA_BLOCK, "xara block size");
 
 namespace {
 
+// All engines, for xara's log lines, which come through one callback for the whole process
+QMutex engineListMutex;
+QList<VARAEngine*> engineList;
+// The engine calling xara on this thread, whose modem the log lines are from. On xara's own threads there is none.
+thread_local VARAEngine *currentEngine = nullptr;
+
+struct CurrentEngine
+{
+    VARAEngine *m_previous;
+    CurrentEngine(VARAEngine *engine) : m_previous(currentEngine) { currentEngine = engine; }
+    ~CurrentEngine() { currentEngine = m_previous; }
+};
+
 void logLine(void *user, int level, const char *line)
 {
     (void) user;
-
-    if (level == XARA_LOG_INFO) {
-        qInfo("xara: %s", line);
-    } else {
-        qDebug("xara: %s", line);
-    }
+    VARAEngine::log(level, line);
 }
 
 }
@@ -66,17 +74,51 @@ VARAEngine::VARAEngine() :
 {
     static std::once_flag logOnce;
     std::call_once(logOnce, []() { xara_set_log(logLine, nullptr); });
+    QMutexLocker listLock(&engineListMutex);
+    engineList.append(this);
 }
 
 VARAEngine::~VARAEngine()
 {
+    {
+        QMutexLocker listLock(&engineListMutex); // after this the log callback is never called
+        engineList.removeOne(this);
+    }
+
     QMutexLocker lock(&m_mutex);
     destroy();
+}
+
+void VARAEngine::setLogCallback(const LogCallback& callback)
+{
+    QMutexLocker listLock(&engineListMutex);
+    m_logCallback = callback;
+}
+
+void VARAEngine::log(int level, const char *line)
+{
+    qDebug("xara: %s", line); // the info lines are in the VARA Demod's log, so only debug here
+
+    if (level != XARA_LOG_INFO) {
+        return;
+    }
+
+    QDateTime dateTime = QDateTime::currentDateTime();
+    QString text = QString::fromUtf8(line);
+    QMutexLocker listLock(&engineListMutex);
+
+    for (VARAEngine *engine : engineList)
+    {
+        if (engine->m_logCallback && (!currentEngine || (currentEngine == engine))) {
+            engine->m_logCallback(dateTime, text);
+        }
+    }
 }
 
 void VARAEngine::setConfig(const Config& config)
 {
     QMutexLocker lock(&m_mutex);
+    CurrentEngine current(this);
 
     if (m_modem && (config == m_config)) {
         return;
@@ -172,6 +214,7 @@ void VARAEngine::process(const float *in, int n)
 void VARAEngine::processBlock()
 {
     QMutexLocker lock(&m_mutex);
+    CurrentEngine current(this);
 
     if (!m_modem) {
         return;

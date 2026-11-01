@@ -21,7 +21,10 @@
 
 #include <memory>
 
+#include <QFile>
+#include <QMutex>
 #include <QNetworkRequest>
+#include <QTextStream>
 
 #include "dsp/basebandsamplesink.h"
 #include "channel/channelapi.h"
@@ -66,6 +69,29 @@ public:
             m_settings(settings),
             m_settingsKeys(settingsKeys),
             m_force(force)
+        {}
+    };
+
+    // A log line of the modem, to the GUI
+    class MsgLog : public Message {
+        MESSAGE_CLASS_DECLARATION
+
+    public:
+        const QDateTime& getDateTime() const { return m_dateTime; }
+        const QString& getLine() const { return m_line; }
+
+        static MsgLog* create(const QDateTime& dateTime, const QString& line) {
+            return new MsgLog(dateTime, line);
+        }
+
+    private:
+        QDateTime m_dateTime;
+        QString m_line;
+
+        MsgLog(const QDateTime& dateTime, const QString& line) :
+            Message(),
+            m_dateTime(dateTime),
+            m_line(line)
         {}
     };
 
@@ -164,6 +190,9 @@ private:
     int m_basebandSampleRate; //!< stored from device message used when starting baseband sink
     qint64 m_centerFrequency;
     std::unique_ptr<VARAEngine> m_engine;
+    QMutex m_logMutex; //!< The modem logs from its own threads
+    QFile m_logFile;
+    QTextStream m_logStream;
 
     QNetworkAccessManager *m_networkManager;
     QNetworkRequest m_networkRequest;
@@ -171,6 +200,8 @@ private:
     virtual bool handleMessage(const Message& cmd);
     void applySettings(const QStringList& settingsKeys, const VARADemodSettings& settings, bool force = false);
     static VARAEngine::Config getEngineConfig(const VARADemodSettings& settings);
+    void logLine(const QDateTime& dateTime, const QString& line);
+    void openLogFile(const VARADemodSettings& settings);
     void sendSampleRateToDemodAnalyzer();
     void webapiFormatChannelReport(SWGSDRangel::SWGChannelReport& response);
     void webapiReverseSendSettings(const QList<QString>& channelSettingsKeys, const VARADemodSettings& settings, bool force);

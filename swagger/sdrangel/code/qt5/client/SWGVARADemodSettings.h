@@ -122,6 +122,12 @@ public:
     SWGRollupState* getRollupState();
     void setRollupState(SWGRollupState* rollup_state);
 
+    qint32 getLogEnabled();
+    void setLogEnabled(qint32 log_enabled);
+
+    QString* getLogFilename();
+    void setLogFilename(QString* log_filename);
+
 
     virtual bool isSet() override;
 
@@ -203,6 +209,12 @@ private:
 
     SWGRollupState* rollup_state;
     bool m_rollup_state_isSet;
+
+    qint32 log_enabled;
+    bool m_log_enabled_isSet;
+
+    QString* log_filename;
+    bool m_log_filename_isSet;
 
 };
 

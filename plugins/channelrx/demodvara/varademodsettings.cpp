@@ -60,6 +60,8 @@ void VARADemodSettings::resetToDefaults()
     m_reverseAPIChannelIndex = 0;
     m_workspaceIndex = 0;
     m_hidden = false;
+    m_logEnabled = false;
+    m_logFilename = "vara_log.txt";
 }
 
 QByteArray VARADemodSettings::serialize() const
@@ -101,6 +103,8 @@ QByteArray VARADemodSettings::serialize() const
     s.writeS32(27, m_workspaceIndex);
     s.writeBlob(28, m_geometryBytes);
     s.writeBool(29, m_hidden);
+    s.writeBool(30, m_logEnabled);
+    s.writeString(31, m_logFilename);
 
     return s.final();
 }
@@ -168,6 +172,8 @@ bool VARADemodSettings::deserialize(const QByteArray& data)
         d.readS32(27, &m_workspaceIndex, 0);
         d.readBlob(28, &m_geometryBytes);
         d.readBool(29, &m_hidden, false);
+        d.readBool(30, &m_logEnabled, false);
+        d.readString(31, &m_logFilename, "vara_log.txt");
 
         return true;
     }
@@ -261,6 +267,12 @@ void VARADemodSettings::applySettings(const QStringList& settingsKeys, const VAR
     if (settingsKeys.contains("hidden")) {
         m_hidden = settings.m_hidden;
     }
+    if (settingsKeys.contains("logEnabled")) {
+        m_logEnabled = settings.m_logEnabled;
+    }
+    if (settingsKeys.contains("logFilename")) {
+        m_logFilename = settings.m_logFilename;
+    }
 }
 
 QString VARADemodSettings::getDebugString(const QStringList& settingsKeys, bool force) const
@@ -344,6 +356,12 @@ QString VARADemodSettings::getDebugString(const QStringList& settingsKeys, bool 
     }
     if (settingsKeys.contains("hidden") || force) {
         parts.append(QString("m_hidden: %1").arg(m_hidden));
+    }
+    if (settingsKeys.contains("logEnabled") || force) {
+        parts.append(QString("m_logEnabled: %1").arg(m_logEnabled));
+    }
+    if (settingsKeys.contains("logFilename") || force) {
+        parts.append(QString("m_logFilename: %1").arg(m_logFilename));
     }
 
     return " " + parts.join(" ");

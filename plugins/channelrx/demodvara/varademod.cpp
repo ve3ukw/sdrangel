@@ -40,6 +40,7 @@
 #include "varademod.h"
 
 MESSAGE_CLASS_DEFINITION(VARADemod::MsgConfigureVARADemod, Message)
+MESSAGE_CLASS_DEFINITION(VARADemod::MsgLog, Message)
 
 const char* const VARADemod::m_channelIdURI = "sdrangel.channel.varademod";
 const char* const VARADemod::m_channelId = "VARADemod";
@@ -56,6 +57,7 @@ VARADemod::VARADemod(DeviceAPI *deviceAPI) :
 {
     qDebug("VARADemod::VARADemod");
     setObjectName(m_channelId);
+    m_engine->setLogCallback([this](const QDateTime& dateTime, const QString& line) { logLine(dateTime, line); });
     applySettings(QStringList(), m_settings, true);
 
     m_deviceAPI->addChannelSink(this);
@@ -294,6 +296,49 @@ void VARADemod::applySettings(const QStringList& settingsKeys, const VARADemodSe
     if (settingsKeys.contains("rxLagMs") || force) {
         m_engine->setRxLag(m_settings.m_rxLagMs * VARAEngine::m_sampleRate / 1000);
     }
+
+    if (settingsKeys.contains("logEnabled") || settingsKeys.contains("logFilename") || force) {
+        openLogFile(m_settings);
+    }
+}
+
+void VARADemod::openLogFile(const VARADemodSettings& settings)
+{
+    QMutexLocker lock(&m_logMutex);
+
+    if (m_logFile.isOpen())
+    {
+        m_logStream.flush();
+        m_logFile.close();
+    }
+
+    if (settings.m_logEnabled && !settings.m_logFilename.isEmpty())
+    {
+        m_logFile.setFileName(settings.m_logFilename);
+
+        if (m_logFile.open(QIODevice::WriteOnly | QIODevice::Append | QIODevice::Text)) {
+            m_logStream.setDevice(&m_logFile);
+        } else {
+            qWarning() << "VARADemod::openLogFile: can't open" << settings.m_logFilename << ":" << m_logFile.errorString();
+        }
+    }
+}
+
+void VARADemod::logLine(const QDateTime& dateTime, const QString& line)
+{
+    {
+        QMutexLocker lock(&m_logMutex);
+
+        if (m_logFile.isOpen())
+        {
+            m_logStream << dateTime.toString("yyyy-MM-dd HH:mm:ss.zzz") << " " << line << "\n";
+            m_logStream.flush();
+        }
+    }
+
+    if (getMessageQueueToGUI()) {
+        getMessageQueueToGUI()->push(MsgLog::create(dateTime, line));
+    }
 }
 
 QByteArray VARADemod::serialize() const
@@ -462,6 +507,12 @@ void VARADemod::webapiUpdateChannelSettings(
     if (settings.m_rollupState && channelSettingsKeys.contains("rollupState")) {
         settings.m_rollupState->updateFrom(channelSettingsKeys, swgSettings->getRollupState());
     }
+    if (channelSettingsKeys.contains("logEnabled")) {
+        settings.m_logEnabled = swgSettings->getLogEnabled() != 0;
+    }
+    if (channelSettingsKeys.contains("logFilename")) {
+        settings.m_logFilename = *swgSettings->getLogFilename();
+    }
 }
 
 int VARADemod::webapiReportGet(
@@ -548,6 +599,12 @@ void VARADemod::webapiFormatChannelSettings(SWGSDRangel::SWGChannelSettings& res
             settings.m_rollupState->formatTo(swg);
             swgSettings->setRollupState(swg);
         }
+    }
+    swgSettings->setLogEnabled(settings.m_logEnabled ? 1 : 0);
+    if (swgSettings->getLogFilename()) {
+        *swgSettings->getLogFilename() = settings.m_logFilename;
+    } else {
+        swgSettings->setLogFilename(new QString(settings.m_logFilename));
     }
 }
 
@@ -711,6 +768,12 @@ void VARADemod::webapiFormatChannelSettings(
         SWGSDRangel::SWGRollupState *swg = new SWGSDRangel::SWGRollupState();
         settings.m_rollupState->formatTo(swg);
         swgSettings->setRollupState(swg);
+    }
+    if (channelSettingsKeys.contains("logEnabled") || force) {
+        swgSettings->setLogEnabled(settings.m_logEnabled ? 1 : 0);
+    }
+    if (channelSettingsKeys.contains("logFilename") || force) {
+        swgSettings->setLogFilename(new QString(settings.m_logFilename));
     }
 }
 

@@ -19,6 +19,8 @@
 #include <cmath>
 
 #include <QDebug>
+#include <QFileDialog>
+#include <QScrollBar>
 
 #include "channel/channelwebapiutils.h"
 #include "device/deviceuiset.h"
@@ -104,6 +106,17 @@ bool VARADemodGUI::handleMessage(const Message& message)
         ui->deltaFrequency->setValueRange(false, 7, -m_basebandSampleRate/2, m_basebandSampleRate/2);
         ui->deltaFrequencyLabel->setToolTip(tr("Range %1 %L2 Hz").arg(QChar(0xB1)).arg(m_basebandSampleRate/2));
         updateAbsoluteCenterFrequency();
+        return true;
+    }
+    else if (VARADemod::MsgLog::match(message))
+    {
+        const VARADemod::MsgLog& log = (const VARADemod::MsgLog&) message;
+        // Follow new lines only when scrolled to the end, so older ones can be read while it logs
+        QScrollBar *scrollBar = ui->log->verticalScrollBar();
+        bool atEnd = scrollBar->value() == scrollBar->maximum();
+        int value = scrollBar->value();
+        ui->log->appendPlainText(log.getDateTime().toString("HH:mm:ss") + " " + log.getLine());
+        scrollBar->setValue(atEnd ? scrollBar->maximum() : value);
         return true;
     }
 
@@ -240,6 +253,37 @@ void VARADemodGUI::on_rxGainDb_valueChanged(int value)
 {
     m_settings.m_rxGainDb = value;
     applySettings(QStringList("rxGainDb"));
+}
+
+void VARADemodGUI::on_logEnable_toggled(bool checked)
+{
+    m_settings.m_logEnabled = checked;
+    applySettings(QStringList("logEnabled"));
+}
+
+void VARADemodGUI::on_logFilename_clicked()
+{
+    QFileDialog fileDialog(nullptr, "Select file to log the modem to", "", "*.txt");
+    fileDialog.setDefaultSuffix("txt");
+    fileDialog.setAcceptMode(QFileDialog::AcceptSave);
+    fileDialog.setOption(QFileDialog::DontConfirmOverwrite); // it's appended to
+
+    if (fileDialog.exec())
+    {
+        QStringList fileNames = fileDialog.selectedFiles();
+
+        if (fileNames.size() > 0)
+        {
+            m_settings.m_logFilename = fileNames[0];
+            ui->logFilename->setToolTip(QString("Log filename: %1").arg(m_settings.m_logFilename));
+            applySettings(QStringList("logFilename"));
+        }
+    }
+}
+
+void VARADemodGUI::on_clearLog_clicked()
+{
+    ui->log->clear();
 }
 
 void VARADemodGUI::on_volume_valueChanged(int value)
@@ -430,6 +474,8 @@ void VARADemodGUI::displaySettings()
     ui->agc->setChecked(m_settings.m_agc);
     ui->rxGainDb->setValue(std::round(m_settings.m_rxGainDb));
     ui->volume->setValue(std::round(m_settings.m_volume * 100.0));
+    ui->logEnable->setChecked(m_settings.m_logEnabled);
+    ui->logFilename->setToolTip(QString("Log filename: %1").arg(m_settings.m_logFilename));
     displayModeControls();
 
     updateIndexLabel();
@@ -556,6 +602,9 @@ void VARADemodGUI::makeUIConnections()
     QObject::connect(ui->agc, &ButtonSwitch::toggled, this, &VARADemodGUI::on_agc_toggled);
     QObject::connect(ui->rxGainDb, qOverload<int>(&QSpinBox::valueChanged), this, &VARADemodGUI::on_rxGainDb_valueChanged);
     QObject::connect(ui->volume, qOverload<int>(&QSpinBox::valueChanged), this, &VARADemodGUI::on_volume_valueChanged);
+    QObject::connect(ui->logEnable, &ButtonSwitch::toggled, this, &VARADemodGUI::on_logEnable_toggled);
+    QObject::connect(ui->logFilename, &QToolButton::clicked, this, &VARADemodGUI::on_logFilename_clicked);
+    QObject::connect(ui->clearLog, &QToolButton::clicked, this, &VARADemodGUI::on_clearLog_clicked);
 }
 
 void VARADemodGUI::updateAbsoluteCenterFrequency()

@@ -58,6 +58,7 @@ struct Station
     int keyEdges = 0;
     int fd = -1;
     QByteArray seen;
+    QStringList log; //!< xara's info lines for this modem (and the shared host's)
 
     Station(int mode, const char *call, quint16 port)
     {
@@ -67,6 +68,7 @@ struct Station
         config.m_cmdPort = port;
         engine.setConfig(config);
 
+        engine.setLogCallback([this](const QDateTime&, const QString& line) { log.append(line); });
         link = VARATxLink::create(port);
         link->setTiming(60 * 48, 40 * 48, 0); // as the Mod's defaults
         link->setPttCallback([this](bool) { keyEdges++; });
@@ -226,9 +228,14 @@ bool run(int mode)
             sequencer.poll();
             printf("  sequencer got: %s\n", qPrintable(sequencer.commands.join(", ")));
             bool pttOk = sequencer.commands.contains("PTT 1") && (sequencer.commands.last() == "PTT 0");
+            printf("  A logged %d lines, B %d. A's:\n    %s\n", (int) a.log.size(), (int) b.log.size(),
+                qPrintable(a.log.join("\n    ")));
+            // Only A was sent the CONNECT command, so only A's log echoes it
+            bool logOk = !a.log.filter("> CONNECT", Qt::CaseInsensitive).isEmpty()
+                && b.log.filter("> CONNECT", Qt::CaseInsensitive).isEmpty();
 
             return a.seen.contains("CONNECTED N0AAA N0BBB") && (status.m_peer == "N0BBB")
-                && (a.keyEdges > 0) && (b.keyEdges > 0) && pttOk;
+                && (a.keyEdges > 0) && (b.keyEdges > 0) && pttOk && logOk;
         }
     }
 

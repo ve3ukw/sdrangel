@@ -90,6 +90,12 @@ VARADemodSettings:
     rollupState:
       $ref: "http://swgserver:8081/api/swagger/include/RollupState.yaml#/RollupState"
       description: "Rollup display state."
+    logEnabled:
+      description: "Append the modem's log lines to logFilename (1 for yes, 0 for no)"
+      type: integer
+    logFilename:
+      description: "File the modem's log lines are appended to"
+      type: string
 
 VARADemodReport:
   description: VARADemod

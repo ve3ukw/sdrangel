@@ -80,6 +80,10 @@ SWGVARADemodSettings::SWGVARADemodSettings() {
     m_channel_marker_isSet = false;
     rollup_state = nullptr;
     m_rollup_state_isSet = false;
+    log_enabled = 0;
+    m_log_enabled_isSet = false;
+    log_filename = nullptr;
+    m_log_filename_isSet = false;
 }
 
 SWGVARADemodSettings::~SWGVARADemodSettings() {
@@ -140,6 +144,10 @@ SWGVARADemodSettings::init() {
     m_channel_marker_isSet = false;
     rollup_state = new SWGRollupState();
     m_rollup_state_isSet = false;
+    log_enabled = 0;
+    m_log_enabled_isSet = false;
+    log_filename = new QString("");
+    m_log_filename_isSet = false;
 }
 
 void
@@ -164,6 +172,9 @@ SWGVARADemodSettings::cleanup() {
     }
     if(rollup_state != nullptr) { 
         delete rollup_state;
+    }
+    if(log_filename != nullptr) { 
+        delete log_filename;
     }
 }
 
@@ -229,6 +240,10 @@ SWGVARADemodSettings::fromJsonObject(QJsonObject &pJson) {
     ::SWGSDRangel::setValue(&channel_marker, pJson["channelMarker"], "SWGChannelMarker", "SWGChannelMarker");
     
     ::SWGSDRangel::setValue(&rollup_state, pJson["rollupState"], "SWGRollupState", "SWGRollupState");
+    
+    ::SWGSDRangel::setValue(&log_enabled, pJson["logEnabled"], "qint32", "");
+    
+    ::SWGSDRangel::setValue(&log_filename, pJson["logFilename"], "QString", "QString");
     
 }
 
@@ -323,6 +338,12 @@ SWGVARADemodSettings::asJsonObject() {
     }
     if((rollup_state != nullptr) && (rollup_state->isSet())){
         toJsonValue(QString("rollupState"), rollup_state, obj, QString("SWGRollupState"));
+    }
+    if(m_log_enabled_isSet){
+        obj->insert("logEnabled", QJsonValue(log_enabled));
+    }
+    if(log_filename != nullptr && *log_filename != QString("")){
+        toJsonValue(QString("logFilename"), log_filename, obj, QString("QString"));
     }
 
     return obj;
@@ -588,6 +609,26 @@ SWGVARADemodSettings::setRollupState(SWGRollupState* rollup_state) {
     this->m_rollup_state_isSet = true;
 }
 
+qint32
+SWGVARADemodSettings::getLogEnabled() {
+    return log_enabled;
+}
+void
+SWGVARADemodSettings::setLogEnabled(qint32 log_enabled) {
+    this->log_enabled = log_enabled;
+    this->m_log_enabled_isSet = true;
+}
+
+QString*
+SWGVARADemodSettings::getLogFilename() {
+    return log_filename;
+}
+void
+SWGVARADemodSettings::setLogFilename(QString* log_filename) {
+    this->log_filename = log_filename;
+    this->m_log_filename_isSet = true;
+}
+
 
 bool
 SWGVARADemodSettings::isSet(){
@@ -669,6 +710,12 @@ SWGVARADemodSettings::isSet(){
             isObjectUpdated = true; break;
         }
         if(rollup_state && rollup_state->isSet()){
+            isObjectUpdated = true; break;
+        }
+        if(m_log_enabled_isSet){
+            isObjectUpdated = true; break;
+        }
+        if(log_filename && *log_filename != QString("")){
             isObjectUpdated = true; break;
         }
     }while(false);

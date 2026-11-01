@@ -19,9 +19,11 @@
 #ifndef INCLUDE_MODEMVARA_VARAENGINE_H
 #define INCLUDE_MODEMVARA_VARAENGINE_H
 
+#include <functional>
 #include <memory>
 #include <vector>
 
+#include <QDateTime>
 #include <QMutex>
 #include <QString>
 
@@ -80,6 +82,10 @@ public:
         bool m_txLinked = false;
     };
 
+    //! Gets xara's info lines (what it shows on its console), from any thread: the lines of this modem, and
+    //! those of xara's TCP host, which all modems share as xara doesn't say which one they come from.
+    typedef std::function<void(const QDateTime& dateTime, const QString& line)> LogCallback;
+
     static const int m_sampleRate = 48000;
     static const int m_blockSize = 480;
 
@@ -90,6 +96,8 @@ public:
     void setRxLag(int samples);           //!< Samples from RF to process() input
     void process(const float *in, int n); //!< Received audio in [-1, 1]
     Status getStatus() const;
+    void setLogCallback(const LogCallback& callback);
+    static void log(int level, const char *line); //!< xara's log callback
 
     static bool isFM(int mode) { return (mode == FMNarrow) || (mode == FMWide); }
     static QString getModeName(int mode);
@@ -108,6 +116,7 @@ private:
     bool m_txLinked;
     std::weak_ptr<VARATxLink> m_txLink; //!< Weak, so the link goes when its Mod lets go of it
     unsigned int m_flags;
+    LogCallback m_logCallback; //!< Guarded by the lock of the engine list
 
     void create();
     void destroy();

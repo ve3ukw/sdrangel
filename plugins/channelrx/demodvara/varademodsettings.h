@@ -58,6 +58,8 @@ struct VARADemodSettings
     int m_workspaceIndex;
     QByteArray m_geometryBytes;
     bool m_hidden;
+    bool m_logEnabled; //!< Append the modem's log lines to logFilename
+    QString m_logFilename;
 
     VARADemodSettings();
     void resetToDefaults();

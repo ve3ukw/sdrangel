@@ -52,6 +52,19 @@ The plugin is only built when SDRangel is configured with `-DENABLE_XARA=ON` and
 
 Errors that keep the modem from running (no call sign, a port already in use) are shown below.
 
+<h3>Log</h3>
+
+What the modem shows on its console, time stamped: the host's commands (`>`) and the modem's replies (`<`), PTT and
+busy changes, and the frames it sends and receives on its own link. A VARA modem only follows its own link, so this is
+not a monitor of other stations' traffic.
+
+* **Record** button: start/stop appending the log lines to a file, and the **save** button to choose it
+  (`vara_log.txt` in the working directory by default). Lines are written as they come, with the date and time.
+* **Bin** button: clear the lines shown (the file is kept).
+
+xara doesn't say which modem the lines of its TCP host (shared by all modems) come from, so with more than one VARA
+demodulator these appear in all of them. The lines of each modem only appear in its own.
+
 <h2>API</h2>
 
 Full details of the API can be found in the Swagger documentation. The report includes the modem's state:

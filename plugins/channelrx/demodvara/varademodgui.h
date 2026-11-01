@@ -103,6 +103,9 @@ private slots:
     void on_agc_toggled(bool checked);
     void on_rxGainDb_valueChanged(int value);
     void on_volume_valueChanged(int value);
+    void on_logEnable_toggled(bool checked);
+    void on_logFilename_clicked();
+    void on_clearLog_clicked();
     void onWidgetRolled(QWidget* widget, bool rollDown);
     void onMenuDialogCalled(const QPoint& p);
     void handleInputMessages();
