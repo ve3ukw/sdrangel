@@ -26,6 +26,8 @@
 #include <stdexcept>
 #include <string>
 
+#include <QDebug>
+
 #include "dvbt2fec.h"
 #include "dvbt2ldpc.h"
 
@@ -728,6 +730,19 @@ const int *CellMapper::demuxTable(CodeRate rate, Constellation constellation, FE
 
 void cellBitMap(FECType type, CodeRate rate, Constellation constellation, std::vector<int>& map)
 {
+    switch (constellation)
+    {
+    case Constellation::QPSK:
+    case Constellation::QAM16:
+    case Constellation::QAM64:
+    case Constellation::QAM256:
+        break;
+    default:
+        qWarning() << "cellBitMap: Invalid constellation" << static_cast<int>(constellation);
+        map.clear();
+        return;
+    }
+
     const int n = nldpc(type);
     const int k = kldpc(type, rate);
     const int qldpc = (n - k) / 360;
@@ -936,7 +951,7 @@ CellInterleaver::CellInterleaver(int ncells) :
             r = (r >> 1) | (bit << (m_nd - 2));
         }
 
-        int value = (int) (((i & 1) << (m_nd - 1)) | r);
+        int value = m_nd > 0 ? (int) (((i & 1) << (m_nd - 1)) | r) : (int) r;
 
         if (value < ncells) {
             m_l0[q++] = value;
@@ -1030,7 +1045,8 @@ int L1Codec::postTableIndex(L1Constellation constellation)
 L1Codec::L1Codec() :
     m_preLDPC(FECType::Short, CodeRate::R1_4),
     m_postLDPC(FECType::Short, CodeRate::R1_2),
-    m_bch(FECType::Short, 12)
+    m_bch(FECType::Short, 12),
+    m_postBlock()
 {
     layout(m_preKsig, m_preKbch, m_preKldpc, 16200 - m_preKldpc, m_preNpunc, m_preGroups, m_preParity, m_preBlock);
 }

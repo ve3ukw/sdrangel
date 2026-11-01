@@ -20,6 +20,7 @@
 #include <chrono>
 #include <cmath>
 #include <cstring>
+#include <QDebug>
 
 #include "util/profiler.h"
 #include "dvbs2receiver.h"
@@ -892,6 +893,10 @@ void Receiver::deframe(FrameSlot& slot)
 {
     const XFECFrame& frame = slot.m_frame;
     const int kbch = frame.m_vlsnr >= 0 ? vlsnrKbch(frame.m_vlsnr) : dvbt2::kbch(frame.m_fecType, frame.m_rate, CodeFamily::S2);
+    if (kbch <= 0) {
+        qWarning() << "Receiver::deframe: Invalid BCH information length" << kbch;
+        return;
+    }
     const bool bad = slot.m_corrected < 0;
     dvbt2::scrambleBytes(slot.m_packed.data(), kbch / 8);
     dvbt2::BBFrameDecoder::Header header;
@@ -943,6 +948,7 @@ void Receiver::deframe(FrameSlot& slot)
 
             // Not from a frame of before a reset (still being decoded when it came): the front end's set for the
             // signal since
+            std::lock_guard<std::mutex> lock(m_mutex);
             if (slot.m_epoch == m_resetEpoch) {
                 m_matypeRollOff = header.rollOff() + (m_lowRollOffs ? 4 : 0);
             }

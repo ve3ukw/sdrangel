@@ -399,8 +399,9 @@ bool ChannelWebAPIUtils::setCenterFrequency(unsigned int deviceIndex, double fre
             }
             else
             {
+                QString *message = errorResponse2.getMessage();
                 qWarning("ChannelWebAPIUtils::setCenterFrequency: set device frequency error %d: %s",
-                    httpRC, qPrintable(*errorResponse2.getMessage()));
+                    httpRC, message ? qPrintable(*message) : "Unknown error");
                 return false;
             }
         }
@@ -1693,8 +1694,9 @@ bool ChannelWebAPIUtils::patchDeviceSetting(unsigned int deviceIndex, const QStr
             }
             else
             {
+                QString *message = errorResponse2.getMessage();
                 qWarning("ChannelWebAPIUtils::patchDeviceSetting: set device setting error %d: %s",
-                    httpRC, qPrintable(*errorResponse2.getMessage()));
+                    httpRC, message ? qPrintable(*message) : "Unknown error");
                 return false;
             }
         }
@@ -1750,8 +1752,9 @@ bool ChannelWebAPIUtils::patchDeviceSetting(unsigned int deviceIndex, const QStr
             }
             else
             {
+                QString *message = errorResponse2.getMessage();
                 qWarning("ChannelWebAPIUtils::patchDeviceSetting: set device setting error %d: %s",
-                    httpRC, qPrintable(*errorResponse2.getMessage()));
+                    httpRC, message ? qPrintable(*message) : "Unknown error");
                 return false;
             }
         }
@@ -1799,8 +1802,9 @@ bool ChannelWebAPIUtils::patchFeatureSetting(unsigned int featureSetIndex, unsig
             }
             else
             {
+                QString *message = errorResponse2.getMessage();
                 qWarning("ChannelWebAPIUtils::patchFeatureSetting: set feature setting %s to %s error %d: %s",
-                    qPrintable(setting), qPrintable(value), httpRC, qPrintable(*errorResponse2.getMessage()));
+                    qPrintable(setting), qPrintable(value), httpRC, message ? qPrintable(*message) : "Unknown error");
                 return false;
             }
         }
@@ -1848,8 +1852,9 @@ bool ChannelWebAPIUtils::patchFeatureSetting(unsigned int featureSetIndex, unsig
             }
             else
             {
+                QString *message = errorResponse2.getMessage();
                 qWarning("ChannelWebAPIUtils::patchFeatureSetting: set feature setting %s to %f error %d: %s",
-                    qPrintable(setting), value, httpRC, qPrintable(*errorResponse2.getMessage()));
+                    qPrintable(setting), value, httpRC, message ? qPrintable(*message) : "Unknown error");
                 return false;
             }
         }
@@ -1929,8 +1934,9 @@ bool ChannelWebAPIUtils::patchFeatureSetting(unsigned int featureSetIndex, unsig
         }
         else
         {
+            QString *message = errorResponse2.getMessage();
             qWarning("ChannelWebAPIUtils::patchFeatureSetting: set feature setting %s error %d: %s",
-                qPrintable(setting), httpRC, qPrintable(*errorResponse2.getMessage()));
+                qPrintable(setting), httpRC, message ? qPrintable(*message) : "Unknown error");
             return false;
         }
     }
@@ -1969,8 +1975,9 @@ bool ChannelWebAPIUtils::patchChannelSetting(ChannelAPI *channel, const QString 
             }
             else
             {
+                QString *message = errorResponse2.getMessage();
                 qWarning("ChannelWebAPIUtils::patchChannelSetting: set feature setting %s to %s error %d: %s",
-                    qPrintable(setting), qPrintable(value.toString()), httpRC, qPrintable(*errorResponse2.getMessage()));
+                    qPrintable(setting), qPrintable(value.toString()), httpRC, message ? qPrintable(*message) : "Unknown error");
                 return false;
             }
         }
@@ -2083,8 +2090,9 @@ bool ChannelWebAPIUtils::patchChannelSetting(unsigned int deviceSetIndex, unsign
         }
         else
         {
+            QString *message = errorResponse2.getMessage();
             qWarning("ChannelWebAPIUtils::patchChannelSetting: set channel setting error %d: %s",
-                httpRC, qPrintable(*errorResponse2.getMessage()));
+                httpRC, message ? qPrintable(*message) : "Unknown error");
             return false;
         }
     }

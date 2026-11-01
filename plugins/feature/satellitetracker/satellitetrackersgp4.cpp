@@ -211,7 +211,7 @@ bool getPassesThrough0Deg(const SatNogsTLE& satTle,
 
         double timeStep = (losTime - aosTime).TotalSeconds() / steps;
 
-        double prevAz;
+        double prevAz = 0.0;
         for (int i = 0; i < steps; i++)
         {
             // Calculate satellite position
