@@ -51,6 +51,7 @@ public:
     static bool mapFind(const QString& target, int featureSetIndex=-1, int featureIndex=-1);
     static bool mapSetDateTime(const QDateTime& dateTime, int featureSetIndex=-1, int featureIndex=-1);
     static bool skyMapFind(const QString& target, int featureSetIndex=-1, int featureIndex=-1);
+    static bool rotatorPark(int featureSetIndex, int featureIndex);
     static bool openSkyMapAndFind(const QString& target);
     static Feature *getFeature(int& featureSetIndex, int& featureIndex, const QString& uri);
     static bool satelliteAOS(const QString name, const QDateTime aos, const QDateTime los);

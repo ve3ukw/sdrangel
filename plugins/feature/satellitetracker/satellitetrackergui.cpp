@@ -2103,6 +2103,53 @@ void SatelliteTrackerGUI::startRotators()
     }
 }
 
+// Park the Rotator Controllers that follow this Satellite Tracker, or all of them if none do
+void SatelliteTrackerGUI::parkRotators()
+{
+    std::vector<FeatureSet*>& featureSets = MainCore::instance()->getFeatureeSets();
+    QString source;
+    QList<QPair<int, int>> rotators;
+    QList<QPair<int, int>> ourRotators;
+    QStringList rotatorSources;
+
+    for (int i = 0; i < (int) featureSets.size(); i++)
+    {
+        FeatureSet *featureSet = featureSets[i];
+        for (int j = 0; j < featureSet->getNumberOfFeatures(); j++)
+        {
+            Feature *feature = featureSet->getFeatureAt(j);
+            if (feature == m_satelliteTracker)
+            {
+                // Same format as AvailableChannelOrFeature::getLongId()
+                source = QString("F:%1 %2").arg(j).arg(feature->getIdentifier());
+            }
+            else if (feature->getURI() == "sdrangel.feature.gs232controller")
+            {
+                QString rotatorSource;
+                ChannelWebAPIUtils::getFeatureSetting(i, j, "source", rotatorSource);
+                rotators.append({i, j});
+                rotatorSources.append(rotatorSource);
+            }
+        }
+    }
+
+    for (int i = 0; i < rotators.size(); i++)
+    {
+        if (rotatorSources[i] == source) {
+            ourRotators.append(rotators[i]);
+        }
+    }
+
+    for (const auto& rotator : ourRotators.isEmpty() ? rotators : ourRotators) {
+        FeatureWebAPIUtils::rotatorPark(rotator.first, rotator.second);
+    }
+}
+
+void SatelliteTrackerGUI::on_parkRotators_clicked()
+{
+    parkRotators();
+}
+
 // First of the channel types that has a plugin available
 QString SatelliteTrackerGUI::availableChannelType(const QStringList& types)
 {
@@ -2810,6 +2857,7 @@ void SatelliteTrackerGUI::makeUIConnections()
     QObject::connect(ui->target, &QComboBox::textActivated, this, &SatelliteTrackerGUI::on_target_textActivated);
     QObject::connect(ui->displaySettings, &QToolButton::clicked, this, &SatelliteTrackerGUI::on_displaySettings_clicked);
     QObject::connect(ui->radioControl, &QToolButton::clicked, this, &SatelliteTrackerGUI::on_radioControl_clicked);
+    QObject::connect(ui->parkRotators, &QToolButton::clicked, this, &SatelliteTrackerGUI::on_parkRotators_clicked);
     QObject::connect(ui->dateTimeSelect, qOverload<int>(&QComboBox::currentIndexChanged), this, &SatelliteTrackerGUI::on_dateTimeSelect_currentIndexChanged);
     QObject::connect(ui->dateTime, &WrappingDateTimeEdit::dateTimeChanged, this, &SatelliteTrackerGUI::on_dateTime_dateTimeChanged);
     QObject::connect(ui->viewOnMap, &QToolButton::clicked, this, &SatelliteTrackerGUI::on_viewOnMap_clicked);

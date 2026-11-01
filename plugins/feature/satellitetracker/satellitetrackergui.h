@@ -220,6 +220,7 @@ private:
     void trackTarget(const QString& satellite);
     void getRxChannels(QList<RxChannel>& rxChannels, QList<int>& rxDeviceSets, int& selectedChannel);
     void startRotators();
+    void parkRotators();
     static QString availableChannelType(const QStringList& types);
     static int channelIndex(int deviceSetIndex, const ChannelAPI *channel);
     static TuneMode tuneMode(const SatNogsTransmitter *transmitter);
@@ -244,6 +245,7 @@ private slots:
     void updateStatus();
     void updateFeatureState();
     void on_viewOnMap_clicked();
+    void on_parkRotators_clicked();
     void on_updateSatData_clicked();
     void on_selectSats_clicked();
     void on_satelliteGroup_currentIndexChanged(int index);

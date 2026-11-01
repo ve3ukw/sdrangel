@@ -218,6 +218,16 @@
          </widget>
         </item>
         <item>
+         <widget class="QToolButton" name="parkRotators">
+          <property name="toolTip">
+           <string>Park the rotators that follow this Satellite Tracker (or all Rotator Controllers, if none follow it). Tracking is stopped until the rotators are tracking again (E.g. by selecting a transmitter or checking Track in the Rotator Controller)</string>
+          </property>
+          <property name="text">
+           <string>Park</string>
+          </property>
+         </widget>
+        </item>
+        <item>
          <widget class="ButtonSwitch" name="autoTarget">
           <property name="toolTip">
            <string>Automatically select target satellite on AOS</string>

@@ -19,6 +19,7 @@
 
 #include "SWGFeatureActions.h"
 #include "SWGMapActions.h"
+#include "SWGGS232ControllerActions.h"
 #include "SWGPERTesterActions.h"
 #include "SWGDeviceState.h"
 
@@ -82,6 +83,36 @@ bool FeatureWebAPIUtils::mapFind(const QString& target, int featureSetIndex, int
     else
     {
         qWarning("FeatureWebAPIUtils::mapFind: no Map feature");
+        return false;
+    }
+}
+
+// Park the rotator of a Rotator Controller (GS232 Controller) feature
+bool FeatureWebAPIUtils::rotatorPark(int featureSetIndex, int featureIndex)
+{
+    Feature *feature = FeatureWebAPIUtils::getFeature(featureSetIndex, featureIndex, "sdrangel.feature.gs232controller");
+    if (feature != nullptr)
+    {
+        QString errorMessage;
+        QStringList featureActionKeys = {"park"};
+        SWGSDRangel::SWGFeatureActions query;
+        SWGSDRangel::SWGGS232ControllerActions *rotatorActions = new SWGSDRangel::SWGGS232ControllerActions();
+
+        rotatorActions->setPark(1);
+        query.setGs232ControllerActions(rotatorActions);
+
+        int httpRC = feature->webapiActionsPost(featureActionKeys, query, errorMessage);
+        if (httpRC/100 != 2)
+        {
+            qWarning() << "FeatureWebAPIUtils::rotatorPark: error " << httpRC << ":" << errorMessage;
+            return false;
+        }
+
+        return true;
+    }
+    else
+    {
+        qWarning("FeatureWebAPIUtils::rotatorPark: no Rotator Controller feature");
         return false;
     }
 }

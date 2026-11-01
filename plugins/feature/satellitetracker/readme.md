@@ -25,6 +25,13 @@ This button starts or stops the satellite tracking. The plugin will only calcula
 
 Pressing this button centres the Map Feature (if open) on the target satellite.
 
+<h3>2A: Park rotators</h3>
+
+Parks the Rotator Controllers whose source is this Satellite Tracker, or all Rotator Controllers if none of them use it, E.g. when the antennas aren't in use.
+Each rotator is moved to the park position set in its Rotator Controller, and its tracking is switched off, so it stays parked
+(including through the AOS pre-positioning and Auto target) until tracking is enabled again: by selecting a transmitter from the Satellite Data table,
+when Doppler tracking is resumed after a restart, or by checking Track in the Rotator Controller.
+
 <h3>3: Automatically select target on AOS</h3>
 
 When checked, the target satellite will be automatically changed on any selected satellite's AOS, if it is a higher priority than the current target or if the current target satellite is not visible.
