@@ -153,3 +153,6 @@ VARADemodReport:
     kissPort:
       description: "Bound KISS TCP port, 0 for none"
       type: integer
+    p2p:
+      description: "HF: the host asked for a P2P session, else a Winlink one (1 for P2P, 0 for Winlink)"
+      type: integer

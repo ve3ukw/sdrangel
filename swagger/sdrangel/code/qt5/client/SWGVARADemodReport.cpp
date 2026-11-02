@@ -60,6 +60,8 @@ SWGVARADemodReport::SWGVARADemodReport() {
     m_data_port_isSet = false;
     kiss_port = 0;
     m_kiss_port_isSet = false;
+    p2p = 0;
+    m_p2p_isSet = false;
 }
 
 SWGVARADemodReport::~SWGVARADemodReport() {
@@ -100,6 +102,8 @@ SWGVARADemodReport::init() {
     m_data_port_isSet = false;
     kiss_port = 0;
     m_kiss_port_isSet = false;
+    p2p = 0;
+    m_p2p_isSet = false;
 }
 
 void
@@ -160,6 +164,8 @@ SWGVARADemodReport::fromJsonObject(QJsonObject &pJson) {
     ::SWGSDRangel::setValue(&data_port, pJson["dataPort"], "qint32", "");
     
     ::SWGSDRangel::setValue(&kiss_port, pJson["kissPort"], "qint32", "");
+    
+    ::SWGSDRangel::setValue(&p2p, pJson["p2p"], "qint32", "");
     
 }
 
@@ -224,6 +230,9 @@ SWGVARADemodReport::asJsonObject() {
     }
     if(m_kiss_port_isSet){
         obj->insert("kissPort", QJsonValue(kiss_port));
+    }
+    if(m_p2p_isSet){
+        obj->insert("p2p", QJsonValue(p2p));
     }
 
     return obj;
@@ -389,6 +398,16 @@ SWGVARADemodReport::setKissPort(qint32 kiss_port) {
     this->m_kiss_port_isSet = true;
 }
 
+qint32
+SWGVARADemodReport::getP2p() {
+    return p2p;
+}
+void
+SWGVARADemodReport::setP2p(qint32 p2p) {
+    this->p2p = p2p;
+    this->m_p2p_isSet = true;
+}
+
 
 bool
 SWGVARADemodReport::isSet(){
@@ -440,6 +459,9 @@ SWGVARADemodReport::isSet(){
             isObjectUpdated = true; break;
         }
         if(m_kiss_port_isSet){
+            isObjectUpdated = true; break;
+        }
+        if(m_p2p_isSet){
             isObjectUpdated = true; break;
         }
     }while(false);

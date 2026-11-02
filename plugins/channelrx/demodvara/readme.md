@@ -50,8 +50,9 @@ The plugin is only built when SDRangel is configured with `-DENABLE_XARA=ON` and
 * **BW**: link bandwidth and speed level.
 * **AFC**: frequency offset of the received signal.
 * **Ports**: the TCP ports the modem has open.
-* **Flags**: TX while transmitting, BUSY when the channel is busy, TUNE while the tune tone is on, and whether a VARA
-  modulator transmits this modem.
+* **Flags**: TX while transmitting, BUSY when the channel is busy, TUNE while the tune tone is on, the session type in
+  HF (P2P or Winlink, as the client asked with P2P SESSION or WINLINK SESSION), and whether a VARA modulator transmits
+  this modem.
 
 Errors that keep the modem from running (no call sign, a port already in use) are shown below.
 

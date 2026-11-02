@@ -294,6 +294,7 @@ VARAEngine::Status VARAEngine::getStatus() const
     status.m_cmdPort = st.cmd_port;
     status.m_dataPort = st.data_port;
     status.m_kissPort = st.kiss_port;
+    status.m_p2p = st.p2p;
     status.m_keyed = (m_flags & XARA_KEYED) != 0;
     status.m_busy = (m_flags & XARA_BUSY) != 0;
     status.m_tuning = (m_flags & XARA_TUNING) != 0;

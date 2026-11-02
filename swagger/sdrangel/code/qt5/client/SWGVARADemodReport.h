@@ -90,6 +90,9 @@ public:
     qint32 getKissPort();
     void setKissPort(qint32 kiss_port);
 
+    qint32 getP2p();
+    void setP2p(qint32 p2p);
+
 
     virtual bool isSet() override;
 
@@ -141,6 +144,9 @@ private:
 
     qint32 kiss_port;
     bool m_kiss_port_isSet;
+
+    qint32 p2p;
+    bool m_p2p_isSet;
 
 };
 

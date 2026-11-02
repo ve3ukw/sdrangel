@@ -542,6 +542,9 @@ void VARADemodGUI::displayStatus()
     if (status.m_tuning) {
         flags.append("TUNE");
     }
+    if ((m_settings.m_mode != VARAEngine::FMNarrow) && (m_settings.m_mode != VARAEngine::FMWide)) {
+        flags.append(status.m_p2p ? "P2P" : "Winlink"); // the session type the host asked for, only HF has one
+    }
 
     flags.append(status.m_txLinked ? "Mod" : "no Mod");
     ui->flags->setText(flags.join(" "));

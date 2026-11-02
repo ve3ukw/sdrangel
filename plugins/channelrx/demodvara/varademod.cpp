@@ -637,6 +637,7 @@ void VARADemod::webapiFormatChannelReport(SWGSDRangel::SWGChannelReport& respons
     swgReport->setCmdPort(status.m_cmdPort);
     swgReport->setDataPort(status.m_dataPort);
     swgReport->setKissPort(status.m_kissPort);
+    swgReport->setP2p(status.m_p2p ? 1 : 0);
 }
 
 void VARADemod::webapiReverseSendSettings(const QList<QString>& channelSettingsKeys, const VARADemodSettings& settings, bool force)

@@ -81,6 +81,7 @@ public:
         bool m_busy = false;
         bool m_tuning = false;
         bool m_txLinked = false;
+        bool m_p2p = false; //!< HF: the host asked for a P2P session, else a Winlink one
     };
 
     //! Gets xara's info lines (what it shows on its console), from any thread: the lines of this modem, and

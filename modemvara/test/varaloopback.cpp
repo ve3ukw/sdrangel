@@ -21,8 +21,9 @@
 // transmit FIFO and the PTT callback, by making a VARA connection between them. Station A also keys a
 // UDPPTT, whose datagrams a local socket checks, as pttseq would get them.
 //
-//   varaloopback [-r] [mode...]    modes as VARAEngine::Mode, default: FM narrow and HF 2300
-//                                  -r: both stations in registered mode
+//   varaloopback [-r] [-p] [mode...]    modes as VARAEngine::Mode, default: FM narrow and HF 2300
+//                                       -r: both stations in registered mode
+//                                       -p: both hosts ask for a P2P session
 
 #include <arpa/inet.h>
 #include <fcntl.h>
@@ -50,6 +51,7 @@ namespace {
 const int channelRate = 96000;
 const int chunk = channelRate / 100; // 10 ms
 bool registered = false;
+bool p2p = false;
 
 struct Station
 {
@@ -210,6 +212,12 @@ bool run(int mode)
 
         if (!sent && (i == 50)) // give the host threads a moment
         {
+            if (p2p)
+            {
+                a.send("P2P SESSION\r");
+                b.send("P2P SESSION\r");
+            }
+
             a.send("CONNECT N0AAA N0BBB\r");
             sent = true;
         }
@@ -239,9 +247,13 @@ bool run(int mode)
             // B's host is told whether the caller is registered
             bool registeredOk = b.seen.contains(registered ? "LINK REGISTERED" : "LINK UNREGISTERED");
             printf("  B's host was told: %s\n", registeredOk ? (registered ? "LINK REGISTERED" : "LINK UNREGISTERED") : "neither");
+            // Only HF keeps the session type
+            bool hf = (mode != VARAEngine::FMNarrow) && (mode != VARAEngine::FMWide);
+            bool p2pOk = (status.m_p2p == (p2p && hf)) && (b.engine.getStatus().m_p2p == (p2p && hf));
+            printf("  session: %s\n", hf ? (status.m_p2p ? "P2P" : "Winlink") : "-");
 
             return a.seen.contains("CONNECTED N0AAA N0BBB") && (status.m_peer == "N0BBB")
-                && (a.keyEdges > 0) && (b.keyEdges > 0) && pttOk && logOk && registeredOk;
+                && (a.keyEdges > 0) && (b.keyEdges > 0) && pttOk && logOk && registeredOk && p2pOk;
         }
     }
 
@@ -263,6 +275,8 @@ int main(int argc, char *argv[])
     {
         if (strcmp(argv[i], "-r") == 0) {
             registered = true;
+        } else if (strcmp(argv[i], "-p") == 0) {
+            p2p = true;
         } else {
             modes.append(atoi(argv[i]));
         }
