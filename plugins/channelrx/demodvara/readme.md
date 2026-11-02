@@ -32,6 +32,9 @@ The plugin is only built when SDRangel is configured with `-DENABLE_XARA=ON` and
   SSB, NFM, AM and packet channels. The Address Book can also switch to VARA channels when this is on.
 * **Port**: the VARA command TCP port. The data port is the next one (8300 and 8301 by default, as VARA).
 * **KISS**: open a KISS TCP port too (8100 by default).
+* **Reg**: registered mode, off by default. It allows the higher speed levels (above level 2 in VARA FM, and the top HF
+  levels) and compression, and tells the other station that this one is registered. Only turn it on if your call has a
+  registered copy of VARA. Changing it restarts the modem.
 * **Addr**: listen address of the TCP ports. 127.0.0.1 only accepts clients from this machine; use 0.0.0.0 to accept
   clients from others.
 * **Drive**: transmit drive of the modem, -30 to 0 dB.

@@ -62,6 +62,7 @@ void VARADemodSettings::resetToDefaults()
     m_hidden = false;
     m_logEnabled = false;
     m_logFilename = "vara_log.txt";
+    m_registered = false;
 }
 
 QByteArray VARADemodSettings::serialize() const
@@ -105,6 +106,7 @@ QByteArray VARADemodSettings::serialize() const
     s.writeBool(29, m_hidden);
     s.writeBool(30, m_logEnabled);
     s.writeString(31, m_logFilename);
+    s.writeBool(32, m_registered);
 
     return s.final();
 }
@@ -174,6 +176,7 @@ bool VARADemodSettings::deserialize(const QByteArray& data)
         d.readBool(29, &m_hidden, false);
         d.readBool(30, &m_logEnabled, false);
         d.readString(31, &m_logFilename, "vara_log.txt");
+        d.readBool(32, &m_registered, false);
 
         return true;
     }
@@ -273,6 +276,9 @@ void VARADemodSettings::applySettings(const QStringList& settingsKeys, const VAR
     if (settingsKeys.contains("logFilename")) {
         m_logFilename = settings.m_logFilename;
     }
+    if (settingsKeys.contains("registered")) {
+        m_registered = settings.m_registered;
+    }
 }
 
 QString VARADemodSettings::getDebugString(const QStringList& settingsKeys, bool force) const
@@ -362,6 +368,9 @@ QString VARADemodSettings::getDebugString(const QStringList& settingsKeys, bool 
     }
     if (settingsKeys.contains("logFilename") || force) {
         parts.append(QString("m_logFilename: %1").arg(m_logFilename));
+    }
+    if (settingsKeys.contains("registered") || force) {
+        parts.append(QString("m_registered: %1").arg(m_registered));
     }
 
     return " " + parts.join(" ");

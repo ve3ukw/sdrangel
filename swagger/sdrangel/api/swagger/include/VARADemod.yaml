@@ -96,6 +96,9 @@ VARADemodSettings:
     logFilename:
       description: "File the modem's log lines are appended to"
       type: string
+    registered:
+      description: "Registered mode, for a call with a registered copy of VARA (1 for yes, 0 for no)"
+      type: integer
 
 VARADemodReport:
   description: VARADemod

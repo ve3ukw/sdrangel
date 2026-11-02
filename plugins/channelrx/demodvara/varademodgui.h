@@ -96,6 +96,7 @@ private slots:
     void on_cmdPort_editingFinished();
     void on_kissEnabled_toggled(bool checked);
     void on_kissPort_editingFinished();
+    void on_registered_toggled(bool checked);
     void on_address_editingFinished();
     void on_driveDb_valueChanged(int value);
     void on_rxLagMs_valueChanged(int value);

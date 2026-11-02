@@ -237,6 +237,7 @@ VARAEngine::Config VARADemod::getEngineConfig(const VARADemodSettings& settings)
     config.m_cmdPort = settings.m_cmdPort;
     config.m_kissPort = settings.m_kissEnabled ? settings.m_kissPort : 0;
     config.m_driveDb = settings.m_driveDb;
+    config.m_registered = settings.m_registered;
     return config;
 }
 
@@ -287,7 +288,7 @@ void VARADemod::applySettings(const QStringList& settingsKeys, const VARADemodSe
     }
 
     // A changed modem setting restarts the modem, which drops any connection, so only on a real change
-    static const QStringList modemKeys = {"mode", "callsign", "address", "cmdPort", "kissEnabled", "kissPort", "driveDb"};
+    static const QStringList modemKeys = {"mode", "callsign", "address", "cmdPort", "kissEnabled", "kissPort", "driveDb", "registered"};
 
     if (force || std::any_of(modemKeys.begin(), modemKeys.end(), [&](const QString& k) { return settingsKeys.contains(k); })) {
         m_engine->setConfig(getEngineConfig(m_settings));
@@ -513,6 +514,9 @@ void VARADemod::webapiUpdateChannelSettings(
     if (channelSettingsKeys.contains("logFilename")) {
         settings.m_logFilename = *swgSettings->getLogFilename();
     }
+    if (channelSettingsKeys.contains("registered")) {
+        settings.m_registered = swgSettings->getRegistered() != 0;
+    }
 }
 
 int VARADemod::webapiReportGet(
@@ -601,6 +605,7 @@ void VARADemod::webapiFormatChannelSettings(SWGSDRangel::SWGChannelSettings& res
         }
     }
     swgSettings->setLogEnabled(settings.m_logEnabled ? 1 : 0);
+    swgSettings->setRegistered(settings.m_registered ? 1 : 0);
     if (swgSettings->getLogFilename()) {
         *swgSettings->getLogFilename() = settings.m_logFilename;
     } else {
@@ -774,6 +779,9 @@ void VARADemod::webapiFormatChannelSettings(
     }
     if (channelSettingsKeys.contains("logFilename") || force) {
         swgSettings->setLogFilename(new QString(settings.m_logFilename));
+    }
+    if (channelSettingsKeys.contains("registered") || force) {
+        swgSettings->setRegistered(settings.m_registered ? 1 : 0);
     }
 }
 

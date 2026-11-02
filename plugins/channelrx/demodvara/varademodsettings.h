@@ -60,6 +60,7 @@ struct VARADemodSettings
     bool m_hidden;
     bool m_logEnabled; //!< Append the modem's log lines to logFilename
     QString m_logFilename;
+    bool m_registered; //!< Registered mode, for a call with a registered copy of VARA
 
     VARADemodSettings();
     void resetToDefaults();

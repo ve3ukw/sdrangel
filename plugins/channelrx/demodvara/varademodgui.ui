@@ -350,6 +350,19 @@
        </widget>
       </item>
       <item>
+       <widget class="ButtonSwitch" name="registered">
+        <property name="toolTip">
+         <string>Registered mode: the higher speed levels and compression. Only for a call with a registered copy of VARA; the other station sees this one as registered</string>
+        </property>
+        <property name="text">
+         <string>Reg</string>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QLabel" name="addressLabel">
         <property name="text">
          <string>Addr</string>
@@ -914,6 +927,7 @@
   <tabstop>cmdPort</tabstop>
   <tabstop>kissEnabled</tabstop>
   <tabstop>kissPort</tabstop>
+  <tabstop>registered</tabstop>
   <tabstop>address</tabstop>
   <tabstop>driveDb</tabstop>
   <tabstop>rxLagMs</tabstop>

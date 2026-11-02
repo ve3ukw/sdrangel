@@ -56,6 +56,7 @@ public:
         quint16 m_cmdPort = 8300; //!< Data port is cmdPort + 1
         quint16 m_kissPort = 0;   //!< 0 for none
         double m_driveDb = -5.0;
+        bool m_registered = false; //!< Higher speed levels, for a call with a registered copy of VARA
 
         bool operator==(const Config& other) const;
         bool operator!=(const Config& other) const { return !(*this == other); }

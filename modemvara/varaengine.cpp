@@ -59,7 +59,8 @@ bool VARAEngine::Config::operator==(const Config& other) const
         && (m_address == other.m_address)
         && (m_cmdPort == other.m_cmdPort)
         && (m_kissPort == other.m_kissPort)
-        && (m_driveDb == other.m_driveDb);
+        && (m_driveDb == other.m_driveDb)
+        && (m_registered == other.m_registered);
 }
 
 VARAEngine::VARAEngine() :
@@ -159,6 +160,7 @@ void VARAEngine::create()
     cfg.cmd_port = m_config.m_cmdPort;
     cfg.kiss_port = m_config.m_kissPort;
     cfg.drive_db = m_config.m_driveDb;
+    cfg.registered = m_config.m_registered;
     cfg.tx_latency = m_txLatency;
     cfg.rx_lag = m_rxLag;
     char err[256];

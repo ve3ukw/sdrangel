@@ -128,6 +128,9 @@ public:
     QString* getLogFilename();
     void setLogFilename(QString* log_filename);
 
+    qint32 getRegistered();
+    void setRegistered(qint32 registered);
+
 
     virtual bool isSet() override;
 
@@ -215,6 +218,9 @@ private:
 
     QString* log_filename;
     bool m_log_filename_isSet;
+
+    qint32 registered;
+    bool m_registered_isSet;
 
 };
 

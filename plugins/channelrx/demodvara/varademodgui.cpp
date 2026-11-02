@@ -204,6 +204,12 @@ void VARADemodGUI::on_kissEnabled_toggled(bool checked)
     applySettings(QStringList("kissEnabled"));
 }
 
+void VARADemodGUI::on_registered_toggled(bool checked)
+{
+    m_settings.m_registered = checked;
+    applySettings(QStringList("registered"));
+}
+
 void VARADemodGUI::on_kissPort_editingFinished()
 {
     if (ui->kissPort->value() != m_settings.m_kissPort)
@@ -467,6 +473,7 @@ void VARADemodGUI::displaySettings()
     ui->kissEnabled->setChecked(m_settings.m_kissEnabled);
     ui->kissPort->setValue(m_settings.m_kissPort);
     ui->kissPort->setEnabled(m_settings.m_kissEnabled);
+    ui->registered->setChecked(m_settings.m_registered);
     ui->address->setText(m_settings.m_address);
     ui->driveDb->setValue(std::round(m_settings.m_driveDb));
     ui->rxLagMs->setValue(m_settings.m_rxLagMs);
@@ -595,6 +602,7 @@ void VARADemodGUI::makeUIConnections()
     QObject::connect(ui->cmdPort, &QSpinBox::editingFinished, this, &VARADemodGUI::on_cmdPort_editingFinished);
     QObject::connect(ui->kissEnabled, &ButtonSwitch::toggled, this, &VARADemodGUI::on_kissEnabled_toggled);
     QObject::connect(ui->kissPort, &QSpinBox::editingFinished, this, &VARADemodGUI::on_kissPort_editingFinished);
+    QObject::connect(ui->registered, &ButtonSwitch::toggled, this, &VARADemodGUI::on_registered_toggled);
     QObject::connect(ui->address, &QLineEdit::editingFinished, this, &VARADemodGUI::on_address_editingFinished);
     QObject::connect(ui->driveDb, qOverload<int>(&QSpinBox::valueChanged), this, &VARADemodGUI::on_driveDb_valueChanged);
     QObject::connect(ui->rxLagMs, qOverload<int>(&QSpinBox::valueChanged), this, &VARADemodGUI::on_rxLagMs_valueChanged);

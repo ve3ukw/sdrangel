@@ -84,6 +84,8 @@ SWGVARADemodSettings::SWGVARADemodSettings() {
     m_log_enabled_isSet = false;
     log_filename = nullptr;
     m_log_filename_isSet = false;
+    registered = 0;
+    m_registered_isSet = false;
 }
 
 SWGVARADemodSettings::~SWGVARADemodSettings() {
@@ -148,6 +150,8 @@ SWGVARADemodSettings::init() {
     m_log_enabled_isSet = false;
     log_filename = new QString("");
     m_log_filename_isSet = false;
+    registered = 0;
+    m_registered_isSet = false;
 }
 
 void
@@ -244,6 +248,8 @@ SWGVARADemodSettings::fromJsonObject(QJsonObject &pJson) {
     ::SWGSDRangel::setValue(&log_enabled, pJson["logEnabled"], "qint32", "");
     
     ::SWGSDRangel::setValue(&log_filename, pJson["logFilename"], "QString", "QString");
+    
+    ::SWGSDRangel::setValue(&registered, pJson["registered"], "qint32", "");
     
 }
 
@@ -344,6 +350,9 @@ SWGVARADemodSettings::asJsonObject() {
     }
     if(log_filename != nullptr && *log_filename != QString("")){
         toJsonValue(QString("logFilename"), log_filename, obj, QString("QString"));
+    }
+    if(m_registered_isSet){
+        obj->insert("registered", QJsonValue(registered));
     }
 
     return obj;
@@ -629,6 +638,16 @@ SWGVARADemodSettings::setLogFilename(QString* log_filename) {
     this->m_log_filename_isSet = true;
 }
 
+qint32
+SWGVARADemodSettings::getRegistered() {
+    return registered;
+}
+void
+SWGVARADemodSettings::setRegistered(qint32 registered) {
+    this->registered = registered;
+    this->m_registered_isSet = true;
+}
+
 
 bool
 SWGVARADemodSettings::isSet(){
@@ -716,6 +735,9 @@ SWGVARADemodSettings::isSet(){
             isObjectUpdated = true; break;
         }
         if(log_filename && *log_filename != QString("")){
+            isObjectUpdated = true; break;
+        }
+        if(m_registered_isSet){
             isObjectUpdated = true; break;
         }
     }while(false);

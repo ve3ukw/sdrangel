@@ -21,7 +21,8 @@
 // transmit FIFO and the PTT callback, by making a VARA connection between them. Station A also keys a
 // UDPPTT, whose datagrams a local socket checks, as pttseq would get them.
 //
-//   varaloopback [mode...]    modes as VARAEngine::Mode, default: FM narrow and HF 2300
+//   varaloopback [-r] [mode...]    modes as VARAEngine::Mode, default: FM narrow and HF 2300
+//                                  -r: both stations in registered mode
 
 #include <arpa/inet.h>
 #include <fcntl.h>
@@ -48,6 +49,7 @@ namespace {
 
 const int channelRate = 96000;
 const int chunk = channelRate / 100; // 10 ms
+bool registered = false;
 
 struct Station
 {
@@ -66,6 +68,7 @@ struct Station
         config.m_mode = mode;
         config.m_call = call;
         config.m_cmdPort = port;
+        config.m_registered = registered;
         engine.setConfig(config);
 
         engine.setLogCallback([this](const QDateTime&, const QString& line) { log.append(line); });
@@ -233,9 +236,12 @@ bool run(int mode)
             // Only A was sent the CONNECT command, so only A's log echoes it
             bool logOk = !a.log.filter("> CONNECT", Qt::CaseInsensitive).isEmpty()
                 && b.log.filter("> CONNECT", Qt::CaseInsensitive).isEmpty();
+            // B's host is told whether the caller is registered
+            bool registeredOk = b.seen.contains(registered ? "LINK REGISTERED" : "LINK UNREGISTERED");
+            printf("  B's host was told: %s\n", registeredOk ? (registered ? "LINK REGISTERED" : "LINK UNREGISTERED") : "neither");
 
             return a.seen.contains("CONNECTED N0AAA N0BBB") && (status.m_peer == "N0BBB")
-                && (a.keyEdges > 0) && (b.keyEdges > 0) && pttOk && logOk;
+                && (a.keyEdges > 0) && (b.keyEdges > 0) && pttOk && logOk && registeredOk;
         }
     }
 
@@ -253,8 +259,13 @@ int main(int argc, char *argv[])
     QCoreApplication app(argc, argv);
     QList<int> modes;
 
-    for (int i = 1; i < argc; i++) {
-        modes.append(atoi(argv[i]));
+    for (int i = 1; i < argc; i++)
+    {
+        if (strcmp(argv[i], "-r") == 0) {
+            registered = true;
+        } else {
+            modes.append(atoi(argv[i]));
+        }
     }
 
     if (modes.isEmpty()) {
