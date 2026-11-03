@@ -2103,7 +2103,7 @@ void SatelliteTrackerGUI::startRotators()
     }
 }
 
-// Park the Rotator Controllers that follow this Satellite Tracker, or all of them if none do
+// Park the Rotator Controllers that follow this Satellite Tracker, or the only one if it has no source
 void SatelliteTrackerGUI::parkRotators()
 {
     std::vector<FeatureSet*>& featureSets = MainCore::instance()->getFeatureeSets();
@@ -2140,7 +2140,13 @@ void SatelliteTrackerGUI::parkRotators()
         }
     }
 
-    for (const auto& rotator : ourRotators.isEmpty() ? rotators : ourRotators) {
+    // As startRotators(), only take over a single Rotator Controller that has no source, so as not to park
+    // rotators that are following something else, E.g. a Star Tracker
+    if (ourRotators.isEmpty() && (rotators.size() == 1) && rotatorSources[0].isEmpty()) {
+        ourRotators.append(rotators[0]);
+    }
+
+    for (const auto& rotator : ourRotators) {
         FeatureWebAPIUtils::rotatorPark(rotator.first, rotator.second);
     }
 }

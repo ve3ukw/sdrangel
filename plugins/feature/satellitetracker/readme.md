@@ -27,7 +27,7 @@ Pressing this button centres the Map Feature (if open) on the target satellite.
 
 <h3>2A: Park rotators</h3>
 
-Parks the Rotator Controllers whose source is this Satellite Tracker, or all Rotator Controllers if none of them use it, E.g. when the antennas aren't in use.
+Parks the Rotator Controllers whose source is this Satellite Tracker, or the only Rotator Controller if it has no source set, E.g. when the antennas aren't in use.
 Each rotator is moved to the park position set in its Rotator Controller, and its tracking is switched off, so it stays parked
 (including through the AOS pre-positioning and Auto target) until tracking is enabled again: by selecting a transmitter from the Satellite Data table,
 when Doppler tracking is resumed after a restart, or by checking Track in the Rotator Controller.

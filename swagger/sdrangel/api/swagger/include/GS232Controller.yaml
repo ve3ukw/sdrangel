@@ -163,4 +163,4 @@ GS232ControllerActions:
     park:
       type: integer
       description: >
-        Set to 1 to stop tracking and move the rotator to the park position, starting the controller if needed
+        Set to 1 to stop tracking and move the rotator to the park position, starting the controller if needed. Can be combined with run

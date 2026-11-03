@@ -156,7 +156,8 @@ void GS232Controller::park()
         getMessageQueueToGUI()->push(MsgConfigureGS232Controller::create(m_settings, settingsKeys, false));
     }
 
-    if (m_state != StRunning) {
+    // Not the state, as the worker keeps running after a connection error (StError) or disconnect (StIdle)
+    if (!m_thread) {
         start();
     }
 }
@@ -259,18 +260,16 @@ bool GS232Controller::handleMessage(const Message& cmd)
             // Is it from the selected pipe?
             if (msg.getPipeSource() == m_selectedPipe)
             {
-                if (getMessageQueueToGUI())
-                {
-                    // Forward to GUI - which will then send us updated settings
+                // Apply the target here rather than having the GUI send it back, so a target can't be
+                // applied after tracking has been switched off (E.g. by Park) - applySettings will propagate to worker
+                SWGSDRangel::SWGTargetAzimuthElevation *swgTarget = msg.getSWGTargetAzimuthElevation();
+                m_settings.m_azimuth = swgTarget->getAzimuth();
+                m_settings.m_elevation = swgTarget->getElevation();
+                applySettings(m_settings, QList<QString>{"azimuth", "elevation"});
+
+                if (getMessageQueueToGUI()) {
+                    // Forward to GUI, for display only
                     getMessageQueueToGUI()->push(new MainCore::MsgTargetAzimuthElevation(msg));
-                }
-                else
-                {
-                    // No GUI, so save source - applySettings will propagate to worker
-                    SWGSDRangel::SWGTargetAzimuthElevation *swgTarget = msg.getSWGTargetAzimuthElevation();
-                    m_settings.m_azimuth = swgTarget->getAzimuth();
-                    m_settings.m_elevation = swgTarget->getElevation();
-                    applySettings(m_settings, QList<QString>{"azimuth", "elevation"});
                 }
             }
         }
@@ -451,18 +450,26 @@ int GS232Controller::webapiActionsPost(
 
     if (swgGS232ControllerActions)
     {
+        bool parkAction = featureActionsKeys.contains("park");
+
+        if (parkAction && (swgGS232ControllerActions->getPark() == 0))
+        {
+            errorMessage = "park must be 1";
+            return 400;
+        }
+
         if (featureActionsKeys.contains("run"))
         {
             bool featureRun = swgGS232ControllerActions->getRun() != 0;
             MsgStartStop *msg = MsgStartStop::create(featureRun);
             getInputMessageQueue()->push(msg);
-            return 202;
         }
-        else if (featureActionsKeys.contains("park"))
+        if (parkAction) {
+            getInputMessageQueue()->push(MsgPark::create());
+        }
+
+        if (featureActionsKeys.contains("run") || parkAction)
         {
-            if (swgGS232ControllerActions->getPark() != 0) {
-                getInputMessageQueue()->push(MsgPark::create());
-            }
             return 202;
         }
         else

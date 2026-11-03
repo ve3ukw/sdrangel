@@ -220,7 +220,7 @@
         <item>
          <widget class="QToolButton" name="parkRotators">
           <property name="toolTip">
-           <string>Park the rotators that follow this Satellite Tracker (or all Rotator Controllers, if none follow it). Tracking is stopped until the rotators are tracking again (E.g. by selecting a transmitter or checking Track in the Rotator Controller)</string>
+           <string>Park the rotators that follow this Satellite Tracker (or the only Rotator Controller, if it has no source). Tracking is stopped until the rotators are tracking again (E.g. by selecting a transmitter or checking Track in the Rotator Controller)</string>
           </property>
           <property name="text">
            <string>Park</string>

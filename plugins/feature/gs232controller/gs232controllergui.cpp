@@ -166,20 +166,24 @@ bool GS232ControllerGUI::handleMessage(const Message& message)
     {
         MainCore::MsgTargetAzimuthElevation& msg = (MainCore::MsgTargetAzimuthElevation&) message;
         SWGSDRangel::SWGTargetAzimuthElevation *swgTarget = msg.getSWGTargetAzimuthElevation();
-        float coord1, coord2;
-        azElToDisplay(swgTarget->getAzimuth(), swgTarget->getElevation(), coord1, coord2);
-        // Set both coordinates before applying, so a single position is sent to the rotator,
-        // rather than one with the new azimuth and old elevation, followed by another
-        ui->coord1->blockSignals(true);
-        ui->coord2->blockSignals(true);
-        ui->coord1->setValue(coord1);
-        ui->coord2->setValue(coord2);
-        ui->coord1->blockSignals(false);
-        ui->coord2->blockSignals(false);
-        m_inputCoord1 = ui->coord1->value();
-        m_inputCoord2 = ui->coord2->value();
-        displayToAzEl(ui->coord1->value(), ui->coord2->value());
-        ui->targetName->setText(*swgTarget->getName());
+        // Display only: the feature has already applied the target. Ignore one that was queued before
+        // tracking was switched off (E.g. by Park), so it doesn't overwrite the park position
+        if (m_settings.m_track)
+        {
+            float coord1, coord2;
+            m_settings.m_azimuth = swgTarget->getAzimuth();
+            m_settings.m_elevation = swgTarget->getElevation();
+            azElToDisplay(m_settings.m_azimuth, m_settings.m_elevation, coord1, coord2);
+            ui->coord1->blockSignals(true);
+            ui->coord2->blockSignals(true);
+            ui->coord1->setValue(coord1);
+            ui->coord2->setValue(coord2);
+            ui->coord1->blockSignals(false);
+            ui->coord2->blockSignals(false);
+            m_inputCoord1 = ui->coord1->value();
+            m_inputCoord2 = ui->coord2->value();
+            ui->targetName->setText(*swgTarget->getName());
+        }
         return true;
     }
     else if (GS232Controller::MsgReportSerialPorts::match(message))
