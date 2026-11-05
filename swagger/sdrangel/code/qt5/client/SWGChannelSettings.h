@@ -89,6 +89,8 @@
 #include "SWGRemoteTCPSinkSettings.h"
 #include "SWGSSBDemodSettings.h"
 #include "SWGSSTVDemodSettings.h"
+#include "SWGSSDVDemodSettings.h"
+#include "SWGSSDVModSettings.h"
 #include "SWGVARADemodSettings.h"
 #include "SWGVARAModSettings.h"
 #include "SWGSSBModSettings.h"
@@ -337,6 +339,12 @@ public:
     SWGSSTVDemodSettings* getSstvDemodSettings();
     void setSstvDemodSettings(SWGSSTVDemodSettings* sstv_demod_settings);
 
+    SWGSSDVDemodSettings* getSsdvDemodSettings();
+    void setSsdvDemodSettings(SWGSSDVDemodSettings* ssdv_demod_settings);
+
+    SWGSSDVModSettings* getSsdvModSettings();
+    void setSsdvModSettings(SWGSSDVModSettings* ssdv_mod_settings);
+
     SWGVARADemodSettings* getVaraDemodSettings();
     void setVaraDemodSettings(SWGVARADemodSettings* vara_demod_settings);
 
@@ -582,6 +590,12 @@ private:
 
     SWGSSTVDemodSettings* sstv_demod_settings;
     bool m_sstv_demod_settings_isSet;
+
+    SWGSSDVDemodSettings* ssdv_demod_settings;
+    bool m_ssdv_demod_settings_isSet;
+
+    SWGSSDVModSettings* ssdv_mod_settings;
+    bool m_ssdv_mod_settings_isSet;
 
     SWGVARADemodSettings* vara_demod_settings;
     bool m_vara_demod_settings_isSet;

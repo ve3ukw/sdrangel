@@ -370,6 +370,10 @@
 #include "SWGSSBModSettings.h"
 #include "SWGSSTVDemodReport.h"
 #include "SWGSSTVDemodSettings.h"
+#include "SWGSSDVDemodReport.h"
+#include "SWGSSDVDemodSettings.h"
+#include "SWGSSDVModReport.h"
+#include "SWGSSDVModSettings.h"
 #include "SWGVARADemodReport.h"
 #include "SWGVARADemodSettings.h"
 #include "SWGVARAModReport.h"
@@ -2238,6 +2242,26 @@ namespace SWGSDRangel {
     }
     if(QString("SWGSSTVDemodSettings").compare(type) == 0) {
       SWGSSTVDemodSettings *obj = new SWGSSTVDemodSettings();
+      obj->init();
+      return obj;
+    }
+    if(QString("SWGSSDVDemodReport").compare(type) == 0) {
+      SWGSSDVDemodReport *obj = new SWGSSDVDemodReport();
+      obj->init();
+      return obj;
+    }
+    if(QString("SWGSSDVDemodSettings").compare(type) == 0) {
+      SWGSSDVDemodSettings *obj = new SWGSSDVDemodSettings();
+      obj->init();
+      return obj;
+    }
+    if(QString("SWGSSDVModReport").compare(type) == 0) {
+      SWGSSDVModReport *obj = new SWGSSDVModReport();
+      obj->init();
+      return obj;
+    }
+    if(QString("SWGSSDVModSettings").compare(type) == 0) {
+      SWGSSDVModSettings *obj = new SWGSSDVModSettings();
       obj->init();
       return obj;
     }

@@ -1,0 +1,157 @@
+SSDVModSettings:
+  description: SSDVMod
+  properties:
+    inputFrequencyOffset:
+      description: "channel center frequency shift from baseband center in Hz"
+      type: integer
+      format: int64
+    baudRate:
+      description: "Symbol rate"
+      type: integer
+    rrcRolloff:
+      description: "Root raised cosine filter roll-off"
+      type: number
+      format: float
+    gain:
+      description: "Output gain in dB"
+      type: number
+      format: float
+    channelMute:
+      description: "Mute the channel (1 for yes, 0 for no)"
+      type: integer
+    frameSize:
+      description: "CCSDS frame size in bytes, without RS parity"
+      type: integer
+    rs:
+      description: "Reed-Solomon (255,223) (1 for yes, 0 for no)"
+      type: integer
+    dualBasis:
+      description: "Reed-Solomon in dual basis rather than conventional (1 for yes, 0 for no)"
+      type: integer
+    randomizer:
+      description: "CCSDS pseudo-randomizer (1 for yes, 0 for no)"
+      type: integer
+    differential:
+      description: "Differential coding inside the convolutional code (1 for yes, 0 for no)"
+      type: integer
+    convolutional:
+      description: "Rate 1/2, K=7 convolutional code (1 for yes, 0 for no)"
+      type: integer
+    packetFormat:
+      description: >
+        How SSDV packets are carried in the frames
+          * 0 - AO-123: 5 byte TM header and a DSLWP SSDV packet in each frame
+          * 1 - Standard 256 byte SSDV packets as a byte stream after the TM header
+      type: integer
+    callsign:
+      description: "Callsign in standard SSDV packets"
+      type: string
+    spacecraftId:
+      description: "TM frame spacecraft ID"
+      type: integer
+    virtualChannel:
+      description: "TM frame virtual channel of image frames"
+      type: integer
+    imageFilename:
+      description: "Image to send, or a directory whose images are sent in turn"
+      type: string
+    imageId:
+      description: "SSDV image ID of the next image, incremented after each one"
+      type: integer
+    quality:
+      description: "SSDV quality level 0 to 7"
+      type: integer
+    width:
+      description: "Image width, multiple of 16"
+      type: integer
+    height:
+      description: "Image height, multiple of 16"
+      type: integer
+    fill:
+      description: "Fit the whole image and pad, rather than crop (1 for yes, 0 for no)"
+      type: integer
+    preambleMs:
+      description: "Idle frames sent before an image in ms"
+      type: integer
+    repeat:
+      description: "Send images continuously (1 for yes, 0 for no)"
+      type: integer
+    repeatDelay:
+      description: "Delay between images in seconds"
+      type: number
+      format: float
+    rgbColor:
+      description: "Display color encoded as an RGB integer."
+      type: integer
+    title:
+      description: "User-visible title."
+      type: string
+    streamIndex:
+      description: "MIMO channel. Not relevant when connected to SI (single Rx)."
+      type: integer
+    useReverseAPI:
+      description: "Synchronize with reverse API (1 for yes, 0 for no)"
+      type: integer
+    reverseAPIAddress:
+      description: "IPv4 address or host name of the reverse API peer."
+      type: string
+    reverseAPIPort:
+      description: "TCP port of the reverse API peer."
+      type: integer
+    reverseAPIDeviceIndex:
+      description: "Device-set index used by the reverse API peer."
+      type: integer
+    reverseAPIChannelIndex:
+      description: "Channel index used by the reverse API peer."
+      type: integer
+    channelMarker:
+      $ref: "http://swgserver:8081/api/swagger/include/ChannelMarker.yaml#/ChannelMarker"
+      description: "Channel-marker display configuration."
+    rollupState:
+      $ref: "http://swgserver:8081/api/swagger/include/RollupState.yaml#/RollupState"
+      description: "Rollup display state."
+
+SSDVModReport:
+  description: SSDVMod
+  properties:
+    channelPowerDB:
+      description: "Channel power in dB"
+      type: number
+      format: float
+    channelSampleRate:
+      description: "Channel sample rate in Hz."
+      type: integer
+    transmitting:
+      description: "An image is being sent (1 for yes, 0 for no)"
+      type: integer
+    imageId:
+      description: "SSDV image ID of the image being sent"
+      type: integer
+    packetsSent:
+      description: "Packets of the image sent so far"
+      type: integer
+    packetCount:
+      description: "Packets in the image being sent"
+      type: integer
+    imagesSent:
+      description: "Images sent"
+      type: integer
+    error:
+      description: "Why the last image could not be sent"
+      type: string
+
+SSDVModActions:
+  description: SSDVMod
+  properties:
+    tx:
+      description: >
+        Send the image, or the next image of the folder, then more if repeat is on
+          * 0 - Do nothing
+          * 1 - Send
+      type: integer
+    stop:
+      description: >
+        Stop sending
+          * 0 - Do nothing
+          * 1 - Stop
+      type: integer

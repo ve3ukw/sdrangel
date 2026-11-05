@@ -64,6 +64,8 @@ SWGChannelActions::SWGChannelActions() {
     m_radio_astronomy_actions_isSet = false;
     rtty_mod_actions = nullptr;
     m_rtty_mod_actions_isSet = false;
+    ssdv_mod_actions = nullptr;
+    m_ssdv_mod_actions_isSet = false;
     sig_mf_file_sink_actions = nullptr;
     m_sig_mf_file_sink_actions_isSet = false;
 }
@@ -110,6 +112,8 @@ SWGChannelActions::init() {
     m_radio_astronomy_actions_isSet = false;
     rtty_mod_actions = new SWGRTTYModActions();
     m_rtty_mod_actions_isSet = false;
+    ssdv_mod_actions = new SWGSSDVModActions();
+    m_ssdv_mod_actions_isSet = false;
     sig_mf_file_sink_actions = new SWGSigMFFileSinkActions();
     m_sig_mf_file_sink_actions_isSet = false;
 }
@@ -164,6 +168,9 @@ SWGChannelActions::cleanup() {
     if(rtty_mod_actions != nullptr) { 
         delete rtty_mod_actions;
     }
+    if(ssdv_mod_actions != nullptr) { 
+        delete ssdv_mod_actions;
+    }
     if(sig_mf_file_sink_actions != nullptr) { 
         delete sig_mf_file_sink_actions;
     }
@@ -215,6 +222,7 @@ SWGChannelActions::fromJsonObject(QJsonObject &pJson) {
     ::SWGSDRangel::setValue(&radio_astronomy_actions, pJson["RadioAstronomyActions"], "SWGRadioAstronomyActions", "SWGRadioAstronomyActions");
     
     ::SWGSDRangel::setValue(&rtty_mod_actions, pJson["RTTYModActions"], "SWGRTTYModActions", "SWGRTTYModActions");
+    ::SWGSDRangel::setValue(&ssdv_mod_actions, pJson["SSDVModActions"], "SWGSSDVModActions", "SWGSSDVModActions");
     
     ::SWGSDRangel::setValue(&sig_mf_file_sink_actions, pJson["SigMFFileSinkActions"], "SWGSigMFFileSinkActions", "SWGSigMFFileSinkActions");
     
@@ -287,6 +295,9 @@ SWGChannelActions::asJsonObject() {
     }
     if((rtty_mod_actions != nullptr) && (rtty_mod_actions->isSet())){
         toJsonValue(QString("RTTYModActions"), rtty_mod_actions, obj, QString("SWGRTTYModActions"));
+    }
+    if((ssdv_mod_actions != nullptr) && (ssdv_mod_actions->isSet())){
+        toJsonValue(QString("SSDVModActions"), ssdv_mod_actions, obj, QString("SWGSSDVModActions"));
     }
     if((sig_mf_file_sink_actions != nullptr) && (sig_mf_file_sink_actions->isSet())){
         toJsonValue(QString("SigMFFileSinkActions"), sig_mf_file_sink_actions, obj, QString("SWGSigMFFileSinkActions"));
@@ -475,6 +486,16 @@ SWGChannelActions::setRttyModActions(SWGRTTYModActions* rtty_mod_actions) {
     this->m_rtty_mod_actions_isSet = true;
 }
 
+SWGSSDVModActions*
+SWGChannelActions::getSsdvModActions() {
+    return ssdv_mod_actions;
+}
+void
+SWGChannelActions::setSsdvModActions(SWGSSDVModActions* ssdv_mod_actions) {
+    this->ssdv_mod_actions = ssdv_mod_actions;
+    this->m_ssdv_mod_actions_isSet = true;
+}
+
 SWGSigMFFileSinkActions*
 SWGChannelActions::getSigMfFileSinkActions() {
     return sig_mf_file_sink_actions;
@@ -542,6 +563,9 @@ SWGChannelActions::isSet(){
             isObjectUpdated = true; break;
         }
         if(rtty_mod_actions && rtty_mod_actions->isSet()){
+            isObjectUpdated = true; break;
+        }
+        if(ssdv_mod_actions && ssdv_mod_actions->isSet()){
             isObjectUpdated = true; break;
         }
         if(sig_mf_file_sink_actions && sig_mf_file_sink_actions->isSet()){

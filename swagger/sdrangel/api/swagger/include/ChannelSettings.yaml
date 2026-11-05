@@ -221,6 +221,12 @@ ChannelSettings:
     SSTVDemodSettings:
       $ref: "http://swgserver:8081/api/swagger/include/SSTVDemod.yaml#/SSTVDemodSettings"
       description: "Sstv demod settings configuration for Channel."
+    SSDVDemodSettings:
+      $ref: "http://swgserver:8081/api/swagger/include/SSDVDemod.yaml#/SSDVDemodSettings"
+      description: "Ssdv demod settings configuration for Channel."
+    SSDVModSettings:
+      $ref: "http://swgserver:8081/api/swagger/include/SSDVMod.yaml#/SSDVModSettings"
+      description: "Ssdv mod settings configuration for Channel."
     VARADemodSettings:
       $ref: "http://swgserver:8081/api/swagger/include/VARADemod.yaml#/VARADemodSettings"
       description: "Vara demod settings configuration for Channel."

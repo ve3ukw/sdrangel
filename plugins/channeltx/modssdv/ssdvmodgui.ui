@@ -1,0 +1,987 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>SSDVModGUI</class>
+ <widget class="RollupContents" name="SSDVModGUI">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>420</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>400</width>
+    <height>0</height>
+   </size>
+  </property>
+  <property name="font">
+   <font>
+    <family>Liberation Sans</family>
+    <pointsize>9</pointsize>
+   </font>
+  </property>
+  <property name="windowTitle">
+   <string>SSDV Modulator</string>
+  </property>
+  <widget class="QWidget" name="settingsContainer" native="true">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>418</width>
+     <height>160</height>
+    </rect>
+   </property>
+   <property name="minimumSize">
+    <size>
+     <width>400</width>
+     <height>0</height>
+    </size>
+   </property>
+   <property name="windowTitle">
+    <string>Settings</string>
+   </property>
+   <layout class="QVBoxLayout" name="settingsLayout">
+    <property name="spacing">
+     <number>3</number>
+    </property>
+    <property name="leftMargin">
+     <number>3</number>
+    </property>
+    <property name="topMargin">
+     <number>3</number>
+    </property>
+    <property name="rightMargin">
+     <number>3</number>
+    </property>
+    <property name="bottomMargin">
+     <number>3</number>
+    </property>
+    <item>
+     <layout class="QHBoxLayout" name="frequencyPowerLayout">
+      <item>
+       <widget class="QLabel" name="deltaFrequencyLabel">
+        <property name="text">
+         <string>Df</string>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>16</width>
+          <height>0</height>
+         </size>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="ValueDialZ" name="deltaFrequency" native="true">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>32</width>
+          <height>16</height>
+         </size>
+        </property>
+        <property name="font">
+         <font>
+          <family>Liberation Mono</family>
+          <pointsize>12</pointsize>
+         </font>
+        </property>
+        <property name="cursor">
+         <cursorShape>PointingHandCursor</cursorShape>
+        </property>
+        <property name="focusPolicy">
+         <enum>Qt::StrongFocus</enum>
+        </property>
+        <property name="toolTip">
+         <string>Channel shift frequency from center in Hz</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="deltaFrequencyUnits">
+        <property name="text">
+         <string>Hz </string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="frequencySpacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QLabel" name="channelPower">
+        <property name="text">
+         <string>-100.0</string>
+        </property>
+        <property name="toolTip">
+         <string>Channel power</string>
+        </property>
+        <property name="layoutDirection">
+         <enum>Qt::RightToLeft</enum>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="channelPowerUnits">
+        <property name="text">
+         <string> dB</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QToolButton" name="channelMute">
+        <property name="toolTip">
+         <string>Mute the channel</string>
+        </property>
+        <property name="text">
+         <string>...</string>
+        </property>
+        <property name="icon">
+         <iconset resource="../../../sdrgui/resources/res.qrc">
+          <normaloff>:/txon.png</normaloff>
+          <normalon>:/txoff.png</normalon>
+         </iconset>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="levelLayout">
+      <item>
+       <widget class="QLabel" name="gainLabel">
+        <property name="text">
+         <string>Gain</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QSpinBox" name="gain">
+        <property name="toolTip">
+         <string>Output gain</string>
+        </property>
+        <property name="minimum">
+         <number>-60</number>
+        </property>
+        <property name="maximum">
+         <number>0</number>
+        </property>
+        <property name="singleStep">
+         <number>1</number>
+        </property>
+        <property name="suffix">
+         <string> dB</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="levelLabel">
+        <property name="text">
+         <string>Level</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="LevelMeterVU" name="volumeMeter" native="true">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="MinimumExpanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>24</height>
+         </size>
+        </property>
+        <property name="font">
+         <font>
+          <family>Liberation Mono</family>
+          <pointsize>8</pointsize>
+         </font>
+        </property>
+        <property name="toolTip">
+         <string>Level (% full range) top trace: average, bottom trace: instantaneous peak, tip: peak hold</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="modLayout">
+      <item>
+       <widget class="QLabel" name="baudRateLabel">
+        <property name="text">
+         <string>Baud</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QComboBox" name="baudRate">
+        <property name="toolTip">
+         <string>Symbol rate</string>
+        </property>
+        <item>
+         <property name="text">
+          <string>1200</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>2400</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>4800</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>9600</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>19200</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>38400</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="rrcRolloffLabel">
+        <property name="text">
+         <string>RRC</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QSpinBox" name="rrcRolloff">
+        <property name="toolTip">
+         <string>Root raised cosine filter roll-off</string>
+        </property>
+        <property name="minimum">
+         <number>10</number>
+        </property>
+        <property name="maximum">
+         <number>100</number>
+        </property>
+        <property name="singleStep">
+         <number>5</number>
+        </property>
+        <property name="suffix">
+         <string> %</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="callsignLabel">
+        <property name="text">
+         <string>Call</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLineEdit" name="callsign">
+        <property name="toolTip">
+         <string>Callsign in standard SSDV packets (up to 6 characters). AO-123 packets carry none</string>
+        </property>
+        <property name="maxLength">
+         <number>6</number>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>70</width>
+          <height>16777215</height>
+         </size>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="spacecraftIdLabel">
+        <property name="text">
+         <string>SCID</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QSpinBox" name="spacecraftId">
+        <property name="toolTip">
+         <string>TM frame spacecraft ID</string>
+        </property>
+        <property name="minimum">
+         <number>0</number>
+        </property>
+        <property name="maximum">
+         <number>1023</number>
+        </property>
+        <property name="singleStep">
+         <number>1</number>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="virtualChannelLabel">
+        <property name="text">
+         <string>VC</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QSpinBox" name="virtualChannel">
+        <property name="toolTip">
+         <string>TM frame virtual channel of image frames (7 is used for idle frames)</string>
+        </property>
+        <property name="minimum">
+         <number>0</number>
+        </property>
+        <property name="maximum">
+         <number>6</number>
+        </property>
+        <property name="singleStep">
+         <number>1</number>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="modSpacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="codingLayout">
+      <item>
+       <widget class="QLabel" name="packetFormatLabel">
+        <property name="text">
+         <string>Format</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QComboBox" name="packetFormat">
+        <property name="toolTip">
+         <string>How SSDV packets are carried in the frames</string>
+        </property>
+        <item>
+         <property name="text">
+          <string>AO-123</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Standard</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="frameSizeLabel">
+        <property name="text">
+         <string>Frame</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QSpinBox" name="frameSize">
+        <property name="toolTip">
+         <string>CCSDS frame size in bytes, without the RS parity</string>
+        </property>
+        <property name="minimum">
+         <number>6</number>
+        </property>
+        <property name="maximum">
+         <number>223</number>
+        </property>
+        <property name="singleStep">
+         <number>1</number>
+        </property>
+        <property name="suffix">
+         <string> B</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="ButtonSwitch" name="convolutional">
+        <property name="toolTip">
+         <string>Rate 1/2, K=7 convolutional code</string>
+        </property>
+        <property name="text">
+         <string>Conv</string>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="ButtonSwitch" name="differential">
+        <property name="toolTip">
+         <string>Differential coding inside the convolutional code</string>
+        </property>
+        <property name="text">
+         <string>Diff</string>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="ButtonSwitch" name="randomizer">
+        <property name="toolTip">
+         <string>CCSDS pseudo-randomizer</string>
+        </property>
+        <property name="text">
+         <string>Scr</string>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="ButtonSwitch" name="rs">
+        <property name="toolTip">
+         <string>Reed-Solomon (255,223)</string>
+        </property>
+        <property name="text">
+         <string>RS</string>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="ButtonSwitch" name="dualBasis">
+        <property name="toolTip">
+         <string>Reed-Solomon in dual basis rather than conventional</string>
+        </property>
+        <property name="text">
+         <string>Dual</string>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="codingSpacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+     </layout>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QWidget" name="imageContainer" native="true">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>170</y>
+     <width>418</width>
+     <height>420</height>
+    </rect>
+   </property>
+   <property name="minimumSize">
+    <size>
+     <width>400</width>
+     <height>0</height>
+    </size>
+   </property>
+   <property name="windowTitle">
+    <string>Image</string>
+   </property>
+   <layout class="QVBoxLayout" name="imageLayout">
+    <property name="spacing">
+     <number>3</number>
+    </property>
+    <property name="leftMargin">
+     <number>3</number>
+    </property>
+    <property name="topMargin">
+     <number>3</number>
+    </property>
+    <property name="rightMargin">
+     <number>3</number>
+    </property>
+    <property name="bottomMargin">
+     <number>3</number>
+    </property>
+    <item>
+     <layout class="QHBoxLayout" name="fileLayout">
+      <item>
+       <widget class="QLabel" name="imageFilenameLabel">
+        <property name="text">
+         <string>Image</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLineEdit" name="imageFilename">
+        <property name="toolTip">
+         <string>Image to send, or a folder whose images are sent in turn</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QToolButton" name="imageFileBrowse">
+        <property name="toolTip">
+         <string>Select an image to send</string>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+        <property name="icon">
+         <iconset resource="../../../sdrgui/resources/res.qrc">
+          <normaloff>:/picture.png</normaloff>
+         </iconset>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QToolButton" name="imageDirectoryBrowse">
+        <property name="toolTip">
+         <string>Select a folder whose images are sent in turn</string>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+        <property name="icon">
+         <iconset resource="../../../sdrgui/resources/res.qrc">
+          <normaloff>:/load.png</normaloff>
+         </iconset>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="imageSettingsLayout">
+      <item>
+       <widget class="QLabel" name="imageIdLabel">
+        <property name="text">
+         <string>ID</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QSpinBox" name="imageId">
+        <property name="toolTip">
+         <string>SSDV image ID of the next image. Incremented after each image</string>
+        </property>
+        <property name="minimum">
+         <number>0</number>
+        </property>
+        <property name="maximum">
+         <number>255</number>
+        </property>
+        <property name="singleStep">
+         <number>1</number>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="qualityLabel">
+        <property name="text">
+         <string>Q</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QSpinBox" name="quality">
+        <property name="toolTip">
+         <string>SSDV quality level, 0 (smallest) to 7 (best). 4 is the SSDV default</string>
+        </property>
+        <property name="minimum">
+         <number>0</number>
+        </property>
+        <property name="maximum">
+         <number>7</number>
+        </property>
+        <property name="singleStep">
+         <number>1</number>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="sizeLabel">
+        <property name="text">
+         <string>Size</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QSpinBox" name="width">
+        <property name="toolTip">
+         <string>Image width (multiple of 16)</string>
+        </property>
+        <property name="minimum">
+         <number>16</number>
+        </property>
+        <property name="maximum">
+         <number>4080</number>
+        </property>
+        <property name="singleStep">
+         <number>16</number>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="sizeXLabel">
+        <property name="text">
+         <string>x</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QSpinBox" name="height">
+        <property name="toolTip">
+         <string>Image height (multiple of 16)</string>
+        </property>
+        <property name="minimum">
+         <number>16</number>
+        </property>
+        <property name="maximum">
+         <number>4080</number>
+        </property>
+        <property name="singleStep">
+         <number>16</number>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="ButtonSwitch" name="fill">
+        <property name="toolTip">
+         <string>Fit the whole image and pad with black, rather than crop to fill</string>
+        </property>
+        <property name="text">
+         <string>Fit</string>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="imageSettingsSpacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="txSettingsLayout">
+      <item>
+       <widget class="QLabel" name="preambleLabel">
+        <property name="text">
+         <string>Preamble</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QSpinBox" name="preambleMs">
+        <property name="toolTip">
+         <string>Idle frames sent before the image, so the receiver can lock</string>
+        </property>
+        <property name="minimum">
+         <number>0</number>
+        </property>
+        <property name="maximum">
+         <number>10000</number>
+        </property>
+        <property name="singleStep">
+         <number>100</number>
+        </property>
+        <property name="suffix">
+         <string> ms</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="ButtonSwitch" name="repeat">
+        <property name="toolTip">
+         <string>Send images continuously</string>
+        </property>
+        <property name="text">
+         <string>Repeat</string>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="repeatDelayLabel">
+        <property name="text">
+         <string>Delay</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QSpinBox" name="repeatDelay">
+        <property name="toolTip">
+         <string>Delay between images</string>
+        </property>
+        <property name="minimum">
+         <number>0</number>
+        </property>
+        <property name="maximum">
+         <number>3600</number>
+        </property>
+        <property name="singleStep">
+         <number>1</number>
+        </property>
+        <property name="suffix">
+         <string> s</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="txSettingsSpacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <widget class="QLabel" name="image">
+      <property name="toolTip">
+       <string>Image being sent, as scaled</string>
+      </property>
+      <property name="minimumSize">
+       <size>
+        <width>320</width>
+        <height>256</height>
+       </size>
+      </property>
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+      <property name="styleSheet">
+       <string>background-color: black</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="txLayout">
+      <item>
+       <widget class="QPushButton" name="tx">
+        <property name="toolTip">
+         <string>Send the image (or the next image of the folder)</string>
+        </property>
+        <property name="text">
+         <string>TX</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="stop">
+        <property name="toolTip">
+         <string>Stop sending</string>
+        </property>
+        <property name="text">
+         <string>Stop</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QProgressBar" name="progress">
+        <property name="toolTip">
+         <string>Packets sent</string>
+        </property>
+        <property name="value">
+         <number>0</number>
+        </property>
+        <property name="format">
+         <string>%v/%m</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="status">
+        <property name="text">
+         <string>Idle</string>
+        </property>
+        <property name="toolTip">
+         <string>Status</string>
+        </property>
+        <property name="textInteractionFlags">
+         <set>Qt::TextSelectableByMouse</set>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+   </layout>
+  </widget>
+ </widget>
+ <customwidgets>
+  
+  
+  <customwidget>
+   <class>RollupContents</class>
+   <extends>QWidget</extends>
+   <header>gui/rollupcontents.h</header>
+   <container>1</container>
+  </customwidget>
+  
+  
+  <customwidget>
+   <class>ValueDialZ</class>
+   <extends>QWidget</extends>
+   <header>gui/valuedialz.h</header>
+   <container>1</container>
+  </customwidget>
+  
+  
+  <customwidget>
+   <class>ButtonSwitch</class>
+   <extends>QToolButton</extends>
+   <header>gui/buttonswitch.h</header>
+  </customwidget>
+  
+  
+  <customwidget>
+   <class>LevelMeterVU</class>
+   <extends>QWidget</extends>
+   <header>gui/levelmeter.h</header>
+   <container>1</container>
+  </customwidget>
+  
+  
+  <customwidget>
+   <class>LevelMeterSignalDB</class>
+   <extends>QWidget</extends>
+   <header>gui/levelmeter.h</header>
+   <container>1</container>
+  </customwidget>
+  
+  
+  <customwidget>
+   <class>GLScope</class>
+   <extends>QWidget</extends>
+   <header>gui/glscope.h</header>
+   <container>1</container>
+  </customwidget>
+  
+  
+  <customwidget>
+   <class>GLScopeGUI</class>
+   <extends>QWidget</extends>
+   <header>gui/glscopegui.h</header>
+   <container>1</container>
+  </customwidget>
+  
+ 
+ </customwidgets>
+ <tabstops>
+  <tabstop>deltaFrequency</tabstop>
+  <tabstop>channelMute</tabstop>
+  <tabstop>gain</tabstop>
+  <tabstop>baudRate</tabstop>
+  <tabstop>rrcRolloff</tabstop>
+  <tabstop>callsign</tabstop>
+  <tabstop>spacecraftId</tabstop>
+  <tabstop>virtualChannel</tabstop>
+  <tabstop>packetFormat</tabstop>
+  <tabstop>frameSize</tabstop>
+  <tabstop>convolutional</tabstop>
+  <tabstop>differential</tabstop>
+  <tabstop>randomizer</tabstop>
+  <tabstop>rs</tabstop>
+  <tabstop>dualBasis</tabstop>
+  <tabstop>imageFilename</tabstop>
+  <tabstop>imageFileBrowse</tabstop>
+  <tabstop>imageDirectoryBrowse</tabstop>
+  <tabstop>imageId</tabstop>
+  <tabstop>quality</tabstop>
+  <tabstop>width</tabstop>
+  <tabstop>height</tabstop>
+  <tabstop>fill</tabstop>
+  <tabstop>preambleMs</tabstop>
+  <tabstop>repeat</tabstop>
+  <tabstop>repeatDelay</tabstop>
+  <tabstop>tx</tabstop>
+  <tabstop>stop</tabstop>
+ </tabstops>
+ <resources>
+  <include location="../../../sdrgui/resources/res.qrc"/>
+ </resources>
+ <connections/>
+</ui>

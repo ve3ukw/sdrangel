@@ -174,6 +174,10 @@ SWGChannelSettings::SWGChannelSettings() {
     m_ssb_demod_settings_isSet = false;
     sstv_demod_settings = nullptr;
     m_sstv_demod_settings_isSet = false;
+    ssdv_demod_settings = nullptr;
+    m_ssdv_demod_settings_isSet = false;
+    ssdv_mod_settings = nullptr;
+    m_ssdv_mod_settings_isSet = false;
     vara_demod_settings = nullptr;
     m_vara_demod_settings_isSet = false;
     vara_mod_settings = nullptr;
@@ -344,6 +348,10 @@ SWGChannelSettings::init() {
     m_ssb_demod_settings_isSet = false;
     sstv_demod_settings = new SWGSSTVDemodSettings();
     m_sstv_demod_settings_isSet = false;
+    ssdv_demod_settings = new SWGSSDVDemodSettings();
+    m_ssdv_demod_settings_isSet = false;
+    ssdv_mod_settings = new SWGSSDVModSettings();
+    m_ssdv_mod_settings_isSet = false;
     vara_demod_settings = new SWGVARADemodSettings();
     m_vara_demod_settings_isSet = false;
     vara_mod_settings = new SWGVARAModSettings();
@@ -577,6 +585,12 @@ SWGChannelSettings::cleanup() {
     if(sstv_demod_settings != nullptr) { 
         delete sstv_demod_settings;
     }
+    if(ssdv_demod_settings != nullptr) { 
+        delete ssdv_demod_settings;
+    }
+    if(ssdv_mod_settings != nullptr) { 
+        delete ssdv_mod_settings;
+    }
     if(vara_demod_settings != nullptr) { 
         delete vara_demod_settings;
     }
@@ -755,6 +769,10 @@ SWGChannelSettings::fromJsonObject(QJsonObject &pJson) {
     ::SWGSDRangel::setValue(&ssb_demod_settings, pJson["SSBDemodSettings"], "SWGSSBDemodSettings", "SWGSSBDemodSettings");
     
     ::SWGSDRangel::setValue(&sstv_demod_settings, pJson["SSTVDemodSettings"], "SWGSSTVDemodSettings", "SWGSSTVDemodSettings");
+    
+    ::SWGSDRangel::setValue(&ssdv_demod_settings, pJson["SSDVDemodSettings"], "SWGSSDVDemodSettings", "SWGSSDVDemodSettings");
+    
+    ::SWGSDRangel::setValue(&ssdv_mod_settings, pJson["SSDVModSettings"], "SWGSSDVModSettings", "SWGSSDVModSettings");
     
     ::SWGSDRangel::setValue(&vara_demod_settings, pJson["VARADemodSettings"], "SWGVARADemodSettings", "SWGVARADemodSettings");
     
@@ -1006,6 +1024,12 @@ SWGChannelSettings::asJsonObject() {
     }
     if((sstv_demod_settings != nullptr) && (sstv_demod_settings->isSet())){
         toJsonValue(QString("SSTVDemodSettings"), sstv_demod_settings, obj, QString("SWGSSTVDemodSettings"));
+    }
+    if((ssdv_demod_settings != nullptr) && (ssdv_demod_settings->isSet())){
+        toJsonValue(QString("SSDVDemodSettings"), ssdv_demod_settings, obj, QString("SWGSSDVDemodSettings"));
+    }
+    if((ssdv_mod_settings != nullptr) && (ssdv_mod_settings->isSet())){
+        toJsonValue(QString("SSDVModSettings"), ssdv_mod_settings, obj, QString("SWGSSDVModSettings"));
     }
     if((vara_demod_settings != nullptr) && (vara_demod_settings->isSet())){
         toJsonValue(QString("VARADemodSettings"), vara_demod_settings, obj, QString("SWGVARADemodSettings"));
@@ -1768,6 +1792,26 @@ SWGChannelSettings::setSstvDemodSettings(SWGSSTVDemodSettings* sstv_demod_settin
     this->m_sstv_demod_settings_isSet = true;
 }
 
+SWGSSDVDemodSettings*
+SWGChannelSettings::getSsdvDemodSettings() {
+    return ssdv_demod_settings;
+}
+void
+SWGChannelSettings::setSsdvDemodSettings(SWGSSDVDemodSettings* ssdv_demod_settings) {
+    this->ssdv_demod_settings = ssdv_demod_settings;
+    this->m_ssdv_demod_settings_isSet = true;
+}
+
+SWGSSDVModSettings*
+SWGChannelSettings::getSsdvModSettings() {
+    return ssdv_mod_settings;
+}
+void
+SWGChannelSettings::setSsdvModSettings(SWGSSDVModSettings* ssdv_mod_settings) {
+    this->ssdv_mod_settings = ssdv_mod_settings;
+    this->m_ssdv_mod_settings_isSet = true;
+}
+
 SWGVARADemodSettings*
 SWGChannelSettings::getVaraDemodSettings() {
     return vara_demod_settings;
@@ -2070,6 +2114,12 @@ SWGChannelSettings::isSet(){
             isObjectUpdated = true; break;
         }
         if(sstv_demod_settings && sstv_demod_settings->isSet()){
+            isObjectUpdated = true; break;
+        }
+        if(ssdv_demod_settings && ssdv_demod_settings->isSet()){
+            isObjectUpdated = true; break;
+        }
+        if(ssdv_mod_settings && ssdv_mod_settings->isSet()){
             isObjectUpdated = true; break;
         }
         if(vara_demod_settings && vara_demod_settings->isSet()){

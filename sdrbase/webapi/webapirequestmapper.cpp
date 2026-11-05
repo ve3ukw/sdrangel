@@ -5248,6 +5248,18 @@ bool WebAPIRequestMapper::getChannelSettings(
             channelSettings->getSstvDemodSettings()->init();
             channelSettings->getSstvDemodSettings()->fromJsonObject(settingsJsonObject);
         }
+        else if (channelSettingsKey == "SSDVDemodSettings")
+        {
+            channelSettings->setSsdvDemodSettings(new SWGSDRangel::SWGSSDVDemodSettings());
+            channelSettings->getSsdvDemodSettings()->init();
+            channelSettings->getSsdvDemodSettings()->fromJsonObject(settingsJsonObject);
+        }
+        else if (channelSettingsKey == "SSDVModSettings")
+        {
+            channelSettings->setSsdvModSettings(new SWGSDRangel::SWGSSDVModSettings());
+            channelSettings->getSsdvModSettings()->init();
+            channelSettings->getSsdvModSettings()->fromJsonObject(settingsJsonObject);
+        }
         else if (channelSettingsKey == "VARADemodSettings")
         {
             channelSettings->setVaraDemodSettings(new SWGSDRangel::SWGVARADemodSettings());
@@ -6163,6 +6175,8 @@ void WebAPIRequestMapper::resetChannelSettings(SWGSDRangel::SWGChannelSettings& 
     channelSettings.setRttyModSettings(nullptr);
     channelSettings.setSsbDemodSettings(nullptr);
     channelSettings.setSstvDemodSettings(nullptr);
+    channelSettings.setSsdvDemodSettings(nullptr);
+    channelSettings.setSsdvModSettings(nullptr);
     channelSettings.setVaraDemodSettings(nullptr);
     channelSettings.setVaraModSettings(nullptr);
     channelSettings.setSsbModSettings(nullptr);
@@ -6214,6 +6228,8 @@ void WebAPIRequestMapper::resetChannelReport(SWGSDRangel::SWGChannelReport& chan
     channelReport.setRttyModReport(nullptr);
     channelReport.setSsbDemodReport(nullptr);
     channelReport.setSstvDemodReport(nullptr);
+    channelReport.setSsdvDemodReport(nullptr);
+    channelReport.setSsdvModReport(nullptr);
     channelReport.setVaraDemodReport(nullptr);
     channelReport.setVaraModReport(nullptr);
     channelReport.setSsbModReport(nullptr);

@@ -80,6 +80,8 @@
 #include "SWGRemoteSourceReport.h"
 #include "SWGSSBDemodReport.h"
 #include "SWGSSTVDemodReport.h"
+#include "SWGSSDVDemodReport.h"
+#include "SWGSSDVModReport.h"
 #include "SWGVARADemodReport.h"
 #include "SWGVARAModReport.h"
 #include "SWGSSBModReport.h"
@@ -255,6 +257,12 @@ public:
 
     SWGSSTVDemodReport* getSstvDemodReport();
     void setSstvDemodReport(SWGSSTVDemodReport* sstv_demod_report);
+
+    SWGSSDVDemodReport* getSsdvDemodReport();
+    void setSsdvDemodReport(SWGSSDVDemodReport* ssdv_demod_report);
+
+    SWGSSDVModReport* getSsdvModReport();
+    void setSsdvModReport(SWGSSDVModReport* ssdv_mod_report);
 
     SWGVARADemodReport* getVaraDemodReport();
     void setVaraDemodReport(SWGVARADemodReport* vara_demod_report);
@@ -468,6 +476,12 @@ private:
 
     SWGSSTVDemodReport* sstv_demod_report;
     bool m_sstv_demod_report_isSet;
+
+    SWGSSDVDemodReport* ssdv_demod_report;
+    bool m_ssdv_demod_report_isSet;
+
+    SWGSSDVModReport* ssdv_mod_report;
+    bool m_ssdv_mod_report_isSet;
 
     SWGVARADemodReport* vara_demod_report;
     bool m_vara_demod_report_isSet;

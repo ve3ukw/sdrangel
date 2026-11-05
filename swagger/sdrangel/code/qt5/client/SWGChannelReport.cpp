@@ -126,6 +126,10 @@ SWGChannelReport::SWGChannelReport() {
     m_ssb_demod_report_isSet = false;
     sstv_demod_report = nullptr;
     m_sstv_demod_report_isSet = false;
+    ssdv_demod_report = nullptr;
+    m_ssdv_demod_report_isSet = false;
+    ssdv_mod_report = nullptr;
+    m_ssdv_mod_report_isSet = false;
     vara_demod_report = nullptr;
     m_vara_demod_report_isSet = false;
     vara_mod_report = nullptr;
@@ -274,6 +278,10 @@ SWGChannelReport::init() {
     m_ssb_demod_report_isSet = false;
     sstv_demod_report = new SWGSSTVDemodReport();
     m_sstv_demod_report_isSet = false;
+    ssdv_demod_report = new SWGSSDVDemodReport();
+    m_ssdv_demod_report_isSet = false;
+    ssdv_mod_report = new SWGSSDVModReport();
+    m_ssdv_mod_report_isSet = false;
     vara_demod_report = new SWGVARADemodReport();
     m_vara_demod_report_isSet = false;
     vara_mod_report = new SWGVARAModReport();
@@ -465,6 +473,12 @@ SWGChannelReport::cleanup() {
     if(sstv_demod_report != nullptr) { 
         delete sstv_demod_report;
     }
+    if(ssdv_demod_report != nullptr) { 
+        delete ssdv_demod_report;
+    }
+    if(ssdv_mod_report != nullptr) { 
+        delete ssdv_mod_report;
+    }
     if(vara_demod_report != nullptr) { 
         delete vara_demod_report;
     }
@@ -635,6 +649,10 @@ SWGChannelReport::fromJsonObject(QJsonObject &pJson) {
     ::SWGSDRangel::setValue(&ssb_demod_report, pJson["SSBDemodReport"], "SWGSSBDemodReport", "SWGSSBDemodReport");
     
     ::SWGSDRangel::setValue(&sstv_demod_report, pJson["SSTVDemodReport"], "SWGSSTVDemodReport", "SWGSSTVDemodReport");
+    
+    ::SWGSDRangel::setValue(&ssdv_demod_report, pJson["SSDVDemodReport"], "SWGSSDVDemodReport", "SWGSSDVDemodReport");
+    
+    ::SWGSDRangel::setValue(&ssdv_mod_report, pJson["SSDVModReport"], "SWGSSDVModReport", "SWGSSDVModReport");
     
     ::SWGSDRangel::setValue(&vara_demod_report, pJson["VARADemodReport"], "SWGVARADemodReport", "SWGVARADemodReport");
     
@@ -839,6 +857,12 @@ SWGChannelReport::asJsonObject() {
     }
     if((sstv_demod_report != nullptr) && (sstv_demod_report->isSet())){
         toJsonValue(QString("SSTVDemodReport"), sstv_demod_report, obj, QString("SWGSSTVDemodReport"));
+    }
+    if((ssdv_demod_report != nullptr) && (ssdv_demod_report->isSet())){
+        toJsonValue(QString("SSDVDemodReport"), ssdv_demod_report, obj, QString("SWGSSDVDemodReport"));
+    }
+    if((ssdv_mod_report != nullptr) && (ssdv_mod_report->isSet())){
+        toJsonValue(QString("SSDVModReport"), ssdv_mod_report, obj, QString("SWGSSDVModReport"));
     }
     if((vara_demod_report != nullptr) && (vara_demod_report->isSet())){
         toJsonValue(QString("VARADemodReport"), vara_demod_report, obj, QString("SWGVARADemodReport"));
@@ -1400,6 +1424,26 @@ SWGChannelReport::setSstvDemodReport(SWGSSTVDemodReport* sstv_demod_report) {
     this->m_sstv_demod_report_isSet = true;
 }
 
+SWGSSDVDemodReport*
+SWGChannelReport::getSsdvDemodReport() {
+    return ssdv_demod_report;
+}
+void
+SWGChannelReport::setSsdvDemodReport(SWGSSDVDemodReport* ssdv_demod_report) {
+    this->ssdv_demod_report = ssdv_demod_report;
+    this->m_ssdv_demod_report_isSet = true;
+}
+
+SWGSSDVModReport*
+SWGChannelReport::getSsdvModReport() {
+    return ssdv_mod_report;
+}
+void
+SWGChannelReport::setSsdvModReport(SWGSSDVModReport* ssdv_mod_report) {
+    this->ssdv_mod_report = ssdv_mod_report;
+    this->m_ssdv_mod_report_isSet = true;
+}
+
 SWGVARADemodReport*
 SWGChannelReport::getVaraDemodReport() {
     return vara_demod_report;
@@ -1760,6 +1804,12 @@ SWGChannelReport::isSet(){
             isObjectUpdated = true; break;
         }
         if(sstv_demod_report && sstv_demod_report->isSet()){
+            isObjectUpdated = true; break;
+        }
+        if(ssdv_demod_report && ssdv_demod_report->isSet()){
+            isObjectUpdated = true; break;
+        }
+        if(ssdv_mod_report && ssdv_mod_report->isSet()){
             isObjectUpdated = true; break;
         }
         if(vara_demod_report && vara_demod_report->isSet()){

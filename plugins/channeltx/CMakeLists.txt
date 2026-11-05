@@ -8,6 +8,10 @@ if (ENABLE_CHANNELTX_MODRTTY)
     add_subdirectory(modrtty)
 endif()
 
+if (ENABLE_CHANNELTX_MODSSDV)
+    add_subdirectory(modssdv)
+endif()
+
 if (ENABLE_CHANNELTX_MODAIS)
     add_subdirectory(modais)
 endif()
