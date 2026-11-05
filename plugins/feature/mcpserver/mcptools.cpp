@@ -3286,14 +3286,41 @@ void MCPTools::registerFeatureTools()
 {
     add("add_feature",
         "Add a feature (device independent plugin such as Map, AIS, APRS, SatelliteTracker) and optionally apply initial settings. "
-        "Returns the index of the new feature. featureType is an id from list_feature_types.",
+        "Returns the index of the new feature. featureType is an id from list_feature_types. "
+        "Refused when a feature of that type is already present: use that one instead, since two copies of a feature "
+        "that drives hardware (such as two GS232Controllers on one rotator) fight over it.",
         schema({
             {"featureType", strProp("Feature type id from list_feature_types")},
-            {"settings", objProp("Optional initial settings for the feature. Use describe_settings for the keys")}
+            {"settings", objProp("Optional initial settings for the feature. Use describe_settings for the keys")},
+            {"allowDuplicate", prop("boolean", "Add it even when a feature of this type is already present, "
+                "for example a second GS232Controller for a second rotator. Default false")}
         }, {"featureType"}),
         [this](const QJsonObject& args)
         {
             QString featureType = argString(args, "featureType");
+
+            if (!argBool(args, "allowDuplicate", false))
+            {
+                QStringList existing;
+
+                for (const QJsonValue& v : getInstanceSummary()["featureset"].toObject()["features"].toArray())
+                {
+                    QJsonObject f = v.toObject();
+
+                    if (f["id"].toString() == featureType) {
+                        existing.append(QString::number(f["index"].toInt()));
+                    }
+                }
+
+                if (!existing.isEmpty())
+                {
+                    throw MCPToolError(QString("A %1 feature is already present as feature %2. Use get_feature_settings and "
+                        "set_feature_settings on it rather than adding another; pass allowDuplicate true only if a second "
+                        "independent one is really wanted.")
+                        .arg(featureType).arg(existing.join(", ")));
+                }
+            }
+
             int featureIndex = addFeatureAndWait(featureType);
             QJsonObject result;
             result["featureIndex"] = featureIndex;
