@@ -61,6 +61,27 @@ target_link_libraries(${TARGET_NAME} PRIVATE
 
 install(TARGETS ${TARGET_NAME} DESTINATION ${INSTALL_FOLDER})
 
+# Loopback of the SSDV Mod source into the SSDV Demod sink
+option(SSDV_BUILD_TESTS "Build the SSDV loopback test" OFF)
+if(SSDV_BUILD_TESTS AND NOT SERVER_MODE)
+    set(MODSSDV_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../channeltx/modssdv)
+    add_executable(ssdv_loopback
+        tests/test_loopback.cpp
+        ssdvbpskdemod.cpp
+        ssdvdemodframeparser.cpp
+        ssdvdemodsettings.cpp
+        ssdvdemodreport.cpp
+        ssdvdemodsink.cpp
+        ${MODSSDV_DIR}/ssdvmodsettings.cpp
+        ${MODSSDV_DIR}/ssdvmodreport.cpp
+        ${MODSSDV_DIR}/ssdvmodframer.cpp
+        ${MODSSDV_DIR}/ssdvmodsource.cpp)
+    target_include_directories(ssdv_loopback PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${MODSSDV_DIR})
+    target_link_libraries(ssdv_loopback PRIVATE Qt::Core Qt::Gui sdrbase)
+    add_test(NAME ssdv_loopback_ao123 COMMAND ssdv_loopback -f 0 -e 6)
+    add_test(NAME ssdv_loopback_standard COMMAND ssdv_loopback -f 1 -e 6)
+endif()
+
 if(WIN32)
     install(FILES $<TARGET_PROPERTY:${TARGET_NAME},RUNTIME_OUTPUT_DIRECTORY>/${TARGET_NAME}stripped.pdb CONFIGURATIONS Release DESTINATION ${INSTALL_FOLDER} RENAME ${TARGET_NAME}.pdb)
     install(FILES $<TARGET_PDB_FILE:${TARGET_NAME}> CONFIGURATIONS Debug RelWithDebInfo DESTINATION ${INSTALL_FOLDER})
