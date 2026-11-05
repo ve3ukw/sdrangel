@@ -55,6 +55,22 @@ SSDVDemodSettings:
     framesFilename:
       description: "KISS file received frames are appended to"
       type: string
+    modulation:
+      description: >
+        Modulation
+          * 0 - BPSK
+          * 1 - FSK (2-FSK or GMSK, received non-coherently)
+      type: integer
+    fskDeviation:
+      description: "FSK: frequency of each tone from the centre, in Hz"
+      type: integer
+    framing:
+      description: >
+        Framing
+          * 0 - CCSDS sync and channel coding, as configured (E.g. AO-123)
+          * 1 - Unified SPUTNIX Protocol, with AX.25 frames inside (E.g. Luca)
+          * 2 - AMSAT-EA GENESIS frames (E.g. HADES-SA)
+      type: integer
     rgbColor:
       description: "Display color encoded as an RGB integer."
       type: integer
