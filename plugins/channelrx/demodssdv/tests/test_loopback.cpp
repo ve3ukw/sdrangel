@@ -121,7 +121,7 @@ int main(int argc, char *argv[])
     sink.applyChannelSettings(rxRate, (int) -offset, true);
     sink.setMessageQueueToChannel(&demodQueue);
     SSDVDemodFrameParser frameParser;
-    frameParser.setPacketFormat(format);
+    frameParser.setFormat(format, SSDVDemodSettings::CCSDS);
 
     // Noise for the Eb/N0, from the signal power while transmitting
     std::mt19937 rng(1);

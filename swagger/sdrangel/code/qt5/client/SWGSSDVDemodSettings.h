@@ -92,6 +92,15 @@ public:
     QString* getFramesFilename();
     void setFramesFilename(QString* frames_filename);
 
+    qint32 getModulation();
+    void setModulation(qint32 modulation);
+
+    qint32 getFskDeviation();
+    void setFskDeviation(qint32 fsk_deviation);
+
+    qint32 getFraming();
+    void setFraming(qint32 framing);
+
     qint32 getRgbColor();
     void setRgbColor(qint32 rgb_color);
 
@@ -173,6 +182,15 @@ private:
 
     QString* frames_filename;
     bool m_frames_filename_isSet;
+
+    qint32 modulation;
+    bool m_modulation_isSet;
+
+    qint32 fsk_deviation;
+    bool m_fsk_deviation_isSet;
+
+    qint32 framing;
+    bool m_framing_isSet;
 
     qint32 rgb_color;
     bool m_rgb_color_isSet;

@@ -94,6 +94,10 @@ private:
     int m_count;
 };
 
+// Decodes a block of soft symbols (2 per bit, positive means 1) that starts with the encoder in state 0 and is
+// not terminated (truncated), tracing back from the best final state. Sets nbits bits, one per byte.
+SDRBASE_API void viterbiDecodeBlock(const float *symbols, int nbits, uint8_t *bits);
+
 // Turns frames into the bits to transmit: ASM, frame, RS parity, then randomized, differentially coded and
 // convolutionally coded as configured. Symbols are 0 or 1, two per data bit with the convolutional code.
 class SDRBASE_API FrameEncoder

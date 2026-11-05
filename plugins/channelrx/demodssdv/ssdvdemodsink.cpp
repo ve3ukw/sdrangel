@@ -98,15 +98,28 @@ void SSDVDemodSink::processOneSample(Complex& ci)
     m_magsqCount++;
 
     Complex symbol;
+    bool ready = isFSK() ? m_fskDemod.process(ci / SDR_RX_SCALEF, symbol) : m_demod.process(ci / SDR_RX_SCALEF, symbol);
 
-    if (!m_demod.process(ci / SDR_RX_SCALEF, symbol)) {
+    if (!ready) {
         return;
     }
 
     sampleToScope(symbol);
 
     QList<CCSDS::DecodedFrame> frames;
-    m_frameDecoder.process(symbol.real(), frames);
+
+    switch (m_settings.m_framing)
+    {
+    case SSDVDemodSettings::USP:
+        m_uspDeframer.process(symbol.real(), frames);
+        break;
+    case SSDVDemodSettings::Genesis:
+        m_genesisDeframer.process(symbol.real(), frames);
+        break;
+    default:
+        m_frameDecoder.process(symbol.real(), frames);
+        break;
+    }
 
     if (m_messageQueueToChannel)
     {
@@ -135,11 +148,28 @@ void SSDVDemodSink::sampleToScope(const Complex& symbol)
     }
 }
 
+int SSDVDemodSink::getFramesBad() const
+{
+    switch (m_settings.m_framing)
+    {
+    case SSDVDemodSettings::USP:
+        return m_uspDeframer.getFramesBad();
+    case SSDVDemodSettings::Genesis:
+        return m_genesisDeframer.getFramesBad();
+    default:
+        return m_frameDecoder.getFramesBad();
+    }
+}
+
 void SSDVDemodSink::createInterpolator()
 {
-    // Pass the RRC spectrum when off by up to the AFC's range of half the symbol rate.
+    // BPSK: pass the RRC spectrum when off by up to the AFC's range of half the symbol rate.
     // The RRC filter after the AFC does the channel filtering.
-    Real cutoff = m_settings.m_baudRate * (1.0f + m_settings.m_rrcRolloff) / 2.0f + m_settings.m_baudRate / 2.0f;
+    // FSK: the interpolator does the channel filtering, passing both tones and their sidebands, with
+    // room for half the symbol rate of offset.
+    Real cutoff = isFSK()
+        ? m_settings.m_fskDeviation + m_settings.m_baudRate
+        : m_settings.m_baudRate * (1.0f + m_settings.m_rrcRolloff) / 2.0f + m_settings.m_baudRate / 2.0f;
     m_interpolator.create(16, m_channelSampleRate, std::min(cutoff, 0.45f * std::min(m_channelSampleRate, m_symbolSampleRate)));
     m_interpolatorDistance = Real(m_channelSampleRate) / Real(m_symbolSampleRate);
     m_interpolatorDistanceRemain = m_interpolatorDistance;
@@ -175,16 +205,25 @@ void SSDVDemodSink::applySettings(const QStringList& settingsKeys, const SSDVDem
         m_settings.applySettings(settingsKeys, settings);
     }
 
-    if (settingsKeys.contains("baudRate") || settingsKeys.contains("rrcRolloff") || force)
+    if (settingsKeys.contains("baudRate") || settingsKeys.contains("rrcRolloff")
+        || settingsKeys.contains("modulation") || settingsKeys.contains("fskDeviation") || force)
     {
         m_symbolSampleRate = m_settings.m_baudRate * SSDVDemodSettings::m_samplesPerSymbol;
         createInterpolator();
     }
 
     if (settingsKeys.contains("baudRate") || settingsKeys.contains("rrcRolloff")
-        || settingsKeys.contains("pllBandwidth") || settingsKeys.contains("afc") || force)
+        || settingsKeys.contains("pllBandwidth") || settingsKeys.contains("afc")
+        || settingsKeys.contains("modulation") || settingsKeys.contains("fskDeviation") || force)
     {
         m_demod.init(SSDVDemodSettings::m_samplesPerSymbol, m_settings.m_rrcRolloff, m_settings.m_pllBandwidth, m_settings.m_afc);
+        m_fskDemod.init(SSDVDemodSettings::m_samplesPerSymbol, m_settings.m_fskDeviation / (float) m_symbolSampleRate, m_settings.m_afc);
+    }
+
+    if (settingsKeys.contains("framing") || force)
+    {
+        m_uspDeframer.reset();
+        m_genesisDeframer.reset();
     }
 
     m_frameDecoder.setSettings(getCodingSettings(m_settings));

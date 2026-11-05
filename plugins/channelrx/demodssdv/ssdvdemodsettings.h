@@ -34,6 +34,17 @@ struct SSDVDemodSettings
         Standard    //!< Standard 256 byte SSDV packets, carried as a byte stream in the frames
     };
 
+    enum Modulation {
+        BPSK,
+        FSK         //!< 2-FSK or GMSK, received non-coherently
+    };
+
+    enum Framing {
+        CCSDS,      //!< CCSDS TM sync and channel coding, as configured (E.g. AO-123)
+        USP,        //!< Unified SPUTNIX Protocol, with AX.25 frames inside (E.g. Luca)
+        Genesis     //!< AMSAT-EA GENESIS frames (E.g. HADES-SA)
+    };
+
     static const int m_samplesPerSymbol = 8;
 
     qint32 m_inputFrequencyOffset;
@@ -66,6 +77,9 @@ struct SSDVDemodSettings
     QByteArray m_geometryBytes;
     bool m_hidden;
     Serializable *m_scopeGUI;
+    int m_modulation; //!< Modulation
+    int m_fskDeviation; //!< FSK: frequency of each tone from the centre, in Hz
+    int m_framing; //!< Framing
 
     SSDVDemodSettings();
     void resetToDefaults();

@@ -39,6 +39,23 @@
 #include "ssdvdemod.h"
 #include "ssdvdemodgui.h"
 
+// Links selected with the preset combo box, after "Custom"
+struct SSDVDemodPreset
+{
+    int m_modulation;
+    int m_baudRate;
+    int m_fskDeviation;
+    int m_framing;
+    int m_packetFormat;
+};
+
+static const SSDVDemodPreset m_presets[] = {
+    {SSDVDemodSettings::BPSK, 9600, 0, SSDVDemodSettings::CCSDS, SSDVDemodSettings::AO123},          // AO-123
+    {SSDVDemodSettings::FSK, 9600, 2400, SSDVDemodSettings::USP, SSDVDemodSettings::Standard},       // Luca 9k6
+    {SSDVDemodSettings::FSK, 2400, 600, SSDVDemodSettings::USP, SSDVDemodSettings::Standard},        // Luca 2k4
+    {SSDVDemodSettings::FSK, 800, 800, SSDVDemodSettings::Genesis, SSDVDemodSettings::Standard}      // HADES-SA
+};
+
 SSDVDemodGUI* SSDVDemodGUI::create(PluginAPI* pluginAPI, DeviceUISet *deviceUISet, BasebandSampleSink *rxChannel)
 {
     SSDVDemodGUI* gui = new SSDVDemodGUI(pluginAPI, deviceUISet, rxChannel);
@@ -205,7 +222,66 @@ void SSDVDemodGUI::updateImage()
 
 void SSDVDemodGUI::updateBandwidth()
 {
-    m_channelMarker.setBandwidth(m_settings.m_baudRate * (1.0f + m_settings.m_rrcRolloff));
+    if (m_settings.m_modulation == SSDVDemodSettings::FSK) {
+        m_channelMarker.setBandwidth(2 * m_settings.m_fskDeviation + m_settings.m_baudRate);
+    } else {
+        m_channelMarker.setBandwidth(m_settings.m_baudRate * (1.0f + m_settings.m_rrcRolloff));
+    }
+}
+
+// Only show the settings used by the modulation and framing as enabled
+void SSDVDemodGUI::updateEnabled()
+{
+    bool fsk = m_settings.m_modulation == SSDVDemodSettings::FSK;
+    bool ccsds = m_settings.m_framing == SSDVDemodSettings::CCSDS;
+
+    ui->fskDeviation->setEnabled(fsk);
+    ui->rrcRolloff->setEnabled(!fsk);
+    ui->pllBandwidth->setEnabled(!fsk);
+    ui->packetFormat->setEnabled(m_settings.m_framing != SSDVDemodSettings::Genesis);
+    ui->frameSize->setEnabled(ccsds);
+    ui->convolutional->setEnabled(ccsds);
+    ui->differential->setEnabled(ccsds);
+    ui->randomizer->setEnabled(ccsds);
+    ui->rs->setEnabled(ccsds);
+    ui->dualBasis->setEnabled(ccsds && m_settings.m_rs);
+}
+
+// Preset the settings match, or 0 (Custom)
+int SSDVDemodGUI::findPreset() const
+{
+    for (int i = 0; i < (int) (sizeof(m_presets) / sizeof(m_presets[0])); i++)
+    {
+        const SSDVDemodPreset& preset = m_presets[i];
+
+        if ((m_settings.m_modulation != preset.m_modulation)
+            || (m_settings.m_baudRate != preset.m_baudRate)
+            || (m_settings.m_framing != preset.m_framing)) {
+            continue;
+        }
+        if ((preset.m_modulation == SSDVDemodSettings::FSK) && (m_settings.m_fskDeviation != preset.m_fskDeviation)) {
+            continue;
+        }
+        if ((preset.m_framing != SSDVDemodSettings::Genesis) && (m_settings.m_packetFormat != preset.m_packetFormat)) {
+            continue;
+        }
+        if ((preset.m_framing == SSDVDemodSettings::CCSDS)
+            && ((m_settings.m_frameSize != 223) || !m_settings.m_convolutional || !m_settings.m_differential
+                || !m_settings.m_randomizer || !m_settings.m_rs || m_settings.m_dualBasis)) {
+            continue;
+        }
+
+        return i + 1;
+    }
+
+    return 0;
+}
+
+void SSDVDemodGUI::updatePreset()
+{
+    ui->preset->blockSignals(true);
+    ui->preset->setCurrentIndex(findPreset());
+    ui->preset->blockSignals(false);
 }
 
 bool SSDVDemodGUI::eventFilter(QObject *obj, QEvent *event)
@@ -256,11 +332,73 @@ void SSDVDemodGUI::on_deltaFrequency_changed(qint64 value)
     applySettings(QStringList("inputFrequencyOffset"));
 }
 
+void SSDVDemodGUI::on_preset_currentIndexChanged(int index)
+{
+    if (!m_doApplySettings || (index <= 0)) {
+        return;
+    }
+
+    const SSDVDemodPreset& preset = m_presets[index - 1];
+    QStringList keys = {"modulation", "baudRate", "framing"};
+    m_settings.m_modulation = preset.m_modulation;
+    m_settings.m_baudRate = preset.m_baudRate;
+    m_settings.m_framing = preset.m_framing;
+
+    if (preset.m_modulation == SSDVDemodSettings::FSK)
+    {
+        m_settings.m_fskDeviation = preset.m_fskDeviation;
+        keys.append("fskDeviation");
+    }
+
+    if (preset.m_framing != SSDVDemodSettings::Genesis)
+    {
+        m_settings.m_packetFormat = preset.m_packetFormat;
+        keys.append("packetFormat");
+    }
+
+    if (preset.m_framing == SSDVDemodSettings::CCSDS)
+    {
+        // The coding AO-123 uses
+        m_settings.m_frameSize = 223;
+        m_settings.m_convolutional = true;
+        m_settings.m_differential = true;
+        m_settings.m_randomizer = true;
+        m_settings.m_rs = true;
+        m_settings.m_dualBasis = false;
+        keys.append({"frameSize", "convolutional", "differential", "randomizer", "rs", "dualBasis"});
+    }
+
+    displaySettings();
+    applySettings(keys);
+}
+
+void SSDVDemodGUI::on_modulation_currentIndexChanged(int index)
+{
+    m_settings.m_modulation = index;
+    updateBandwidth();
+    updateEnabled();
+    applySettings(QStringList("modulation"));
+}
+
+void SSDVDemodGUI::on_framing_currentIndexChanged(int index)
+{
+    m_settings.m_framing = index;
+    updateEnabled();
+    applySettings(QStringList("framing"));
+}
+
 void SSDVDemodGUI::on_baudRate_currentIndexChanged(int index)
 {
     m_settings.m_baudRate = ui->baudRate->itemText(index).toInt();
     updateBandwidth();
     applySettings(QStringList("baudRate"));
+}
+
+void SSDVDemodGUI::on_fskDeviation_valueChanged(int value)
+{
+    m_settings.m_fskDeviation = value;
+    updateBandwidth();
+    applySettings(QStringList("fskDeviation"));
 }
 
 void SSDVDemodGUI::on_rrcRolloff_valueChanged(int value)
@@ -285,20 +423,7 @@ void SSDVDemodGUI::on_afc_toggled(bool checked)
 void SSDVDemodGUI::on_packetFormat_currentIndexChanged(int index)
 {
     m_settings.m_packetFormat = index;
-
-    if (m_doApplySettings && (index == SSDVDemodSettings::AO123))
-    {
-        // The coding AO-123 uses
-        m_settings.m_frameSize = 223;
-        m_settings.m_convolutional = true;
-        m_settings.m_differential = true;
-        m_settings.m_randomizer = true;
-        m_settings.m_rs = true;
-        m_settings.m_dualBasis = false;
-        displaySettings();
-    }
-
-    applySettings(QStringList({"packetFormat", "frameSize", "convolutional", "differential", "randomizer", "rs", "dualBasis"}));
+    applySettings(QStringList("packetFormat"));
 }
 
 void SSDVDemodGUI::on_frameSize_valueChanged(int value)
@@ -328,7 +453,7 @@ void SSDVDemodGUI::on_randomizer_toggled(bool checked)
 void SSDVDemodGUI::on_rs_toggled(bool checked)
 {
     m_settings.m_rs = checked;
-    ui->dualBasis->setEnabled(checked);
+    updateEnabled();
     applySettings(QStringList("rs"));
 }
 
@@ -579,6 +704,7 @@ void SSDVDemodGUI::applySettings(const QStringList& settingsKeys, bool force)
     {
         SSDVDemod::MsgConfigureSSDVDemod* message = SSDVDemod::MsgConfigureSSDVDemod::create(settingsKeys, m_settings, force);
         m_ssdvDemod->getInputMessageQueue()->push(message);
+        updatePreset();
     }
 }
 
@@ -609,6 +735,10 @@ void SSDVDemodGUI::displaySettings()
     }
 
     ui->baudRate->setCurrentIndex(baudIndex);
+    ui->preset->setCurrentIndex(findPreset());
+    ui->modulation->setCurrentIndex(m_settings.m_modulation);
+    ui->framing->setCurrentIndex(m_settings.m_framing);
+    ui->fskDeviation->setValue(m_settings.m_fskDeviation);
     ui->rrcRolloff->setValue(std::round(m_settings.m_rrcRolloff * 100.0f));
     ui->pllBandwidth->setValue(std::round(m_settings.m_pllBandwidth * 1000.0f));
     ui->afc->setChecked(m_settings.m_afc);
@@ -619,7 +749,7 @@ void SSDVDemodGUI::displaySettings()
     ui->randomizer->setChecked(m_settings.m_randomizer);
     ui->rs->setChecked(m_settings.m_rs);
     ui->dualBasis->setChecked(m_settings.m_dualBasis);
-    ui->dualBasis->setEnabled(m_settings.m_rs);
+    updateEnabled();
     ui->autoSave->setChecked(m_settings.m_autoSave);
     ui->autoSavePath->setText(m_settings.m_autoSavePath);
     ui->saveFrames->setChecked(m_settings.m_saveFrames);
@@ -665,7 +795,11 @@ void SSDVDemodGUI::tick()
 void SSDVDemodGUI::makeUIConnections()
 {
     QObject::connect(ui->deltaFrequency, &ValueDialZ::changed, this, &SSDVDemodGUI::on_deltaFrequency_changed);
+    QObject::connect(ui->preset, qOverload<int>(&QComboBox::currentIndexChanged), this, &SSDVDemodGUI::on_preset_currentIndexChanged);
+    QObject::connect(ui->modulation, qOverload<int>(&QComboBox::currentIndexChanged), this, &SSDVDemodGUI::on_modulation_currentIndexChanged);
+    QObject::connect(ui->framing, qOverload<int>(&QComboBox::currentIndexChanged), this, &SSDVDemodGUI::on_framing_currentIndexChanged);
     QObject::connect(ui->baudRate, qOverload<int>(&QComboBox::currentIndexChanged), this, &SSDVDemodGUI::on_baudRate_currentIndexChanged);
+    QObject::connect(ui->fskDeviation, qOverload<int>(&QSpinBox::valueChanged), this, &SSDVDemodGUI::on_fskDeviation_valueChanged);
     QObject::connect(ui->rrcRolloff, qOverload<int>(&QSpinBox::valueChanged), this, &SSDVDemodGUI::on_rrcRolloff_valueChanged);
     QObject::connect(ui->pllBandwidth, qOverload<int>(&QSpinBox::valueChanged), this, &SSDVDemodGUI::on_pllBandwidth_valueChanged);
     QObject::connect(ui->afc, &ButtonSwitch::toggled, this, &SSDVDemodGUI::on_afc_toggled);

@@ -26,7 +26,7 @@
 
 #include "ssdvdemodsettings.h"
 
-// Finds the SSDV packets in CCSDS TM frames
+// Finds the SSDV packets in the frames of each framing
 class SSDVDemodFrameParser
 {
 public:
@@ -37,14 +37,17 @@ public:
     };
 
     SSDVDemodFrameParser();
-    void setPacketFormat(int packetFormat);
+    void setFormat(int packetFormat, int framing);
     void reset() { m_stream.clear(); }
     // Returns valid packets that the frame holds or completes
     QList<Packet> parse(const QByteArray& frame);
 
 private:
     int m_packetFormat;
+    int m_framing;
     QByteArray m_stream; //!< Frame data, for standard packets that span frames
+
+    static QByteArray ax25Info(const QByteArray& frame);
 };
 
 #endif // INCLUDE_SSDVDEMODFRAMEPARSER_H

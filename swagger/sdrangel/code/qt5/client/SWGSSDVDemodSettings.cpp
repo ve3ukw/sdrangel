@@ -60,6 +60,12 @@ SWGSSDVDemodSettings::SWGSSDVDemodSettings() {
     m_save_frames_isSet = false;
     frames_filename = nullptr;
     m_frames_filename_isSet = false;
+    modulation = 0;
+    m_modulation_isSet = false;
+    fsk_deviation = 0;
+    m_fsk_deviation_isSet = false;
+    framing = 0;
+    m_framing_isSet = false;
     rgb_color = 0;
     m_rgb_color_isSet = false;
     title = nullptr;
@@ -120,6 +126,12 @@ SWGSSDVDemodSettings::init() {
     m_save_frames_isSet = false;
     frames_filename = new QString("");
     m_frames_filename_isSet = false;
+    modulation = 0;
+    m_modulation_isSet = false;
+    fsk_deviation = 0;
+    m_fsk_deviation_isSet = false;
+    framing = 0;
+    m_framing_isSet = false;
     rgb_color = 0;
     m_rgb_color_isSet = false;
     title = new QString("");
@@ -207,6 +219,12 @@ SWGSSDVDemodSettings::fromJsonObject(QJsonObject &pJson) {
     
     ::SWGSDRangel::setValue(&frames_filename, pJson["framesFilename"], "QString", "QString");
     
+    ::SWGSDRangel::setValue(&modulation, pJson["modulation"], "qint32", "");
+    
+    ::SWGSDRangel::setValue(&fsk_deviation, pJson["fskDeviation"], "qint32", "");
+    
+    ::SWGSDRangel::setValue(&framing, pJson["framing"], "qint32", "");
+    
     ::SWGSDRangel::setValue(&rgb_color, pJson["rgbColor"], "qint32", "");
     
     ::SWGSDRangel::setValue(&title, pJson["title"], "QString", "QString");
@@ -290,6 +308,15 @@ SWGSSDVDemodSettings::asJsonObject() {
     }
     if(frames_filename != nullptr && *frames_filename != QString("")){
         toJsonValue(QString("framesFilename"), frames_filename, obj, QString("QString"));
+    }
+    if(m_modulation_isSet){
+        obj->insert("modulation", QJsonValue(modulation));
+    }
+    if(m_fsk_deviation_isSet){
+        obj->insert("fskDeviation", QJsonValue(fsk_deviation));
+    }
+    if(m_framing_isSet){
+        obj->insert("framing", QJsonValue(framing));
     }
     if(m_rgb_color_isSet){
         obj->insert("rgbColor", QJsonValue(rgb_color));
@@ -486,6 +513,36 @@ SWGSSDVDemodSettings::setFramesFilename(QString* frames_filename) {
 }
 
 qint32
+SWGSSDVDemodSettings::getModulation() {
+    return modulation;
+}
+void
+SWGSSDVDemodSettings::setModulation(qint32 modulation) {
+    this->modulation = modulation;
+    this->m_modulation_isSet = true;
+}
+
+qint32
+SWGSSDVDemodSettings::getFskDeviation() {
+    return fsk_deviation;
+}
+void
+SWGSSDVDemodSettings::setFskDeviation(qint32 fsk_deviation) {
+    this->fsk_deviation = fsk_deviation;
+    this->m_fsk_deviation_isSet = true;
+}
+
+qint32
+SWGSSDVDemodSettings::getFraming() {
+    return framing;
+}
+void
+SWGSSDVDemodSettings::setFraming(qint32 framing) {
+    this->framing = framing;
+    this->m_framing_isSet = true;
+}
+
+qint32
 SWGSSDVDemodSettings::getRgbColor() {
     return rgb_color;
 }
@@ -636,6 +693,15 @@ SWGSSDVDemodSettings::isSet(){
             isObjectUpdated = true; break;
         }
         if(frames_filename && *frames_filename != QString("")){
+            isObjectUpdated = true; break;
+        }
+        if(m_modulation_isSet){
+            isObjectUpdated = true; break;
+        }
+        if(m_fsk_deviation_isSet){
+            isObjectUpdated = true; break;
+        }
+        if(m_framing_isSet){
             isObjectUpdated = true; break;
         }
         if(m_rgb_color_isSet){

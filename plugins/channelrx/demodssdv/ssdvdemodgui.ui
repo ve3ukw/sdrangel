@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>420</width>
-    <height>1100</height>
+    <height>1130</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -37,7 +37,7 @@
      <x>0</x>
      <y>0</y>
      <width>418</width>
-     <height>200</height>
+     <height>230</height>
     </rect>
    </property>
    <property name="minimumSize">
@@ -206,6 +206,115 @@
      </layout>
     </item>
     <item>
+     <layout class="QHBoxLayout" name="linkLayout">
+      <item>
+       <widget class="QLabel" name="presetLabel">
+        <property name="text">
+         <string>Link</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QComboBox" name="preset">
+        <property name="toolTip">
+         <string>Sets the modulation, baud rate, framing and coding for a satellite</string>
+        </property>
+        <item>
+         <property name="text">
+          <string>Custom</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>AO-123</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Luca 9k6</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Luca 2k4</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>HADES-SA</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="modulationLabel">
+        <property name="text">
+         <string>Mod</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QComboBox" name="modulation">
+        <property name="toolTip">
+         <string>Modulation. FSK also receives GMSK</string>
+        </property>
+        <item>
+         <property name="text">
+          <string>BPSK</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>FSK</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="framingLabel">
+        <property name="text">
+         <string>Framing</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QComboBox" name="framing">
+        <property name="toolTip">
+         <string>Framing: CCSDS sync and coding as set below (AO-123), Unified SPUTNIX Protocol (Luca) or AMSAT-EA GENESIS (HADES-SA)</string>
+        </property>
+        <item>
+         <property name="text">
+          <string>CCSDS</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>USP</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>GENESIS</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item>
+       <spacer name="linkSpacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+     </layout>
+    </item>
+    <item>
      <layout class="QHBoxLayout" name="demodLayout">
       <item>
        <widget class="QLabel" name="baudRateLabel">
@@ -219,6 +328,11 @@
         <property name="toolTip">
          <string>Symbol rate</string>
         </property>
+        <item>
+         <property name="text">
+          <string>800</string>
+         </property>
+        </item>
         <item>
          <property name="text">
           <string>1200</string>
@@ -249,6 +363,32 @@
           <string>38400</string>
          </property>
         </item>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="fskDeviationLabel">
+        <property name="text">
+         <string>Dev</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QSpinBox" name="fskDeviation">
+        <property name="toolTip">
+         <string>FSK: frequency of each tone from the centre (half the tone spacing)</string>
+        </property>
+        <property name="minimum">
+         <number>100</number>
+        </property>
+        <property name="maximum">
+         <number>20000</number>
+        </property>
+        <property name="singleStep">
+         <number>100</number>
+        </property>
+        <property name="suffix">
+         <string> Hz</string>
+        </property>
        </widget>
       </item>
       <item>
@@ -303,7 +443,7 @@
       <item>
        <widget class="ButtonSwitch" name="afc">
         <property name="toolTip">
-         <string>Frequency locked loop that pulls in offsets up to half the symbol rate</string>
+         <string>Frequency correction that pulls in offsets up to half the symbol rate (BPSK) or the deviation (FSK)</string>
         </property>
         <property name="text">
          <string>AFC</string>
@@ -654,7 +794,7 @@
    <property name="geometry">
     <rect>
      <x>0</x>
-     <y>210</y>
+     <y>240</y>
      <width>418</width>
      <height>330</height>
     </rect>
@@ -775,7 +915,7 @@
    <property name="geometry">
     <rect>
      <x>0</x>
-     <y>550</y>
+     <y>580</y>
      <width>418</width>
      <height>200</height>
     </rect>
@@ -906,7 +1046,7 @@
    <property name="geometry">
     <rect>
      <x>0</x>
-     <y>760</y>
+     <y>790</y>
      <width>732</width>
      <height>340</height>
     </rect>
@@ -1019,7 +1159,11 @@
  </customwidgets>
  <tabstops>
   <tabstop>deltaFrequency</tabstop>
+  <tabstop>preset</tabstop>
+  <tabstop>modulation</tabstop>
+  <tabstop>framing</tabstop>
   <tabstop>baudRate</tabstop>
+  <tabstop>fskDeviation</tabstop>
   <tabstop>rrcRolloff</tabstop>
   <tabstop>pllBandwidth</tabstop>
   <tabstop>afc</tabstop>

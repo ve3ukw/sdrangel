@@ -106,6 +106,9 @@ private:
     void updateAbsoluteCenterFrequency();
     void updateImage();
     void updateBandwidth();
+    void updateEnabled();
+    void updatePreset();
+    int findPreset() const;
     void setStatus(const QString& status);
     void resizeTable();
 
@@ -113,7 +116,11 @@ private:
 
 private slots:
     void on_deltaFrequency_changed(qint64 value);
+    void on_preset_currentIndexChanged(int index);
+    void on_modulation_currentIndexChanged(int index);
+    void on_framing_currentIndexChanged(int index);
     void on_baudRate_currentIndexChanged(int index);
+    void on_fskDeviation_valueChanged(int value);
     void on_rrcRolloff_valueChanged(int value);
     void on_pllBandwidth_valueChanged(int value);
     void on_afc_toggled(bool checked);
