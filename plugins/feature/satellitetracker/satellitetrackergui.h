@@ -115,7 +115,10 @@ private:
         TUNE_LORA,
         TUNE_APT,
         TUNE_DVBS,
-        TUNE_SSDV               // SSDV images on BPSK with CCSDS coding (E.g. AO-123). Last, as modes are saved
+        TUNE_SSDV,              // SSDV images on BPSK with CCSDS coding (E.g. AO-123). Added last, as modes are saved
+        TUNE_SSDV_USP_9600,     // 9600 baud GMSK with the Unified SPUTNIX Protocol (E.g. Luca)
+        TUNE_SSDV_USP_2400,     // 2400 baud GMSK USP
+        TUNE_SSDV_GENESIS       // 800 baud FSK with AMSAT-EA GENESIS framing (E.g. HADES-SA)
     };
     TuneMode m_tuneMode;
     ChannelAPI *m_tuneChannel;          // Channel being tracked. Index can change when other channels are removed

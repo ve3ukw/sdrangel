@@ -1787,6 +1787,13 @@ SatelliteTrackerGUI::TuneMode SatelliteTrackerGUI::tuneMode(const SatNogsTransmi
 
     if (m.contains("AFSK")) {
         return TUNE_AFSK;
+    } else if ((m.startsWith("FSK") || m.startsWith("GMSK")) && description.contains("USP") && (transmitter->m_baud == 9600)) {
+        return TUNE_SSDV_USP_9600;
+    } else if ((m.startsWith("FSK") || m.startsWith("GMSK")) && description.contains("USP") && (transmitter->m_baud == 2400)) {
+        return TUNE_SSDV_USP_2400;
+    } else if ((m.contains("GENESIS") || ((m.startsWith("FSK") || (m == "SSDV")) && description.contains("SSDV")))
+        && (transmitter->m_baud == 800)) {
+        return TUNE_SSDV_GENESIS;
     } else if ((m.startsWith("FSK") || m.startsWith("GMSK"))
         && (transmitter->m_baud == 9600)
         && (description.contains("G3RUH") || description.contains("AX.25") || description.contains("AX25"))) {
@@ -1834,6 +1841,9 @@ QStringList SatelliteTrackerGUI::channelTypesForMode(TuneMode mode)
             return {"SSTVDemod"};
         }
     case TUNE_SSDV:
+    case TUNE_SSDV_USP_9600:
+    case TUNE_SSDV_USP_2400:
+    case TUNE_SSDV_GENESIS:
         return {"SSDVDemod"};
     case TUNE_USB:
     case TUNE_LSB:
@@ -1960,6 +1970,34 @@ void SatelliteTrackerGUI::configureChannel(const RxChannel& rxChannel, TuneMode 
 
         ChannelWebAPIUtils::patchChannelSetting(deviceSetIndex, channelIndex, "mode", g3ruh ? 1 : 0);
         ChannelWebAPIUtils::patchChannelSetting(deviceSetIndex, channelIndex, "rfBandwidth", g3ruh ? 20000.0 : 12500.0);
+    }
+    else if (rxChannel.m_type == "SSDVDemod")
+    {
+        QVariantMap settings;
+
+        if (mode == TUNE_SSDV)
+        {
+            // AO-123: BPSK, CCSDS concatenated coding and AO-123 packets
+            settings = {
+                {"modulation", 0}, {"baudRate", 9600}, {"framing", 0}, {"packetFormat", 0}, {"frameSize", 223},
+                {"convolutional", 1}, {"differential", 1}, {"randomizer", 1}, {"rs", 1}, {"dualBasis", 0}
+            };
+        }
+        else if ((mode == TUNE_SSDV_USP_9600) || (mode == TUNE_SSDV_USP_2400))
+        {
+            // Luca: GMSK (FSK with a deviation of a quarter of the baud rate), USP and standard packets
+            int baud = mode == TUNE_SSDV_USP_9600 ? 9600 : 2400;
+            settings = {{"modulation", 1}, {"baudRate", baud}, {"fskDeviation", baud / 4}, {"framing", 1}, {"packetFormat", 1}};
+        }
+        else if (mode == TUNE_SSDV_GENESIS)
+        {
+            // HADES-SA: 800 baud FSK with tones 1600 Hz apart and GENESIS framing
+            settings = {{"modulation", 1}, {"baudRate", 800}, {"fskDeviation", 800}, {"framing", 2}};
+        }
+
+        if (!settings.isEmpty()) {
+            ChannelWebAPIUtils::patchChannelSettings(deviceSetIndex, channelIndex, settings);
+        }
     }
 }
 
