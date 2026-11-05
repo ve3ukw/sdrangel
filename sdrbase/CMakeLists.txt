@@ -234,6 +234,7 @@ set(sdrbase_SOURCES
     util/azel.cpp
     util/baudot.cpp
     util/callsign.cpp
+    util/ccsds.cpp
     util/colormap.cpp
     util/coordinates.cpp
     util/corsproxy.cpp
@@ -290,6 +291,9 @@ set(sdrbase_SOURCES
     util/sondehub.cpp
     #util/spinlock.cpp
     util/spyserverlist.cpp
+    util/ssdvcodec.cpp
+    util/ssdv/ssdv.c
+    util/ssdv/rs8.c
     util/stix.cpp
     util/stringlist.cpp
     util/rds.cpp
@@ -514,6 +518,7 @@ set(sdrbase_HEADERS
     util/azel.h
     util/baudot.h
     util/callsign.h
+    util/ccsds.h
     util/circularbuffer.h
     util/colormap.h
     util/coordinates.h
@@ -579,6 +584,9 @@ set(sdrbase_HEADERS
     util/sondehub.h
     #util/spinlock.h
     util/spyserverlist.h
+    util/ssdvcodec.h
+    util/ssdv/ssdv.h
+    util/ssdv/rs8.h
     util/stix.h
     util/stringlist.h
     util/uid.h
