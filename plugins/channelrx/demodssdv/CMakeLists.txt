@@ -2,6 +2,8 @@ project(demodssdv)
 
 set(demodssdv_SOURCES
     ssdvbpskdemod.cpp
+    ssdvfskdemod.cpp
+    ssdvdemoddeframers.cpp
     ssdvdemodframeparser.cpp
     ssdvdemodsettings.cpp
     ssdvdemodreport.cpp
@@ -14,6 +16,8 @@ set(demodssdv_SOURCES
 
 set(demodssdv_HEADERS
     ssdvbpskdemod.h
+    ssdvfskdemod.h
+    ssdvdemoddeframers.h
     ssdvdemodframeparser.h
     ssdvdemodsettings.h
     ssdvdemodreport.h
@@ -68,6 +72,8 @@ if(SSDV_BUILD_TESTS AND NOT SERVER_MODE)
     add_executable(ssdv_loopback
         tests/test_loopback.cpp
         ssdvbpskdemod.cpp
+        ssdvfskdemod.cpp
+        ssdvdemoddeframers.cpp
         ssdvdemodframeparser.cpp
         ssdvdemodsettings.cpp
         ssdvdemodreport.cpp
@@ -78,6 +84,18 @@ if(SSDV_BUILD_TESTS AND NOT SERVER_MODE)
         ${MODSSDV_DIR}/ssdvmodsource.cpp)
     target_include_directories(ssdv_loopback PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${MODSSDV_DIR})
     target_link_libraries(ssdv_loopback PRIVATE Qt::Core Qt::Gui sdrbase)
+    # Runs recordings through the demodulator
+    add_executable(ssdv_iqfile
+        tests/test_iqfile.cpp
+        ssdvbpskdemod.cpp
+        ssdvfskdemod.cpp
+        ssdvdemoddeframers.cpp
+        ssdvdemodframeparser.cpp
+        ssdvdemodsettings.cpp
+        ssdvdemodreport.cpp
+        ssdvdemodsink.cpp)
+    target_include_directories(ssdv_iqfile PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+    target_link_libraries(ssdv_iqfile PRIVATE Qt::Core Qt::Gui sdrbase)
     add_test(NAME ssdv_loopback_ao123 COMMAND ssdv_loopback -f 0 -e 6)
     add_test(NAME ssdv_loopback_standard COMMAND ssdv_loopback -f 1 -e 6)
 endif()

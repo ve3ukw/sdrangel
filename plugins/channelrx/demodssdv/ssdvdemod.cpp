@@ -509,8 +509,8 @@ void SSDVDemod::applySettings(const QStringList& settingsKeys, const SSDVDemodSe
         m_scopeVis.setLiveRate(settings.m_baudRate);
     }
 
-    if (settingsKeys.contains("packetFormat") || force) {
-        m_frameParser.setPacketFormat(settings.m_packetFormat);
+    if (settingsKeys.contains("packetFormat") || settingsKeys.contains("framing") || force) {
+        m_frameParser.setFormat(settings.m_packetFormat, settings.m_framing);
     }
 
     if (settingsKeys.contains("framesFilename") || (settingsKeys.contains("saveFrames") && !settings.m_saveFrames)) {
@@ -683,6 +683,15 @@ void SSDVDemod::webapiUpdateChannelSettings(
     if (channelSettingsKeys.contains("framesFilename")) {
         settings.m_framesFilename = *swgSettings->getFramesFilename();
     }
+    if (channelSettingsKeys.contains("modulation")) {
+        settings.m_modulation = swgSettings->getModulation();
+    }
+    if (channelSettingsKeys.contains("fskDeviation")) {
+        settings.m_fskDeviation = swgSettings->getFskDeviation();
+    }
+    if (channelSettingsKeys.contains("framing")) {
+        settings.m_framing = swgSettings->getFraming();
+    }
     if (channelSettingsKeys.contains("rgbColor")) {
         settings.m_rgbColor = swgSettings->getRgbColor();
     }
@@ -754,6 +763,9 @@ void SSDVDemod::webapiFormatChannelSettings(SWGSDRangel::SWGChannelSettings& res
     } else {
         swgSettings->setFramesFilename(new QString(settings.m_framesFilename));
     }
+    swgSettings->setModulation(settings.m_modulation);
+    swgSettings->setFskDeviation(settings.m_fskDeviation);
+    swgSettings->setFraming(settings.m_framing);
     swgSettings->setRgbColor(settings.m_rgbColor);
     if (swgSettings->getTitle()) {
         *swgSettings->getTitle() = settings.m_title;
@@ -949,6 +961,15 @@ void SSDVDemod::webapiFormatChannelSettings(
     }
     if (channelSettingsKeys.contains("framesFilename") || force) {
         swgSettings->setFramesFilename(new QString(settings.m_framesFilename));
+    }
+    if (channelSettingsKeys.contains("modulation") || force) {
+        swgSettings->setModulation(settings.m_modulation);
+    }
+    if (channelSettingsKeys.contains("fskDeviation") || force) {
+        swgSettings->setFskDeviation(settings.m_fskDeviation);
+    }
+    if (channelSettingsKeys.contains("framing") || force) {
+        swgSettings->setFraming(settings.m_framing);
     }
     if (channelSettingsKeys.contains("rgbColor") || force) {
         swgSettings->setRgbColor(settings.m_rgbColor);

@@ -26,6 +26,8 @@
 #include "util/messagequeue.h"
 
 #include "ssdvbpskdemod.h"
+#include "ssdvfskdemod.h"
+#include "ssdvdemoddeframers.h"
 #include "ssdvdemodsettings.h"
 
 class ChannelAPI;
@@ -62,10 +64,11 @@ public:
     void setChannel(ChannelAPI *channel) { m_channel = channel; }
     void setScopeSink(ScopeVis *scopeSink) { m_scopeSink = scopeSink; }
 
-    bool isLocked() const { return m_demod.isLocked(); }
-    float getFrequencyOffset() const { return m_demod.getFrequencyOffset() * m_symbolSampleRate; } //!< Hz
-    float getEvm() const { return m_demod.getEvm(); }
-    int getFramesBad() const { return m_frameDecoder.getFramesBad(); }
+    bool isLocked() const { return isFSK() ? m_fskDemod.isLocked() : m_demod.isLocked(); }
+    //! Hz
+    float getFrequencyOffset() const { return (isFSK() ? m_fskDemod.getFrequencyOffset() : m_demod.getFrequencyOffset()) * m_symbolSampleRate; }
+    float getEvm() const { return isFSK() ? m_fskDemod.getEvm() : m_demod.getEvm(); }
+    int getFramesBad() const;
 
     static CCSDS::CodingSettings getCodingSettings(const SSDVDemodSettings& settings);
 
@@ -94,7 +97,10 @@ private:
     Real m_interpolatorDistanceRemain;
 
     SSDVBPSKDemod m_demod;
+    SSDVFSKDemod m_fskDemod;
     CCSDS::FrameDecoder m_frameDecoder;
+    SSDVUSPDeframer m_uspDeframer;
+    SSDVGenesisDeframer m_genesisDeframer;
 
     double m_magsq;
     double m_magsqSum;
@@ -108,6 +114,7 @@ private:
 
     MessageQueue *m_messageQueueToChannel;
 
+    bool isFSK() const { return m_settings.m_modulation == SSDVDemodSettings::FSK; }
     void processOneSample(Complex& ci);
     void sampleToScope(const Complex& symbol);
     void createInterpolator();

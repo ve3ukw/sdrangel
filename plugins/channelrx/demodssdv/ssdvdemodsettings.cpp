@@ -59,6 +59,9 @@ void SSDVDemodSettings::resetToDefaults()
     m_reverseAPIChannelIndex = 0;
     m_workspaceIndex = 0;
     m_hidden = false;
+    m_modulation = BPSK;
+    m_fskDeviation = 2400;
+    m_framing = CCSDS;
 }
 
 QByteArray SSDVDemodSettings::serialize() const
@@ -104,6 +107,9 @@ QByteArray SSDVDemodSettings::serialize() const
         s.writeBlob(30, m_scopeGUI->serialize());
     }
 
+    s.writeS32(31, m_modulation);
+    s.writeS32(32, m_fskDeviation);
+    s.writeS32(33, m_framing);
 
     return s.final();
 }
@@ -177,6 +183,9 @@ bool SSDVDemodSettings::deserialize(const QByteArray& data)
             m_scopeGUI->deserialize(bytetmp);
         }
 
+        d.readS32(31, &m_modulation, BPSK);
+        d.readS32(32, &m_fskDeviation, 2400);
+        d.readS32(33, &m_framing, CCSDS);
 
         return true;
     }
@@ -270,6 +279,15 @@ void SSDVDemodSettings::applySettings(const QStringList& settingsKeys, const SSD
     if (settingsKeys.contains("hidden")) {
         m_hidden = settings.m_hidden;
     }
+    if (settingsKeys.contains("modulation")) {
+        m_modulation = settings.m_modulation;
+    }
+    if (settingsKeys.contains("fskDeviation")) {
+        m_fskDeviation = settings.m_fskDeviation;
+    }
+    if (settingsKeys.contains("framing")) {
+        m_framing = settings.m_framing;
+    }
 }
 
 QString SSDVDemodSettings::getDebugString(const QStringList& settingsKeys, bool force) const
@@ -353,6 +371,15 @@ QString SSDVDemodSettings::getDebugString(const QStringList& settingsKeys, bool 
     }
     if (settingsKeys.contains("hidden") || force) {
         parts.append(QString("m_hidden: %1").arg(m_hidden));
+    }
+    if (settingsKeys.contains("modulation") || force) {
+        parts.append(QString("m_modulation: %1").arg(m_modulation));
+    }
+    if (settingsKeys.contains("fskDeviation") || force) {
+        parts.append(QString("m_fskDeviation: %1").arg(m_fskDeviation));
+    }
+    if (settingsKeys.contains("framing") || force) {
+        parts.append(QString("m_framing: %1").arg(m_framing));
     }
 
     return " " + parts.join(" ");
