@@ -262,6 +262,67 @@ int ViterbiDecoder::decode(float g1, float g2)
     return bit;
 }
 
+void viterbiDecodeBlock(const float *symbols, int nbits, uint8_t *bits)
+{
+    const uint8_t *expected = tables().m_expected;
+    std::vector<uint64_t> decisions(nbits);
+    std::array<float, 64> metrics;
+    std::array<float, 64> next;
+
+    metrics.fill(-1e30f);
+    metrics[0] = 0.0f;
+
+    for (int t = 0; t < nbits; t++)
+    {
+        float g1 = symbols[2 * t];
+        float g2 = symbols[2 * t + 1];
+        uint64_t d = 0;
+        float best = -1e30f;
+
+        for (int ns = 0; ns < 64; ns++)
+        {
+            int e0 = expected[ns];
+            int e1 = expected[ns | 64];
+            float m0 = metrics[ns >> 1] + ((e0 & 2) ? g1 : -g1) + ((e0 & 1) ? g2 : -g2);
+            float m1 = metrics[(ns >> 1) | 32] + ((e1 & 2) ? g1 : -g1) + ((e1 & 1) ? g2 : -g2);
+
+            if (m1 > m0)
+            {
+                next[ns] = m1;
+                d |= 1ULL << ns;
+            }
+            else
+            {
+                next[ns] = m0;
+            }
+
+            best = std::max(best, next[ns]);
+        }
+
+        for (int ns = 0; ns < 64; ns++) {
+            metrics[ns] = next[ns] - best;
+        }
+
+        decisions[t] = d;
+    }
+
+    int state = 0;
+
+    for (int ns = 1; ns < 64; ns++)
+    {
+        if (metrics[ns] > metrics[state]) {
+            state = ns;
+        }
+    }
+
+    for (int t = nbits - 1; t >= 0; t--)
+    {
+        bits[t] = state & 1;
+        int b = (decisions[t] >> state) & 1;
+        state = (state >> 1) | (b << 5);
+    }
+}
+
 FrameEncoder::FrameEncoder() :
     m_diffPrev(0)
 {
