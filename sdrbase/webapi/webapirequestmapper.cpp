@@ -5242,6 +5242,18 @@ bool WebAPIRequestMapper::getChannelSettings(
             channelSettings->getSsbDemodSettings()->init();
             channelSettings->getSsbDemodSettings()->fromJsonObject(settingsJsonObject);
         }
+        else if (channelSettingsKey == "SSDVDemodSettings")
+        {
+            channelSettings->setSsdvDemodSettings(new SWGSDRangel::SWGSSDVDemodSettings());
+            channelSettings->getSsdvDemodSettings()->init();
+            channelSettings->getSsdvDemodSettings()->fromJsonObject(settingsJsonObject);
+        }
+        else if (channelSettingsKey == "SSDVModSettings")
+        {
+            channelSettings->setSsdvModSettings(new SWGSDRangel::SWGSSDVModSettings());
+            channelSettings->getSsdvModSettings()->init();
+            channelSettings->getSsdvModSettings()->fromJsonObject(settingsJsonObject);
+        }
         else if (channelSettingsKey == "SSBModSettings")
         {
             channelSettings->setSsbModSettings(new SWGSDRangel::SWGSSBModSettings());
@@ -5385,6 +5397,11 @@ bool WebAPIRequestMapper::getChannelActions(
         {
             channelActions->setRttyModActions(new SWGSDRangel::SWGRTTYModActions());
             channelActions->getRttyModActions()->fromJsonObject(actionsJsonObject);
+        }
+        else if (channelActionsKey == "SSDVModActions")
+        {
+            channelActions->setSsdvModActions(new SWGSDRangel::SWGSSDVModActions());
+            channelActions->getSsdvModActions()->fromJsonObject(actionsJsonObject);
         }
         else if (channelActionsKey == "SigMFFileSinkActions")
         {
@@ -6144,6 +6161,8 @@ void WebAPIRequestMapper::resetChannelSettings(SWGSDRangel::SWGChannelSettings& 
     channelSettings.setRttyDemodSettings(nullptr);
     channelSettings.setRttyModSettings(nullptr);
     channelSettings.setSsbDemodSettings(nullptr);
+    channelSettings.setSsdvDemodSettings(nullptr);
+    channelSettings.setSsdvModSettings(nullptr);
     channelSettings.setSsbModSettings(nullptr);
     channelSettings.setUdpSourceSettings(nullptr);
     channelSettings.setUdpSinkSettings(nullptr);
@@ -6192,6 +6211,8 @@ void WebAPIRequestMapper::resetChannelReport(SWGSDRangel::SWGChannelReport& chan
     channelReport.setRttyDemodReport(nullptr);
     channelReport.setRttyModReport(nullptr);
     channelReport.setSsbDemodReport(nullptr);
+    channelReport.setSsdvDemodReport(nullptr);
+    channelReport.setSsdvModReport(nullptr);
     channelReport.setSsbModReport(nullptr);
     channelReport.setUdpSourceReport(nullptr);
     channelReport.setUdpSinkReport(nullptr);
@@ -6216,6 +6237,7 @@ void WebAPIRequestMapper::resetChannelActions(SWGSDRangel::SWGChannelActions& ch
     channelActions.setPsk31ModActions(nullptr);
     channelActions.setRadioAstronomyActions(nullptr);
     channelActions.setRttyModActions(nullptr);
+    channelActions.setSsdvModActions(nullptr);
 }
 
 void WebAPIRequestMapper::resetAudioInputDevice(SWGSDRangel::SWGAudioInputDevice& audioInputDevice)

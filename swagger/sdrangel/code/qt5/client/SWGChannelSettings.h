@@ -88,6 +88,8 @@
 #include "SWGRemoteSourceSettings.h"
 #include "SWGRemoteTCPSinkSettings.h"
 #include "SWGSSBDemodSettings.h"
+#include "SWGSSDVDemodSettings.h"
+#include "SWGSSDVModSettings.h"
 #include "SWGSSBModSettings.h"
 #include "SWGSigMFFileSinkSettings.h"
 #include "SWGUDPSinkSettings.h"
@@ -331,6 +333,12 @@ public:
     SWGSSBDemodSettings* getSsbDemodSettings();
     void setSsbDemodSettings(SWGSSBDemodSettings* ssb_demod_settings);
 
+    SWGSSDVDemodSettings* getSsdvDemodSettings();
+    void setSsdvDemodSettings(SWGSSDVDemodSettings* ssdv_demod_settings);
+
+    SWGSSDVModSettings* getSsdvModSettings();
+    void setSsdvModSettings(SWGSSDVModSettings* ssdv_mod_settings);
+
     SWGUDPSourceSettings* getUdpSourceSettings();
     void setUdpSourceSettings(SWGUDPSourceSettings* udp_source_settings);
 
@@ -567,6 +575,12 @@ private:
 
     SWGSSBDemodSettings* ssb_demod_settings;
     bool m_ssb_demod_settings_isSet;
+
+    SWGSSDVDemodSettings* ssdv_demod_settings;
+    bool m_ssdv_demod_settings_isSet;
+
+    SWGSSDVModSettings* ssdv_mod_settings;
+    bool m_ssdv_mod_settings_isSet;
 
     SWGUDPSourceSettings* udp_source_settings;
     bool m_udp_source_settings_isSet;

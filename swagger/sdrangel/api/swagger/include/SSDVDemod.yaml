@@ -1,0 +1,139 @@
+SSDVDemodSettings:
+  description: SSDVDemod
+  properties:
+    inputFrequencyOffset:
+      description: "channel center frequency shift from baseband center in Hz"
+      type: integer
+      format: int64
+    baudRate:
+      description: "Symbol rate"
+      type: integer
+    rrcRolloff:
+      description: "Root raised cosine filter roll-off"
+      type: number
+      format: float
+    pllBandwidth:
+      description: "Costas loop bandwidth, relative to the symbol rate"
+      type: number
+      format: float
+    afc:
+      description: "Frequency locked loop ahead of the Costas loop (1 for yes, 0 for no)"
+      type: integer
+    frameSize:
+      description: "CCSDS frame size in bytes, without RS parity"
+      type: integer
+    rs:
+      description: "Reed-Solomon (255,223) (1 for yes, 0 for no)"
+      type: integer
+    dualBasis:
+      description: "Reed-Solomon in dual basis rather than conventional (1 for yes, 0 for no)"
+      type: integer
+    randomizer:
+      description: "CCSDS pseudo-randomizer (1 for yes, 0 for no)"
+      type: integer
+    differential:
+      description: "Differential coding inside the convolutional code (1 for yes, 0 for no)"
+      type: integer
+    convolutional:
+      description: "Rate 1/2, K=7 convolutional code (1 for yes, 0 for no)"
+      type: integer
+    packetFormat:
+      description: >
+        How SSDV packets are carried in the frames
+          * 0 - AO-123: 5 byte TM header and a DSLWP SSDV packet in each frame
+          * 1 - Standard 256 byte SSDV packets as a byte stream after the TM header
+      type: integer
+    autoSave:
+      description: "Save images as they complete (1 for yes, 0 for no)"
+      type: integer
+    autoSavePath:
+      description: "Folder for saved images. Empty for Pictures/SSDV"
+      type: string
+    saveFrames:
+      description: "Append received frames to framesFilename in KISS format (1 for yes, 0 for no)"
+      type: integer
+    framesFilename:
+      description: "KISS file received frames are appended to"
+      type: string
+    rgbColor:
+      description: "Display color encoded as an RGB integer."
+      type: integer
+    title:
+      description: "User-visible title."
+      type: string
+    streamIndex:
+      description: "MIMO channel. Not relevant when connected to SI (single Rx)."
+      type: integer
+    useReverseAPI:
+      description: "Synchronize with reverse API (1 for yes, 0 for no)"
+      type: integer
+    reverseAPIAddress:
+      description: "IPv4 address or host name of the reverse API peer."
+      type: string
+    reverseAPIPort:
+      description: "TCP port of the reverse API peer."
+      type: integer
+    reverseAPIDeviceIndex:
+      description: "Device-set index used by the reverse API peer."
+      type: integer
+    reverseAPIChannelIndex:
+      description: "Channel index used by the reverse API peer."
+      type: integer
+    channelMarker:
+      $ref: "http://swgserver:8081/api/swagger/include/ChannelMarker.yaml#/ChannelMarker"
+      description: "Channel-marker display configuration."
+    rollupState:
+      $ref: "http://swgserver:8081/api/swagger/include/RollupState.yaml#/RollupState"
+      description: "Rollup display state."
+
+SSDVDemodReport:
+  description: SSDVDemod
+  properties:
+    channelPowerDB:
+      description: "power received in channel (dB)"
+      type: number
+      format: float
+    channelSampleRate:
+      description: "Channel sample rate in Hz."
+      type: integer
+    locked:
+      description: "Carrier locked (1 for yes, 0 for no)"
+      type: integer
+    frequencyOffset:
+      description: "Frequency offset tracked by the AFC and Costas loop in Hz"
+      type: number
+      format: float
+    evm:
+      description: "Mean squared error vector magnitude"
+      type: number
+      format: float
+    framesReceived:
+      description: "Frames received"
+      type: integer
+    framesBad:
+      description: "Frames whose RS decoding failed"
+      type: integer
+    packetsReceived:
+      description: "SSDV packets received"
+      type: integer
+    imagesReceived:
+      description: "Complete images received"
+      type: integer
+    callsign:
+      description: "Callsign of the most recent image"
+      type: string
+    imageId:
+      description: "Image ID of the most recent image, -1 for none"
+      type: integer
+    imagePacketsReceived:
+      description: "Packets received of the most recent image"
+      type: integer
+    imagePacketCount:
+      description: "Packets in the most recent image, -1 until its last packet is received"
+      type: integer
+    imageMissingPackets:
+      description: "Packets missing from the most recent image"
+      type: integer
+    lastSavedFile:
+      description: "File the last image was saved to"
+      type: string

@@ -35,6 +35,7 @@
 #include "SWGPSK31ModActions.h"
 #include "SWGPacketModActions.h"
 #include "SWGRTTYModActions.h"
+#include "SWGSSDVModActions.h"
 #include "SWGRadioAstronomyActions.h"
 #include "SWGSigMFFileSinkActions.h"
 #include <QString>
@@ -110,6 +111,8 @@ public:
 
     SWGRTTYModActions* getRttyModActions();
     void setRttyModActions(SWGRTTYModActions* rtty_mod_actions);
+    SWGSSDVModActions* getSsdvModActions();
+    void setSsdvModActions(SWGSSDVModActions* ssdv_mod_actions);
 
     SWGSigMFFileSinkActions* getSigMfFileSinkActions();
     void setSigMfFileSinkActions(SWGSigMFFileSinkActions* sig_mf_file_sink_actions);
@@ -171,6 +174,8 @@ private:
 
     SWGRTTYModActions* rtty_mod_actions;
     bool m_rtty_mod_actions_isSet;
+    SWGSSDVModActions* ssdv_mod_actions;
+    bool m_ssdv_mod_actions_isSet;
 
     SWGSigMFFileSinkActions* sig_mf_file_sink_actions;
     bool m_sig_mf_file_sink_actions_isSet;

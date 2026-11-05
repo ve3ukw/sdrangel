@@ -327,6 +327,7 @@
 #include "SWGRTTYDemodReport.h"
 #include "SWGRTTYDemodSettings.h"
 #include "SWGRTTYModActions.h"
+#include "SWGSSDVModActions.h"
 #include "SWGRTTYModActions_payload.h"
 #include "SWGRTTYModReport.h"
 #include "SWGRTTYModSettings.h"
@@ -368,6 +369,10 @@
 #include "SWGSSBDemodSettings.h"
 #include "SWGSSBModReport.h"
 #include "SWGSSBModSettings.h"
+#include "SWGSSDVDemodReport.h"
+#include "SWGSSDVDemodSettings.h"
+#include "SWGSSDVModReport.h"
+#include "SWGSSDVModSettings.h"
 #include "SWGSampleRate.h"
 #include "SWGSamplingDevice.h"
 #include "SWGSatelliteDeviceSettings.h"
@@ -2020,6 +2025,11 @@ namespace SWGSDRangel {
       obj->init();
       return obj;
     }
+    if(QString("SWGSSDVModActions").compare(type) == 0) {
+      SWGSSDVModActions *obj = new SWGSSDVModActions();
+      obj->init();
+      return obj;
+    }
     if(QString("SWGRTTYModActions_payload").compare(type) == 0) {
       SWGRTTYModActions_payload *obj = new SWGRTTYModActions_payload();
       obj->init();
@@ -2222,6 +2232,26 @@ namespace SWGSDRangel {
     }
     if(QString("SWGSSBModSettings").compare(type) == 0) {
       SWGSSBModSettings *obj = new SWGSSBModSettings();
+      obj->init();
+      return obj;
+    }
+    if(QString("SWGSSDVDemodReport").compare(type) == 0) {
+      SWGSSDVDemodReport *obj = new SWGSSDVDemodReport();
+      obj->init();
+      return obj;
+    }
+    if(QString("SWGSSDVDemodSettings").compare(type) == 0) {
+      SWGSSDVDemodSettings *obj = new SWGSSDVDemodSettings();
+      obj->init();
+      return obj;
+    }
+    if(QString("SWGSSDVModReport").compare(type) == 0) {
+      SWGSSDVModReport *obj = new SWGSSDVModReport();
+      obj->init();
+      return obj;
+    }
+    if(QString("SWGSSDVModSettings").compare(type) == 0) {
+      SWGSSDVModSettings *obj = new SWGSSDVModSettings();
       obj->init();
       return obj;
     }

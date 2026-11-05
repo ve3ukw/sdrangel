@@ -124,6 +124,10 @@ SWGChannelReport::SWGChannelReport() {
     m_noise_figure_report_isSet = false;
     ssb_demod_report = nullptr;
     m_ssb_demod_report_isSet = false;
+    ssdv_demod_report = nullptr;
+    m_ssdv_demod_report_isSet = false;
+    ssdv_mod_report = nullptr;
+    m_ssdv_mod_report_isSet = false;
     radio_astronomy_report = nullptr;
     m_radio_astronomy_report_isSet = false;
     radio_clock_report = nullptr;
@@ -266,6 +270,10 @@ SWGChannelReport::init() {
     m_noise_figure_report_isSet = false;
     ssb_demod_report = new SWGSSBDemodReport();
     m_ssb_demod_report_isSet = false;
+    ssdv_demod_report = new SWGSSDVDemodReport();
+    m_ssdv_demod_report_isSet = false;
+    ssdv_mod_report = new SWGSSDVModReport();
+    m_ssdv_mod_report_isSet = false;
     radio_astronomy_report = new SWGRadioAstronomyReport();
     m_radio_astronomy_report_isSet = false;
     radio_clock_report = new SWGRadioClockReport();
@@ -450,6 +458,12 @@ SWGChannelReport::cleanup() {
     if(ssb_demod_report != nullptr) { 
         delete ssb_demod_report;
     }
+    if(ssdv_demod_report != nullptr) { 
+        delete ssdv_demod_report;
+    }
+    if(ssdv_mod_report != nullptr) { 
+        delete ssdv_mod_report;
+    }
     if(radio_astronomy_report != nullptr) { 
         delete radio_astronomy_report;
     }
@@ -612,6 +626,10 @@ SWGChannelReport::fromJsonObject(QJsonObject &pJson) {
     ::SWGSDRangel::setValue(&noise_figure_report, pJson["NoiseFigureReport"], "SWGNoiseFigureReport", "SWGNoiseFigureReport");
     
     ::SWGSDRangel::setValue(&ssb_demod_report, pJson["SSBDemodReport"], "SWGSSBDemodReport", "SWGSSBDemodReport");
+    
+    ::SWGSDRangel::setValue(&ssdv_demod_report, pJson["SSDVDemodReport"], "SWGSSDVDemodReport", "SWGSSDVDemodReport");
+    
+    ::SWGSDRangel::setValue(&ssdv_mod_report, pJson["SSDVModReport"], "SWGSSDVModReport", "SWGSSDVModReport");
     
     ::SWGSDRangel::setValue(&radio_astronomy_report, pJson["RadioAstronomyReport"], "SWGRadioAstronomyReport", "SWGRadioAstronomyReport");
     
@@ -809,6 +827,12 @@ SWGChannelReport::asJsonObject() {
     }
     if((ssb_demod_report != nullptr) && (ssb_demod_report->isSet())){
         toJsonValue(QString("SSBDemodReport"), ssb_demod_report, obj, QString("SWGSSBDemodReport"));
+    }
+    if((ssdv_demod_report != nullptr) && (ssdv_demod_report->isSet())){
+        toJsonValue(QString("SSDVDemodReport"), ssdv_demod_report, obj, QString("SWGSSDVDemodReport"));
+    }
+    if((ssdv_mod_report != nullptr) && (ssdv_mod_report->isSet())){
+        toJsonValue(QString("SSDVModReport"), ssdv_mod_report, obj, QString("SWGSSDVModReport"));
     }
     if((radio_astronomy_report != nullptr) && (radio_astronomy_report->isSet())){
         toJsonValue(QString("RadioAstronomyReport"), radio_astronomy_report, obj, QString("SWGRadioAstronomyReport"));
@@ -1354,6 +1378,26 @@ SWGChannelReport::setSsbDemodReport(SWGSSBDemodReport* ssb_demod_report) {
     this->m_ssb_demod_report_isSet = true;
 }
 
+SWGSSDVDemodReport*
+SWGChannelReport::getSsdvDemodReport() {
+    return ssdv_demod_report;
+}
+void
+SWGChannelReport::setSsdvDemodReport(SWGSSDVDemodReport* ssdv_demod_report) {
+    this->ssdv_demod_report = ssdv_demod_report;
+    this->m_ssdv_demod_report_isSet = true;
+}
+
+SWGSSDVModReport*
+SWGChannelReport::getSsdvModReport() {
+    return ssdv_mod_report;
+}
+void
+SWGChannelReport::setSsdvModReport(SWGSSDVModReport* ssdv_mod_report) {
+    this->ssdv_mod_report = ssdv_mod_report;
+    this->m_ssdv_mod_report_isSet = true;
+}
+
 SWGRadioAstronomyReport*
 SWGChannelReport::getRadioAstronomyReport() {
     return radio_astronomy_report;
@@ -1691,6 +1735,12 @@ SWGChannelReport::isSet(){
             isObjectUpdated = true; break;
         }
         if(ssb_demod_report && ssb_demod_report->isSet()){
+            isObjectUpdated = true; break;
+        }
+        if(ssdv_demod_report && ssdv_demod_report->isSet()){
+            isObjectUpdated = true; break;
+        }
+        if(ssdv_mod_report && ssdv_mod_report->isSet()){
             isObjectUpdated = true; break;
         }
         if(radio_astronomy_report && radio_astronomy_report->isSet()){

@@ -172,6 +172,10 @@ SWGChannelSettings::SWGChannelSettings() {
     m_ssb_mod_settings_isSet = false;
     ssb_demod_settings = nullptr;
     m_ssb_demod_settings_isSet = false;
+    ssdv_demod_settings = nullptr;
+    m_ssdv_demod_settings_isSet = false;
+    ssdv_mod_settings = nullptr;
+    m_ssdv_mod_settings_isSet = false;
     udp_source_settings = nullptr;
     m_udp_source_settings_isSet = false;
     udp_sink_settings = nullptr;
@@ -336,6 +340,10 @@ SWGChannelSettings::init() {
     m_ssb_mod_settings_isSet = false;
     ssb_demod_settings = new SWGSSBDemodSettings();
     m_ssb_demod_settings_isSet = false;
+    ssdv_demod_settings = new SWGSSDVDemodSettings();
+    m_ssdv_demod_settings_isSet = false;
+    ssdv_mod_settings = new SWGSSDVModSettings();
+    m_ssdv_mod_settings_isSet = false;
     udp_source_settings = new SWGUDPSourceSettings();
     m_udp_source_settings_isSet = false;
     udp_sink_settings = new SWGUDPSinkSettings();
@@ -562,6 +570,12 @@ SWGChannelSettings::cleanup() {
     if(ssb_demod_settings != nullptr) { 
         delete ssb_demod_settings;
     }
+    if(ssdv_demod_settings != nullptr) { 
+        delete ssdv_demod_settings;
+    }
+    if(ssdv_mod_settings != nullptr) { 
+        delete ssdv_mod_settings;
+    }
     if(udp_source_settings != nullptr) { 
         delete udp_source_settings;
     }
@@ -732,6 +746,10 @@ SWGChannelSettings::fromJsonObject(QJsonObject &pJson) {
     ::SWGSDRangel::setValue(&ssb_mod_settings, pJson["SSBModSettings"], "SWGSSBModSettings", "SWGSSBModSettings");
     
     ::SWGSDRangel::setValue(&ssb_demod_settings, pJson["SSBDemodSettings"], "SWGSSBDemodSettings", "SWGSSBDemodSettings");
+    
+    ::SWGSDRangel::setValue(&ssdv_demod_settings, pJson["SSDVDemodSettings"], "SWGSSDVDemodSettings", "SWGSSDVDemodSettings");
+    
+    ::SWGSDRangel::setValue(&ssdv_mod_settings, pJson["SSDVModSettings"], "SWGSSDVModSettings", "SWGSSDVModSettings");
     
     ::SWGSDRangel::setValue(&udp_source_settings, pJson["UDPSourceSettings"], "SWGUDPSourceSettings", "SWGUDPSourceSettings");
     
@@ -976,6 +994,12 @@ SWGChannelSettings::asJsonObject() {
     }
     if((ssb_demod_settings != nullptr) && (ssb_demod_settings->isSet())){
         toJsonValue(QString("SSBDemodSettings"), ssb_demod_settings, obj, QString("SWGSSBDemodSettings"));
+    }
+    if((ssdv_demod_settings != nullptr) && (ssdv_demod_settings->isSet())){
+        toJsonValue(QString("SSDVDemodSettings"), ssdv_demod_settings, obj, QString("SWGSSDVDemodSettings"));
+    }
+    if((ssdv_mod_settings != nullptr) && (ssdv_mod_settings->isSet())){
+        toJsonValue(QString("SSDVModSettings"), ssdv_mod_settings, obj, QString("SWGSSDVModSettings"));
     }
     if((udp_source_settings != nullptr) && (udp_source_settings->isSet())){
         toJsonValue(QString("UDPSourceSettings"), udp_source_settings, obj, QString("SWGUDPSourceSettings"));
@@ -1722,6 +1746,26 @@ SWGChannelSettings::setSsbDemodSettings(SWGSSBDemodSettings* ssb_demod_settings)
     this->m_ssb_demod_settings_isSet = true;
 }
 
+SWGSSDVDemodSettings*
+SWGChannelSettings::getSsdvDemodSettings() {
+    return ssdv_demod_settings;
+}
+void
+SWGChannelSettings::setSsdvDemodSettings(SWGSSDVDemodSettings* ssdv_demod_settings) {
+    this->ssdv_demod_settings = ssdv_demod_settings;
+    this->m_ssdv_demod_settings_isSet = true;
+}
+
+SWGSSDVModSettings*
+SWGChannelSettings::getSsdvModSettings() {
+    return ssdv_mod_settings;
+}
+void
+SWGChannelSettings::setSsdvModSettings(SWGSSDVModSettings* ssdv_mod_settings) {
+    this->ssdv_mod_settings = ssdv_mod_settings;
+    this->m_ssdv_mod_settings_isSet = true;
+}
+
 SWGUDPSourceSettings*
 SWGChannelSettings::getUdpSourceSettings() {
     return udp_source_settings;
@@ -2001,6 +2045,12 @@ SWGChannelSettings::isSet(){
             isObjectUpdated = true; break;
         }
         if(ssb_demod_settings && ssb_demod_settings->isSet()){
+            isObjectUpdated = true; break;
+        }
+        if(ssdv_demod_settings && ssdv_demod_settings->isSet()){
+            isObjectUpdated = true; break;
+        }
+        if(ssdv_mod_settings && ssdv_mod_settings->isSet()){
             isObjectUpdated = true; break;
         }
         if(udp_source_settings && udp_source_settings->isSet()){

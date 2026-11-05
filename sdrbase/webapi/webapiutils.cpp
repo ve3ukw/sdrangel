@@ -89,6 +89,8 @@ const QMap<QString, QString> WebAPIUtils::m_channelURIToSettingsKey = {
     {"sdrangel.channel.rttymod", "RTTYModSettings"},
     {"sdrangel.channeltx.modssb", "SSBModSettings"},
     {"sdrangel.channel.ssbdemod", "SSBDemodSettings"},
+    {"sdrangel.channel.ssdvdemod", "SSDVDemodSettings"},
+    {"sdrangel.channeltx.modssdv", "SSDVModSettings"},
     {"sdrangel.channel.wdsprx", "WDSPRxSettings"},
     {"sdrangel.channel.ft8demod", "FT8DemodSettings"},
     {"de.maintech.sdrangelove.channel.ssb", "SSBDemodSettings"}, // remap
@@ -224,6 +226,8 @@ const QMap<QString, QString> WebAPIUtils::m_channelTypeToSettingsKey = {
     {"RTTYMod", "RTTYModSettings"},
     {"SSBMod", "SSBModSettings"},
     {"SSBDemod", "SSBDemodSettings"},
+    {"SSDVDemod", "SSDVDemodSettings"},
+    {"SSDVMod", "SSDVModSettings"},
     {"WDSPRx", "WDSPRxSettings"},
     {"FT8Demod", "FT8DemodSettings"},
     {"UDPSink", "UDPSinkSettings"},
@@ -252,7 +256,8 @@ const QMap<QString, QString> WebAPIUtils::m_channelTypeToActionsKey = {
     {"RadioAstronomy", "RadioAstronomyActions"},
     {"PacketMod", "PacketModActions"},
     {"PSK31Mod", "PSK31ModActions"},
-    {"RTTYMod", "RTTYModActions"}
+    {"RTTYMod", "RTTYModActions"},
+    {"SSDVMod", "SSDVModActions"}
 };
 
 const QMap<QString, QString> WebAPIUtils::m_sourceDeviceHwIdToSettingsKey = {
