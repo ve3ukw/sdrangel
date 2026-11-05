@@ -1791,6 +1791,8 @@ SatelliteTrackerGUI::TuneMode SatelliteTrackerGUI::tuneMode(const SatNogsTransmi
         && (transmitter->m_baud == 9600)
         && (description.contains("G3RUH") || description.contains("AX.25") || description.contains("AX25"))) {
         return TUNE_G3RUH;
+    } else if ((m == "BPSK") && description.contains("SSDV")) {
+        return TUNE_SSDV;
     } else if ((m == "SSTV") || (m.startsWith("FM") && description.contains("SSTV"))) {
         return TUNE_SSTV;
     } else if (m.startsWith("FM")) {
@@ -1831,6 +1833,8 @@ QStringList SatelliteTrackerGUI::channelTypesForMode(TuneMode mode)
         } else {
             return {"SSTVDemod"};
         }
+    case TUNE_SSDV:
+        return {"SSDVDemod"};
     case TUNE_USB:
     case TUNE_LSB:
     case TUNE_CW:

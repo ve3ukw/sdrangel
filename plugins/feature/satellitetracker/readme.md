@@ -84,7 +84,7 @@ The Satellites to track list is ordered in priority for the auto target feature 
 
 The available satellites can be filtered:
 
-* Show - only lists satellites in a category: Amateur, FM voice, Linear transponder, Packet / APRS, SSTV, Weather or Navigation.
+* Show - only lists satellites in a category: Amateur, FM voice, Linear transponder, Packet / APRS, SSTV, SSDV, Weather or Navigation.
 Categories are determined from the satellite's active SatNOGS transmitters (their service, mode and description) and the TLE files that list it.
 There is also a category for each TLE file (other than SatNOGS), named after the CelesTrak group (E.g. "TLE: weather") or file name.
 * Hide if TLE older than - hides satellites whose TLE hasn't been updated for the given number of days.
@@ -270,6 +270,7 @@ The channel tuned depends on the transmitter's mode, and is shown after the arro
 A Packet demodulator (set to 1200 AFSK) is also kept on the same frequency, with the same Doppler correction, to receive telemetry packets sent with the images (shown as "+ PacketDemod" in the menu).
 An existing Packet demodulator on the same device is used, otherwise one is created, which is removed when tracking stops or a non-SSTV transmitter is tuned.
 If you remove the Packet demodulator, another isn't created until a transmitter is selected again.
+* BPSK with SSDV in the description (E.g. AO-123 "Mode U - SSDV" on 436.210 MHz) - [SSDV demodulator](../../channelrx/demodssdv/readme.md), which decodes the images. Its settings aren't changed, so a new SSDV demodulator uses its defaults, which suit AO-123 (9600 baud, CCSDS concatenated coding, AO-123 packets).
 * USB, LSB and CW - SSB demodulator (whose sideband and filter are set to match), otherwise WDSP Rx. CW is tuned 700 Hz below the carrier, so it can be heard as a tone.
 * LoRa - ChirpChat demodulator.
 * APT - APT demodulator.

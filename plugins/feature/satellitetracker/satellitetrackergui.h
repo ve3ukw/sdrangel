@@ -114,7 +114,8 @@ private:
         TUNE_CW,
         TUNE_LORA,
         TUNE_APT,
-        TUNE_DVBS
+        TUNE_DVBS,
+        TUNE_SSDV               // SSDV images on BPSK with CCSDS coding (E.g. AO-123). Last, as modes are saved
     };
     TuneMode m_tuneMode;
     ChannelAPI *m_tuneChannel;          // Channel being tracked. Index can change when other channels are removed

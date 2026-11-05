@@ -97,7 +97,7 @@ SatelliteSelectionDialog::SatelliteSelectionDialog(SatelliteTrackerSettings *set
 }
 
 const QStringList SatelliteSelectionDialog::m_categories = {
-    "All", "Amateur", "FM voice", "Linear transponder", "Packet / APRS", "SSTV", "Weather", "Navigation"
+    "All", "Amateur", "FM voice", "Linear transponder", "Packet / APRS", "SSTV", "SSDV", "Weather", "Navigation"
 };
 
 // Categories a satellite belongs to, determined from its active transmitters and TLE files
@@ -134,6 +134,9 @@ QStringList SatelliteSelectionDialog::satelliteCategories(const SatNogsSatellite
         }
         if ((mode == "SSTV") || description.contains("SSTV")) {
             add("SSTV");
+        }
+        if ((mode == "SSDV") || description.contains("SSDV")) {
+            add("SSDV");
         }
         if (transmitter->m_service == "Meteorological") {
             add("Weather");
