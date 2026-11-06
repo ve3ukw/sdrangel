@@ -31,9 +31,7 @@ public:
     explicit JogWheelKnob(QWidget *parent = nullptr);
 
     QSize sizeHint() const override { return QSize(180, 180); }
-    QSize minimumSizeHint() const override { return QSize(90, 90); }
-    bool hasHeightForWidth() const override { return true; }
-    int heightForWidth(int width) const override { return width; }
+    QSize minimumSizeHint() const override { return QSize(60, 60); } // Drawn to fit the shorter side, so the window can be made short and wide
 
     static const int m_detents = 40; //!< Detents per revolution
 

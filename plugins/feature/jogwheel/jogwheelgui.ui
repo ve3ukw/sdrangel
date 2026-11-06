@@ -13,7 +13,7 @@
   <property name="minimumSize">
    <size>
     <width>320</width>
-    <height>300</height>
+    <height>100</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -25,17 +25,17 @@
      <x>0</x>
      <y>0</y>
      <width>360</width>
-     <height>440</height>
+     <height>90</height>
     </rect>
    </property>
    <property name="sizePolicy">
-    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+    <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
      <horstretch>0</horstretch>
      <verstretch>0</verstretch>
     </sizepolicy>
    </property>
    <property name="windowTitle">
-    <string>Jog Wheel</string>
+    <string>Settings</string>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout">
     <property name="spacing">
@@ -221,13 +221,42 @@ Same: the same way, for non-inverting transponders.</string>
       </item>
      </layout>
     </item>
-    <item>
-     <widget class="Line" name="line">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
-      </property>
-     </widget>
-    </item>
+   </layout>
+  </widget>
+  <widget class="QWidget" name="wheelContainer" native="true">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>92</y>
+     <width>360</width>
+     <height>340</height>
+    </rect>
+   </property>
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
+   <property name="windowTitle">
+    <string>Jog Wheel</string>
+   </property>
+   <layout class="QVBoxLayout" name="wheelLayout">
+    <property name="spacing">
+     <number>3</number>
+    </property>
+    <property name="leftMargin">
+     <number>4</number>
+    </property>
+    <property name="topMargin">
+     <number>4</number>
+    </property>
+    <property name="rightMargin">
+     <number>4</number>
+    </property>
+    <property name="bottomMargin">
+     <number>4</number>
+    </property>
     <item>
      <widget class="QLabel" name="targetFrequency">
       <property name="toolTip">

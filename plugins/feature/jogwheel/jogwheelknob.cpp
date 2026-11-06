@@ -46,9 +46,7 @@ JogWheelKnob::JogWheelKnob(QWidget *parent) :
 {
     setFocusPolicy(Qt::StrongFocus);
     setCursor(Qt::OpenHandCursor);
-    QSizePolicy policy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    policy.setHeightForWidth(true);
-    setSizePolicy(policy);
+    setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     setToolTip(tr("Drag round to tune, or use the mouse wheel.\n"
         "With focus: Up/Down or Left/Right for one step, Page Up/Down for ten."));
 }

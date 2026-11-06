@@ -29,6 +29,9 @@ The Link is for when the uplink isn't tuned by the Satellite Tracker, such as on
 
 <h2>Interface</h2>
 
+The window has two sections, Settings (Tune to UDP) and Jog Wheel (frequencies, total change and knob). Once set up, Settings can be
+rolled up to make the window smaller. The knob is drawn to fit the space, so the window can be made short and wide.
+
 <h3>Tune</h3>
 
 What the wheel tunes:
