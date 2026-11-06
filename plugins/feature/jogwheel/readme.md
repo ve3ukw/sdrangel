@@ -18,7 +18,7 @@ size and acceleration apply in each case, so a hardware knob feels the same as t
 
 <h3>With the Satellite Tracker</h3>
 
-When the Satellite Tracker keeps a Tx channel on a transponder's uplink (see the "Tx uplink channel" submenu of its satellite table),
+When the Satellite Tracker keeps a Tx channel on a transponder's uplink (see "Tx uplink channel" in its satellite table's menu),
 it moves the uplink whenever the downlink is retuned, with the uplink's own Doppler correction. So set Tune to the downlink channel and Link to None
 (the Satellite Tracker does this when you select a USB, LSB or CW transmitter from its menu, adding a Jog Wheel if there isn't one):
 turning the wheel moves the downlink, and the tracker keeps the uplink in the same place in the transponder's passband.

@@ -290,8 +290,10 @@ The channel's frequency offset is adjusted while the signal remains within the d
 keeping the channel's current offset from DC.
 <h4>Uplink</h4>
 
-To transmit to a linear transponder or a repeater, select a Tx channel (E.g. an SSB modulator) in the "Tx uplink channel" submenu.
+To transmit to a linear transponder or a repeater, select a Tx channel (E.g. an SSB modulator) under "Tx uplink channel" near the top of the menu.
 It lists the channels on Tx and MIMO devices, and the selection is saved with the feature's settings. Select None to stop tuning the uplink.
+The selection is kept when the channel is removed or channel numbers change (E.g. when a configuration or preset is loaded):
+a Tx channel of the same type is used instead, preferring the same device, including one added while tracking.
 Transmitters with a SatNOGS uplink show it in the menu, followed by the Tx channel or "not tuned" if none is selected
 (E.g. "[uplink 432.125-432.175 MHz LSB inverting M1:0 SSBMod (Tx0)]").
 With a Tx channel selected, selecting a transmitter keeps the Tx channel on the uplink while the Rx channel is kept on the downlink:

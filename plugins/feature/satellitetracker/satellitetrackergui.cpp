@@ -114,10 +114,15 @@ bool SatelliteTrackerGUI::handleMessage(const Message& message)
         qDebug("SatelliteTrackerGUI::handleMessage: SatelliteTracker::MsgConfigureSatelliteTracker");
         const SatelliteTracker::MsgConfigureSatelliteTracker& cfg = (SatelliteTracker::MsgConfigureSatelliteTracker&) message;
 
+        QString uplinkBefore = m_settings.m_uplinkChannel;
         if (cfg.getForce()) {
             m_settings = cfg.getSettings();
         } else {
             m_settings.applySettings(cfg.getSettingsKeys(), cfg.getSettings());
+        }
+        if (m_settings.m_uplinkChannel != uplinkBefore) {
+            qDebug() << "SatelliteTrackerGUI::handleMessage: Tx uplink channel changed from" << uplinkBefore << "to" << m_settings.m_uplinkChannel
+                << "by feature, force" << cfg.getForce() << "keys" << cfg.getSettingsKeys();
         }
 
         blockApplySettings(true);
@@ -1663,10 +1668,40 @@ void SatelliteTrackerGUI::satTable_customContextMenuRequested(QPoint pos)
     getRxChannels(rxChannels, rxDeviceSets, selectedChannel);
     std::vector<DeviceSet*>& deviceSets = MainCore::instance()->getDeviceSets();
 
-    // Tx channel to keep on the uplink of transponders and repeaters, as selected in the Tx uplink submenu
+    // Tx channel to keep on the uplink of transponders and repeaters, as selected in the menu
     QList<RxChannel> txChannels;
     int selectedTxChannel;
     getTxChannels(txChannels, selectedTxChannel);
+
+    // Tx channel kept on the uplink. These are at the top level near the top of the menu, rather than in a submenu
+    // at the bottom, as selecting from that submenu didn't work on KDE with Wayland (the cause wasn't found)
+    if (!txChannels.isEmpty())
+    {
+        QAction *uplinkTitle = new QAction("Tx uplink channel (for transponders and repeaters):", tableContextMenu);
+        uplinkTitle->setEnabled(false);
+        tableContextMenu->addAction(uplinkTitle);
+        QActionGroup *uplinkGroup = new QActionGroup(tableContextMenu);
+        QAction *noUplinkAction = new QAction("None", uplinkGroup);
+        noUplinkAction->setCheckable(true);
+        noUplinkAction->setChecked(selectedTxChannel < 0);
+        connect(noUplinkAction, &QAction::triggered, this, [this]() {
+            selectUplinkChannel("", "");
+        });
+        tableContextMenu->addAction(noUplinkAction);
+        for (int i = 0; i < txChannels.size(); i++)
+        {
+            QAction *uplinkAction = new QAction(txChannels[i].m_label, uplinkGroup);
+            uplinkAction->setCheckable(true);
+            uplinkAction->setChecked(i == selectedTxChannel);
+            QString uplinkChannel = QString("%1:%2").arg(txChannels[i].m_deviceSetIndex).arg(txChannels[i].m_channelIndex);
+            QString uplinkType = txChannels[i].m_type;
+            connect(uplinkAction, &QAction::triggered, this, [this, uplinkChannel, uplinkType]() {
+                selectUplinkChannel(uplinkChannel, uplinkType);
+            });
+            tableContextMenu->addAction(uplinkAction);
+        }
+        tableContextMenu->addSeparator();
+    }
 
     // Add transmitters with a downlink frequency
     QList<SatNogsTransmitter *> transmitters;
@@ -1802,31 +1837,6 @@ void SatelliteTrackerGUI::satTable_customContextMenuRequested(QPoint pos)
             }
         });
         channelMenu->addAction(channelAction);
-    }
-
-    // Submenu to select the Tx channel kept on the uplink
-    QMenu *uplinkMenu = tableContextMenu->addMenu(selectedTxChannel >= 0
-        ? QString("Tx uplink channel: %1").arg(txChannels[selectedTxChannel].m_label)
-        : QString(txChannels.isEmpty() ? "Tx uplink channel: none available" : "Tx uplink channel: none (select to tune uplinks)"));
-    uplinkMenu->setEnabled(!txChannels.isEmpty());
-    QActionGroup *uplinkGroup = new QActionGroup(uplinkMenu);
-    QAction *noUplinkAction = new QAction("None", uplinkGroup);
-    noUplinkAction->setCheckable(true);
-    noUplinkAction->setChecked(selectedTxChannel < 0);
-    connect(noUplinkAction, &QAction::triggered, this, [this]() {
-        selectUplinkChannel("");
-    });
-    uplinkMenu->addAction(noUplinkAction);
-    for (int i = 0; i < txChannels.size(); i++)
-    {
-        QAction *uplinkAction = new QAction(txChannels[i].m_label, uplinkGroup);
-        uplinkAction->setCheckable(true);
-        uplinkAction->setChecked(i == selectedTxChannel);
-        QString uplinkChannel = QString("%1:%2").arg(txChannels[i].m_deviceSetIndex).arg(txChannels[i].m_channelIndex);
-        connect(uplinkAction, &QAction::triggered, this, [this, uplinkChannel]() {
-            selectUplinkChannel(uplinkChannel);
-        });
-        uplinkMenu->addAction(uplinkAction);
     }
 
     tableContextMenu->popup(ui->satTable->viewport()->mapToGlobal(pos));
@@ -2014,18 +2024,57 @@ void SatelliteTrackerGUI::getTxChannels(QList<RxChannel>& txChannels, int& selec
                 QString label = deviceSet->m_deviceMIMOEngine
                     ? QString("M%1:%2 %3 (Tx%4)").arg(i).arg(j).arg(channel->getIdentifier()).arg(channel->getStreamIndex())
                     : QString("T%1:%2 %3").arg(i).arg(j).arg(channel->getIdentifier());
-                if (QString("%1:%2").arg(i).arg(j) == m_settings.m_uplinkChannel) {
-                    selectedChannel = txChannels.size();
-                }
                 txChannels.append({i, j, channel->getIdentifier(), label, channel});
             }
         }
     }
+
+    // Selected uplink channel: the one at the saved index, if it's still of the saved type. Channel indices change
+    // when channels are removed or a configuration is loaded, so otherwise use a channel of the same type,
+    // preferring the same device set
+    if (m_settings.m_uplinkChannel.isEmpty()) {
+        return;
+    }
+    QStringList parts = m_settings.m_uplinkChannel.split(':');
+    int deviceSetIndex = parts.size() == 2 ? parts[0].toInt() : -1;
+    const QString& type = m_settings.m_uplinkChannelType;
+    for (int i = 0; i < txChannels.size(); i++)
+    {
+        if ((QString("%1:%2").arg(txChannels[i].m_deviceSetIndex).arg(txChannels[i].m_channelIndex) == m_settings.m_uplinkChannel)
+            && (type.isEmpty() || (txChannels[i].m_type == type)))
+        {
+            selectedChannel = i;
+            return;
+        }
+    }
+    for (int i = 0; (i < txChannels.size()) && !type.isEmpty(); i++)
+    {
+        if ((txChannels[i].m_type == type)
+            && ((selectedChannel < 0) || ((txChannels[i].m_deviceSetIndex == deviceSetIndex) && (txChannels[selectedChannel].m_deviceSetIndex != deviceSetIndex)))) {
+            selectedChannel = i;
+        }
+    }
 }
 
-void SatelliteTrackerGUI::selectUplinkChannel(const QString& uplinkChannel)
+// Save the uplink channel selection, if it has changed
+void SatelliteTrackerGUI::saveUplinkChannel(int deviceSetIndex, int channelIndex, const QString& type)
 {
+    QString uplinkChannel = deviceSetIndex < 0 ? QString("") : QString("%1:%2").arg(deviceSetIndex).arg(channelIndex);
+
+    if ((uplinkChannel != m_settings.m_uplinkChannel) || (type != m_settings.m_uplinkChannelType))
+    {
+        m_settings.m_uplinkChannel = uplinkChannel;
+        m_settings.m_uplinkChannelType = type;
+        m_settingsKeys.append("uplinkChannel");
+        applySettings();
+    }
+}
+
+void SatelliteTrackerGUI::selectUplinkChannel(const QString& uplinkChannel, const QString& type)
+{
+    qDebug() << "SatelliteTrackerGUI::selectUplinkChannel:" << uplinkChannel << type << "tracking" << m_tuneSatellite << (m_tuneChannel != nullptr);
     m_settings.m_uplinkChannel = uplinkChannel;
+    m_settings.m_uplinkChannelType = type;
     m_settingsKeys.append("uplinkChannel");
     applySettings();
     // Add or remove the uplink from what's being tracked
@@ -2080,6 +2129,9 @@ SatelliteTracker::TuneUplink SatelliteTrackerGUI::tuneUplink(const QString& sate
 
     if ((selectedChannel < 0) || !transmitter || (transmitter->m_uplinkLow <= 0))
     {
+        qInfo() << "SatelliteTrackerGUI::tuneUplink:" << satellite << frequency << "no uplink -"
+            << (selectedChannel < 0 ? QString("no Tx uplink channel selected (%1 %2)").arg(m_settings.m_uplinkChannel).arg(m_settings.m_uplinkChannelType)
+                : !transmitter ? QString("transmitter not found") : QString("transmitter has no uplink"));
         m_uplinkChannel = nullptr;
         return uplink;
     }
@@ -2102,9 +2154,12 @@ SatelliteTracker::TuneUplink SatelliteTrackerGUI::tuneUplink(const QString& sate
         m_configuredUplink = txChannel.m_channel;
     }
 
+    qInfo() << "SatelliteTrackerGUI::tuneUplink:" << satellite << frequency << "uplink" << txChannel.m_label
+        << uplink.m_uplinkFrequency << mode << (uplink.m_transponder ? "transponder" : "repeater") << (uplink.m_invert ? "inverting" : "");
     m_uplinkChannel = txChannel.m_channel;
     m_uplinkDeviceSetIndex = txChannel.m_deviceSetIndex;
     m_uplinkChannelIndex = txChannel.m_channelIndex;
+    saveUplinkChannel(txChannel.m_deviceSetIndex, txChannel.m_channelIndex, txChannel.m_type);
     return uplink;
 }
 
@@ -2449,6 +2504,22 @@ void SatelliteTrackerGUI::tuneNewChannel(const QString& satellite, qint64 freque
 
 void SatelliteTrackerGUI::channelAdded(int deviceSetIndex, ChannelAPI *channel)
 {
+    // A Tx channel of the selected uplink type has been added (E.g. a configuration or preset was loaded),
+    // while tracking without an uplink channel, so use it
+    if (!m_uplinkChannel
+        && !m_tuneSatellite.isEmpty()
+        && !m_settings.m_uplinkChannelType.isEmpty()
+        && (channel->getStreamType() == ChannelAPI::StreamSingleSource)
+        && (channel->getIdentifier() == m_settings.m_uplinkChannelType))
+    {
+        (void) deviceSetIndex;
+        QTimer::singleShot(0, this, [this]() {
+            if (!m_uplinkChannel && !m_tuneSatellite.isEmpty() && m_tuneChannel) {
+                startTune(m_tuneSatellite, m_tuneFrequency, m_tuneMode, m_tuneDeviceSetIndex, m_tuneChannel, m_tuneChannelType, false, m_tuneOffset);
+            }
+        });
+    }
+
     if (m_pendingTune.m_active
         && (deviceSetIndex == m_pendingTune.m_deviceSetIndex)
         && (channel->getIdentifier() == m_pendingTune.m_type))
@@ -2510,17 +2581,13 @@ void SatelliteTrackerGUI::channelRemoved(int deviceSetIndex, ChannelAPI *channel
         bool uplinkChanged = false;
         if (m_uplinkChannel)
         {
-            // Keep the selected uplink channel when its index changes, and forget it when it's removed
+            // Keep the selected uplink channel when its index changes. If it's removed (E.g. when a configuration
+            // or preset is loaded), the selection is kept, so another channel of the same type is used
             int uplinkIndex = channelIndex(m_uplinkDeviceSetIndex, m_uplinkChannel);
-            QString uplinkChannel = uplinkIndex < 0 ? QString("") : QString("%1:%2").arg(m_uplinkDeviceSetIndex).arg(uplinkIndex);
             if (uplinkIndex < 0) {
                 m_uplinkChannel = nullptr;
-            }
-            if (uplinkChannel != m_settings.m_uplinkChannel)
-            {
-                m_settings.m_uplinkChannel = uplinkChannel;
-                m_settingsKeys.append("uplinkChannel");
-                applySettings();
+            } else {
+                saveUplinkChannel(m_uplinkDeviceSetIndex, uplinkIndex, m_settings.m_uplinkChannelType);
             }
             uplinkChanged = uplinkIndex != m_uplinkChannelIndex;
         }
@@ -2546,6 +2613,7 @@ void SatelliteTrackerGUI::startTune(const QString& satellite, qint64 frequency, 
 {
     int index = channelIndex(deviceSetIndex, channel);
     if (index < 0) {
+        qDebug() << "SatelliteTrackerGUI::startTune:" << satellite << "channel not found on device set" << deviceSetIndex;
         return;
     }
 

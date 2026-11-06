@@ -1280,7 +1280,7 @@ void SatelliteTrackerWorker::tuneUplink(double rangeRate)
         || !getTxCenterFrequency(deviceSet, channel->getStreamIndex(), centerFrequency, sampleRate)
         || !ChannelWebAPIUtils::getFrequencyOffset(m_tuneUplink.m_deviceSetIndex, m_tuneUplink.m_channelIndex, offset))
     {
-        qDebug() << "SatelliteTrackerWorker::tuneUplink: Failed to get uplink device or channel frequency";
+        qWarning() << "SatelliteTrackerWorker::tuneUplink: Failed to get uplink device or channel frequency";
         return;
     }
 
@@ -1302,8 +1302,10 @@ void SatelliteTrackerWorker::tuneUplink(double rangeRate)
         if ((sampleRate > 0) && (std::abs(offset) >= sampleRate * 0.45)) {
             offset = 0;
         }
+        qInfo() << "SatelliteTrackerWorker::tuneUplink: Retuning Tx device from" << (qint64) centerFrequency << "to" << (txFrequency - offset)
+            << "Hz for uplink" << txFrequency << "Hz, baseband" << sampleRate;
         if (!setTxCenterFrequency(m_tuneUplink.m_deviceSetIndex, deviceSet, channel->getStreamIndex(), txFrequency - offset)) {
-            qDebug() << "SatelliteTrackerWorker::tuneUplink: Failed to set center frequency";
+            qWarning() << "SatelliteTrackerWorker::tuneUplink: Failed to set center frequency";
         }
         if (!ChannelWebAPIUtils::setFrequencyOffset(m_tuneUplink.m_deviceSetIndex, m_tuneUplink.m_channelIndex, offset)) {
             qDebug() << "SatelliteTrackerWorker::tuneUplink: Failed to set frequency offset";

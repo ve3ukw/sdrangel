@@ -75,6 +75,7 @@ void SatelliteTrackerSettings::resetToDefaults()
     m_fileInputDevice = "";
     m_tuneChannel = "";
     m_uplinkChannel = "";
+    m_uplinkChannelType = "";
     m_hideStaleTLEs = true;
     m_maxTLEAge = 30;
     m_satelliteGroups.clear();
@@ -197,6 +198,7 @@ QByteArray SatelliteTrackerSettings::serialize() const
     }
     s.writeBool(71, m_trackCreatedCompanion);
     s.writeString(72, m_uplinkChannel);
+    s.writeString(73, m_uplinkChannelType);
 
     for (int i = 0; i < SAT_COL_COLUMNS; i++) {
         s.writeS32(100 + i, m_columnIndexes[i]);
@@ -322,6 +324,7 @@ bool SatelliteTrackerSettings::deserialize(const QByteArray& data)
         d.readBool(67, &m_trackCreatedChannel, false);
         d.readBool(71, &m_trackCreatedCompanion, false);
         d.readString(72, &m_uplinkChannel, "");
+        d.readString(73, &m_uplinkChannelType, "");
         d.readBool(68, &m_amsatStatus, true);
         d.readS32(69, &m_amsatStatusHours, 24);
         {
@@ -566,6 +569,7 @@ void SatelliteTrackerSettings::applySettings(const QStringList& settingsKeys, co
     }
     if (settingsKeys.contains("uplinkChannel")) {
         m_uplinkChannel = settings.m_uplinkChannel;
+        m_uplinkChannelType = settings.m_uplinkChannelType;
     }
     if (settingsKeys.contains("hideStaleTLEs")) {
         m_hideStaleTLEs = settings.m_hideStaleTLEs;
@@ -798,6 +802,7 @@ QString SatelliteTrackerSettings::getDebugString(const QStringList& settingsKeys
     }
     if (settingsKeys.contains("uplinkChannel") || force) {
         ostr << " m_uplinkChannel: " << m_uplinkChannel.toStdString();
+        ostr << " m_uplinkChannelType: " << m_uplinkChannelType.toStdString();
     }
     if (settingsKeys.contains("hideStaleTLEs") || force) {
         ostr << " m_hideStaleTLEs: " << m_hideStaleTLEs;

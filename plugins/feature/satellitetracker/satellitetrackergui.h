@@ -233,7 +233,8 @@ private:
     void getTxChannels(QList<RxChannel>& txChannels, int& selectedChannel);
     void pointJogWheel(bool add);
     void configureJogWheel(int featureSetIndex, int featureIndex);
-    void selectUplinkChannel(const QString& uplinkChannel);
+    void selectUplinkChannel(const QString& uplinkChannel, const QString& type);
+    void saveUplinkChannel(int deviceSetIndex, int channelIndex, const QString& type);
     SatelliteTracker::TuneUplink tuneUplink(const QString& satellite, qint64 frequency, qint64 tuneFrequency, bool configure);
     static const SatNogsTransmitter *findTransmitter(const SatNogsSatellite *satellite, qint64 frequency);
     static QString uplinkMode(const SatNogsTransmitter *transmitter);
