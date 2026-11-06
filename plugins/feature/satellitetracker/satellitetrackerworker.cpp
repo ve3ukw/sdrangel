@@ -428,8 +428,6 @@ void SatelliteTrackerWorker::update()
                                 else if (qdt < satWorkerState->m_los)
                                     aos(satWorkerState);
 
-                                if (satWorkerState->m_los.isValid() && (m_settings.m_target == satWorkerState->m_name))
-                                    calculateRotation(satWorkerState);
                             }
                             if (satWorkerState->m_los.isValid() && (satWorkerState->m_los > qdt))
                             {
@@ -483,6 +481,7 @@ void SatelliteTrackerWorker::update()
                 // Send Az/El of target to Rotator Controllers, if elevation above horizon
                 if ((name == m_settings.m_target) && (satWorkerState->m_satState.m_elevation >= 0))
                 {
+                    updateRotation(satWorkerState, true);
                     sendToRotators(satWorkerState->m_satState.m_azimuth, satWorkerState->m_satState.m_elevation);
                 }
                 // Otherwise, point rotators at where the next pass will start, so they're ready at AOS
@@ -495,6 +494,7 @@ void SatelliteTrackerWorker::update()
                 {
                     qDebug() << "SatelliteTrackerWorker::update: Pre-positioning rotators for AOS of" << name << "at" << satWorkerState->m_satState.m_passes[0].m_aos;
                     m_prePositionedAOS = satWorkerState->m_satState.m_passes[0].m_aos;
+                    updateRotation(satWorkerState, false);
                     sendToRotators(satWorkerState->m_satState.m_passes[0].m_aosAzimuth, 0.0);
                 }
 
@@ -663,6 +663,43 @@ void SatelliteTrackerWorker::sendToRotators(double azimuth, double elevation)
         swgTarget->setElevation(elevation);
         messageQueue->push(MainCore::MsgTargetAzimuthElevation::create(m_satelliteTracker, swgTarget));
     }
+}
+
+// Calculate rotation (flip / extended azimuth) for the target's next or current pass, keeping it for the
+// whole pass. Changing it while the satellite is above the horizon would swing the rotator over the top or
+// around the azimuth range mid-pass. Passes are recalculated at various times (E.g. when another satellite has
+// LOS, or settings change), which gives slightly different AOS times, so a pass is identified by its AOS to
+// within a few minutes. The rotation is also calculated when the target changes, including by auto target
+void SatelliteTrackerWorker::updateRotation(SatWorkerState *satWorkerState, bool aboveHorizon)
+{
+    if (satWorkerState->m_satState.m_passes.size() == 0) {
+        return;
+    }
+
+    const QDateTime& aos = satWorkerState->m_satState.m_passes[0].m_aos;
+    bool sameTarget = satWorkerState->m_name == m_rotationTarget;
+    bool samePass = sameTarget
+        && m_rotationAOS.isValid()
+        && aos.isValid()
+        && (std::abs(m_rotationAOS.secsTo(aos)) < 5*60);
+
+    // Keep the rotation for the pass in progress, even if passes[0] is now the next pass (E.g. between
+    // LOS at the minimum AOS elevation and the satellite setting below the horizon)
+    bool inPass = sameTarget
+        && aboveHorizon
+        && m_rotationLOS.isValid()
+        && (m_satelliteTracker->currentDateTimeUtc() <= m_rotationLOS.addSecs(10*60));
+
+    if (samePass || inPass) {
+        return;
+    }
+
+    calculateRotation(satWorkerState);
+    m_rotationTarget = satWorkerState->m_name;
+    m_rotationAOS = aos;
+    m_rotationLOS = satWorkerState->m_satState.m_passes[0].m_los;
+    qDebug() << "SatelliteTrackerWorker::updateRotation:" << m_rotationTarget << "AOS" << m_rotationAOS
+        << "flip" << m_flipRotation << "extended" << m_extendedAzRotation;
 }
 
 // Determine if we need to flip rotator or use extended azimuth to avoid 360/0 discontinuity

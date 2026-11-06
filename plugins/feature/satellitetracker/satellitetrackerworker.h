@@ -126,6 +126,9 @@ private:
     bool m_extendedAzRotation;          //!< Use 450+ degree azimuth to avoid 360/0 degree discontinuity
     QDateTime m_lastUpdateDateTime;
     QDateTime m_prePositionedAOS;       //!< AOS of pass rotators have been pre-positioned for
+    QString m_rotationTarget;           //!< Satellite m_flipRotation and m_extendedAzRotation were calculated for
+    QDateTime m_rotationAOS;            //!< AOS of pass m_flipRotation and m_extendedAzRotation were calculated for
+    QDateTime m_rotationLOS;            //!< LOS of that pass
 
     // Channel tuned to a satellite transmitter from the satellite table, with Doppler tracking
     QTimer m_tuneTimer;
@@ -165,6 +168,7 @@ private:
     void applyDeviceAOSSettings(const QString& name);
     void startStopSinks(bool start);
     void calculateRotation(SatWorkerState *satWorkerState);
+    void updateRotation(SatWorkerState *satWorkerState, bool aboveHorizon);
     void sendToRotators(double azimuth, double elevation);
     QString substituteVariables(const QString &textIn, const QString &satelliteName);
     void executeCommand(const QString &command, const QString &satelliteName);

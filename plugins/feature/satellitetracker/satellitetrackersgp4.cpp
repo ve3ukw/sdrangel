@@ -212,7 +212,7 @@ bool getPassesThrough0Deg(const SatNogsTLE& satTle,
         double timeStep = (losTime - aosTime).TotalSeconds() / steps;
 
         double prevAz = 0.0;
-        for (int i = 0; i < steps; i++)
+        for (int i = 0; i <= steps; i++) // Include LOS
         {
             // Calculate satellite position
             Eci eci = sgp4.FindPosition(currentTime);
