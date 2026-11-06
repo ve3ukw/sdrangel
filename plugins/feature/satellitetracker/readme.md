@@ -288,6 +288,33 @@ The "Rx channel" submenu lists the channels on Rx and MIMO devices; the selectio
 Selecting a different channel while tracking moves tracking to that channel.
 The channel's frequency offset is adjusted while the signal remains within the device's baseband; otherwise the device's center frequency is retuned,
 keeping the channel's current offset from DC.
+<h4>Uplink</h4>
+
+To transmit to a linear transponder or a repeater, select a Tx channel (E.g. an SSB modulator) in the "Tx uplink channel" submenu.
+It lists the channels on Tx and MIMO devices, and the selection is saved with the feature's settings. Select None to stop tuning the uplink.
+Transmitters with a SatNOGS uplink show it in the menu, followed by the Tx channel or "not tuned" if none is selected
+(E.g. "[uplink 432.125-432.175 MHz LSB inverting M1:0 SSBMod (Tx0)]").
+With a Tx channel selected, selecting a transmitter keeps the Tx channel on the uplink while the Rx channel is kept on the downlink:
+
+* The uplink is corrected for Doppler, so the satellite receives the uplink frequency. Uplink Doppler is larger than downlink Doppler
+when the uplink is on a higher band (E.g. about 3 times for U/V), so this keeps your signal in the same place in the transponder's passband during a pass.
+* For a linear transponder, the uplink is tuned to the part of the uplink passband that is retransmitted at the downlink frequency being received.
+On an inverting transponder (most linear satellites), the uplink moves down when the downlink moves up, and vice versa.
+Initially the channels are at the centres of the passbands.
+* For a repeater (an uplink without a passband, E.g. FM), the uplink stays on the uplink frequency.
+* An SSB modulator is set to the uplink's sideband: SatNOGS' uplink mode, or for inverting transponders without one, the opposite sideband to the downlink (LSB for a USB downlink).
+* Retuning the downlink channel moves the uplink to match, and retuning the uplink channel moves the downlink. If both are retuned at once
+(E.g. by the [Jog Wheel](../jogwheel/readme.md) with the uplink linked), the downlink's frequency is used.
+* As for the downlink, the channel's frequency offset is adjusted while the signal is within the device's baseband; otherwise the device's (Tx) center frequency is retuned.
+
+CTCSS is not yet set on the uplink channel.
+
+<h4>Jog Wheel</h4>
+
+When a USB, LSB or CW transmitter is selected from the menu, the [Jog Wheel](../jogwheel/readme.md) is set to tune the channel being tracked,
+for fine tuning in a transponder's passband. A Jog Wheel is added if there isn't one. If the uplink is tracked too, the Jog Wheel's link is
+removed, as the Satellite Tracker moves the uplink when the downlink is tuned. The Jog Wheel's target follows the channel if its index changes.
+
 Doppler tracking continues over subsequent passes, until "Stop Doppler tracking" is selected from the same menu, or the Satellite Tracker is stopped.
 What is being tracked is saved in the settings, so tracking is resumed when the Satellite Tracker is restarted, including after SDRangel is restarted.
 Tracking resumes on the same channel if it still exists, otherwise on another channel of the same type on the same device, otherwise a new demodulator is created.

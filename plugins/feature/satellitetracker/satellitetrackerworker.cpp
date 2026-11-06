@@ -37,6 +37,7 @@
 #include "util/units.h"
 #include "device/deviceset.h"
 #include "device/deviceapi.h"
+#include "dsp/devicesamplesink.h"
 #include "dsp/devicesamplesource.h"
 #include "dsp/devicesamplemimo.h"
 #include "channel/channelapi.h"
@@ -72,7 +73,9 @@ SatelliteTrackerWorker::SatelliteTrackerWorker(SatelliteTracker* satelliteTracke
     m_tuneFastDoppler(false),
     m_tuneId(0),
     m_tuneLastFrequency(-1),
-    m_tuneDeviceRetuned(false)
+    m_tuneDeviceRetuned(false),
+    m_uplinkLastFrequency(-1),
+    m_uplinkDeviceRetuned(false)
 {
     connect(&m_pollTimer, SIGNAL(timeout()), this, SLOT(update()));
     connect(&m_tuneTimer, &QTimer::timeout, this, &SatelliteTrackerWorker::tuneDoppler);
@@ -172,7 +175,7 @@ bool SatelliteTrackerWorker::handleMessage(const Message& message)
         SatelliteTracker::MsgTuneChannel& tune = (SatelliteTracker::MsgTuneChannel&) message;
 
         if (tune.getFrequency() > 0) {
-            startTune(tune.getSatellite(), tune.getDeviceSetIndex(), tune.getChannelIndex(), tune.getFrequency(), tune.getFastDoppler(), tune.getTuneId(), tune.getCompanionChannelIndexes());
+            startTune(tune.getSatellite(), tune.getDeviceSetIndex(), tune.getChannelIndex(), tune.getFrequency(), tune.getFastDoppler(), tune.getTuneId(), tune.getCompanionChannelIndexes(), tune.getUplink());
         } else {
             stopTune();
         }
@@ -1015,9 +1018,10 @@ void SatelliteTrackerWorker::doppler(SatWorkerState *satWorkerState)
 }
 
 void SatelliteTrackerWorker::startTune(const QString& satellite, int deviceSetIndex, int channelIndex, qint64 frequency, bool fastDoppler, int tuneId,
-    const QList<int>& companionChannelIndexes)
+    const QList<int>& companionChannelIndexes, const SatelliteTracker::TuneUplink& uplink)
 {
-    qDebug() << "SatelliteTrackerWorker::startTune:" << satellite << deviceSetIndex << channelIndex << frequency << fastDoppler << companionChannelIndexes;
+    qDebug() << "SatelliteTrackerWorker::startTune:" << satellite << deviceSetIndex << channelIndex << frequency << fastDoppler << companionChannelIndexes
+        << "uplink" << uplink.m_deviceSetIndex << uplink.m_channelIndex << uplink.m_uplinkFrequency << uplink.m_transponder << uplink.m_invert;
 
     m_tuneSatellite = satellite;
     m_tuneDeviceSetIndex = deviceSetIndex;
@@ -1028,6 +1032,9 @@ void SatelliteTrackerWorker::startTune(const QString& satellite, int deviceSetIn
     m_tuneLastFrequency = -1;
     m_tuneDeviceRetuned = false;
     m_tuneCompanionChannelIndexes = companionChannelIndexes;
+    m_tuneUplink = uplink;
+    m_uplinkLastFrequency = -1;
+    m_uplinkDeviceRetuned = false;
 
     tuneDoppler();
     if (!m_tuneSatellite.isEmpty())
@@ -1067,6 +1074,7 @@ void SatelliteTrackerWorker::stopTune()
     // Leave channel at last Doppler corrected frequency
     m_tuneTimer.stop();
     m_tuneSatellite.clear();
+    m_tuneUplink = SatelliteTracker::TuneUplink();
 }
 
 // Set channel so that it receives the satellite transmitter frequency, corrected for Doppler.
@@ -1102,6 +1110,7 @@ void SatelliteTrackerWorker::tuneDoppler()
     // If channel's frequency differs from what we last set it to, the user has retuned it (E.g. to a different part
     // of a transponder's passband), so move the frequency we're tracking by the same amount
     qint64 currentFrequency = (qint64) round(centerFrequency) + offset;
+    bool downlinkRetuned = false;
     if (m_tuneDeviceRetuned)
     {
         // Device may round the center frequency we set, so don't treat that as user retuning
@@ -1111,7 +1120,10 @@ void SatelliteTrackerWorker::tuneDoppler()
     {
         qDebug() << "SatelliteTrackerWorker::tuneDoppler: Channel retuned by" << (currentFrequency - m_tuneLastFrequency) << "Hz";
         m_tuneFrequency += currentFrequency - m_tuneLastFrequency;
+        downlinkRetuned = true;
     }
+    // The user may tune the uplink instead (E.g. with the Jog Wheel), which moves the downlink of a transponder
+    checkUplinkRetuned(downlinkRetuned);
 
     // Received frequency is lower as range increases (positive range rate)
     const double c = 299792458.0;
@@ -1147,9 +1159,165 @@ void SatelliteTrackerWorker::tuneDoppler()
     }
     m_tuneLastFrequency = rxFrequency;
 
+    tuneUplink(satWorkerState->m_satState.m_rangeRate);
+
     if (getMessageQueueToGUI()) {
         getMessageQueueToGUI()->push(SatelliteTrackerReport::MsgReportTune::create(m_tuneId, m_tuneFrequency));
     }
+}
+
+// Uplink frequency at the satellite, for the current downlink frequency
+qint64 SatelliteTrackerWorker::uplinkFrequency() const
+{
+    if (!m_tuneUplink.m_transponder) {
+        return m_tuneUplink.m_uplinkFrequency;
+    }
+
+    qint64 delta = m_tuneFrequency - m_tuneUplink.m_downlinkFrequency;
+    return m_tuneUplink.m_uplinkFrequency + (m_tuneUplink.m_invert ? -delta : delta);
+}
+
+// If the user has retuned the uplink channel, move what we're tracking to match. When both channels have been
+// retuned (E.g. by the Jog Wheel with a link), the downlink takes precedence, so the change isn't applied twice
+bool SatelliteTrackerWorker::checkUplinkRetuned(bool downlinkRetuned)
+{
+    std::vector<DeviceSet*>& deviceSets = MainCore::instance()->getDeviceSets();
+
+    if ((m_tuneUplink.m_deviceSetIndex < 0) || (m_tuneUplink.m_deviceSetIndex >= (int) deviceSets.size())) {
+        return false;
+    }
+
+    DeviceSet *deviceSet = deviceSets[m_tuneUplink.m_deviceSetIndex];
+    ChannelAPI *channel = deviceSet->getChannelAt(m_tuneUplink.m_channelIndex);
+    double centerFrequency;
+    int sampleRate;
+    int offset;
+
+    if (!channel
+        || !getTxCenterFrequency(deviceSet, channel->getStreamIndex(), centerFrequency, sampleRate)
+        || !ChannelWebAPIUtils::getFrequencyOffset(m_tuneUplink.m_deviceSetIndex, m_tuneUplink.m_channelIndex, offset))
+    {
+        return false;
+    }
+
+    qint64 currentFrequency = (qint64) round(centerFrequency) + offset;
+    bool retuned = false;
+
+    if (m_uplinkDeviceRetuned)
+    {
+        m_uplinkDeviceRetuned = false;
+    }
+    else if (!downlinkRetuned && (m_uplinkLastFrequency >= 0) && (currentFrequency != m_uplinkLastFrequency))
+    {
+        qint64 delta = currentFrequency - m_uplinkLastFrequency;
+        qDebug() << "SatelliteTrackerWorker::checkUplinkRetuned: Uplink channel retuned by" << delta << "Hz";
+
+        if (m_tuneUplink.m_transponder) {
+            m_tuneFrequency += m_tuneUplink.m_invert ? -delta : delta;
+        } else {
+            m_tuneUplink.m_uplinkFrequency += delta;
+        }
+        retuned = true;
+    }
+
+    return retuned;
+}
+
+// Set the uplink channel so the satellite receives the uplink frequency, corrected for Doppler
+void SatelliteTrackerWorker::tuneUplink(double rangeRate)
+{
+    std::vector<DeviceSet*>& deviceSets = MainCore::instance()->getDeviceSets();
+
+    if ((m_tuneUplink.m_deviceSetIndex < 0) || (m_tuneUplink.m_deviceSetIndex >= (int) deviceSets.size())) {
+        return;
+    }
+
+    DeviceSet *deviceSet = deviceSets[m_tuneUplink.m_deviceSetIndex];
+    ChannelAPI *channel = deviceSet->getChannelAt(m_tuneUplink.m_channelIndex);
+    double centerFrequency;
+    int sampleRate;
+    int offset;
+
+    if (!channel
+        || (channel->getStreamType() != ChannelAPI::StreamSingleSource)
+        || !getTxCenterFrequency(deviceSet, channel->getStreamIndex(), centerFrequency, sampleRate)
+        || !ChannelWebAPIUtils::getFrequencyOffset(m_tuneUplink.m_deviceSetIndex, m_tuneUplink.m_channelIndex, offset))
+    {
+        qDebug() << "SatelliteTrackerWorker::tuneUplink: Failed to get uplink device or channel frequency";
+        return;
+    }
+
+    // Satellite receives a lower frequency as range increases, so transmit higher to compensate
+    const double c = 299792458.0;
+    qint64 txFrequency = (qint64) round(uplinkFrequency() / (1.0 - rangeRate * 1000.0 / c));
+    qint64 newOffset = txFrequency - (qint64) round(centerFrequency);
+
+    if ((sampleRate > 0) && (std::abs(newOffset) < sampleRate * 0.45))
+    {
+        if ((newOffset != offset)
+            && !ChannelWebAPIUtils::setFrequencyOffset(m_tuneUplink.m_deviceSetIndex, m_tuneUplink.m_channelIndex, (int) newOffset)) {
+            qDebug() << "SatelliteTrackerWorker::tuneUplink: Failed to set frequency offset";
+        }
+    }
+    else
+    {
+        // Out of band - retune device, keeping channel's current offset from centre
+        if ((sampleRate > 0) && (std::abs(offset) >= sampleRate * 0.45)) {
+            offset = 0;
+        }
+        if (!setTxCenterFrequency(m_tuneUplink.m_deviceSetIndex, deviceSet, channel->getStreamIndex(), txFrequency - offset)) {
+            qDebug() << "SatelliteTrackerWorker::tuneUplink: Failed to set center frequency";
+        }
+        if (!ChannelWebAPIUtils::setFrequencyOffset(m_tuneUplink.m_deviceSetIndex, m_tuneUplink.m_channelIndex, offset)) {
+            qDebug() << "SatelliteTrackerWorker::tuneUplink: Failed to set frequency offset";
+        }
+        m_uplinkDeviceRetuned = true;
+    }
+    m_uplinkLastFrequency = txFrequency;
+}
+
+// Get center frequency and baseband sample rate for a Tx stream of a single Tx or MIMO device
+bool SatelliteTrackerWorker::getTxCenterFrequency(DeviceSet *deviceSet, int streamIndex, double& centerFrequency, int& sampleRate)
+{
+    if (deviceSet->m_deviceSinkEngine)
+    {
+        DeviceSampleSink *sink = deviceSet->m_deviceAPI->getSampleSink();
+        if (!sink) {
+            return false;
+        }
+        sampleRate = sink->getSampleRate();
+        centerFrequency = sink->getCenterFrequency();
+        return true;
+    }
+    else if (deviceSet->m_deviceMIMOEngine)
+    {
+        DeviceSampleMIMO *mimo = deviceSet->m_deviceAPI->getSampleMIMO();
+        if (!mimo) {
+            return false;
+        }
+        sampleRate = mimo->getSinkSampleRate(std::max(streamIndex, 0));
+        centerFrequency = mimo->getSinkCenterFrequency(std::max(streamIndex, 0));
+        return true;
+    }
+    return false;
+}
+
+bool SatelliteTrackerWorker::setTxCenterFrequency(int deviceSetIndex, DeviceSet *deviceSet, int streamIndex, qint64 centerFrequency)
+{
+    if (deviceSet->m_deviceSinkEngine)
+    {
+        return ChannelWebAPIUtils::setCenterFrequency(deviceSetIndex, centerFrequency);
+    }
+    else if (deviceSet->m_deviceMIMOEngine)
+    {
+        DeviceSampleMIMO *mimo = deviceSet->m_deviceAPI->getSampleMIMO();
+        if (!mimo) {
+            return false;
+        }
+        mimo->setSinkCenterFrequency(centerFrequency, std::max(streamIndex, 0));
+        return true;
+    }
+    return false;
 }
 
 // Get center frequency and baseband sample rate for an Rx stream of a single Rx or MIMO device

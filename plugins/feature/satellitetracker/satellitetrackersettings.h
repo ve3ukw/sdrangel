@@ -104,6 +104,7 @@ struct SatelliteTrackerSettings
     QString m_mapFeature;               //!< Which feature when FROM_MAP
     QString m_fileInputDevice;          //!< Which device when FROM_FILE
     QString m_tuneChannel;              //!< Rx channel tuned from satellite table context menu, as "deviceSetIndex:channelIndex"
+    QString m_uplinkChannel;            //!< Tx channel tuned to the uplink of a transponder or repeater, as "deviceSetIndex:channelIndex", or empty for none
     bool m_hideStaleTLEs;               //!< Hide satellites with old TLEs (which have probably re-entered) in satellite selection dialog
     int m_maxTLEAge;                    //!< Age in days after which a TLE is considered stale
     QMap<QString, QStringList> m_satelliteGroups;   //!< User defined groups of satellites, by name

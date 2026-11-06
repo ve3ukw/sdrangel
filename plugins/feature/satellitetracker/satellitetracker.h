@@ -144,6 +144,27 @@ public:
         { }
     };
 
+    // Tx channel tuned to a transponder's or repeater's uplink, alongside the downlink channel.
+    // The uplink frequency at the satellite is m_uplinkFrequency when the downlink channel is tuned to
+    // m_downlinkFrequency. For a linear transponder it moves with the downlink (the opposite way if inverting).
+    struct TuneUplink {
+        int m_deviceSetIndex;       //!< -1 for no uplink
+        int m_channelIndex;
+        qint64 m_downlinkFrequency;
+        qint64 m_uplinkFrequency;
+        bool m_transponder;         //!< Uplink follows the downlink (linear transponder). Otherwise fixed (FM repeater)
+        bool m_invert;              //!< Inverting transponder
+
+        TuneUplink() :
+            m_deviceSetIndex(-1),
+            m_channelIndex(-1),
+            m_downlinkFrequency(0),
+            m_uplinkFrequency(0),
+            m_transponder(false),
+            m_invert(false)
+        { }
+    };
+
     // Tune a channel to a satellite transmitter frequency and keep it Doppler corrected
     // A frequency of 0 stops tracking
     class MsgTuneChannel : public Message {
@@ -157,15 +178,16 @@ public:
         bool getFastDoppler() const { return m_fastDoppler; }
         int getTuneId() const { return m_tuneId; }
         const QList<int>& getCompanionChannelIndexes() const { return m_companionChannelIndexes; }
+        const TuneUplink& getUplink() const { return m_uplink; }
 
         static MsgTuneChannel* create(const QString& satellite, int deviceSetIndex, int channelIndex, qint64 frequency, bool fastDoppler, int tuneId,
-            const QList<int>& companionChannelIndexes = QList<int>())
+            const QList<int>& companionChannelIndexes = QList<int>(), const TuneUplink& uplink = TuneUplink())
         {
-            return new MsgTuneChannel(satellite, deviceSetIndex, channelIndex, frequency, fastDoppler, tuneId, companionChannelIndexes);
+            return new MsgTuneChannel(satellite, deviceSetIndex, channelIndex, frequency, fastDoppler, tuneId, companionChannelIndexes, uplink);
         }
 
         static MsgTuneChannel* createStop() {
-            return new MsgTuneChannel("", -1, -1, 0, false, 0, QList<int>());
+            return new MsgTuneChannel("", -1, -1, 0, false, 0, QList<int>(), TuneUplink());
         }
 
     private:
@@ -176,9 +198,10 @@ public:
         bool m_fastDoppler;     //!< Correct at least every second, for narrowband modes such as SSB and CW
         int m_tuneId;           //!< Identifies this tune request in MsgReportTune
         QList<int> m_companionChannelIndexes; //!< Other channels on the same device set, set to the same frequency (E.g. Packet demod for SSTV telemetry)
+        TuneUplink m_uplink;
 
         MsgTuneChannel(const QString& satellite, int deviceSetIndex, int channelIndex, qint64 frequency, bool fastDoppler, int tuneId,
-            const QList<int>& companionChannelIndexes) :
+            const QList<int>& companionChannelIndexes, const TuneUplink& uplink) :
             Message(),
             m_satellite(satellite),
             m_deviceSetIndex(deviceSetIndex),
@@ -186,7 +209,8 @@ public:
             m_frequency(frequency),
             m_fastDoppler(fastDoppler),
             m_tuneId(tuneId),
-            m_companionChannelIndexes(companionChannelIndexes)
+            m_companionChannelIndexes(companionChannelIndexes),
+            m_uplink(uplink)
         { }
     };
 

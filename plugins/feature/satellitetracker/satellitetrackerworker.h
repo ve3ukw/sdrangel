@@ -29,6 +29,7 @@
 #include "util/messagequeue.h"
 #include "util/astronomy.h"
 
+#include "satellitetracker.h"
 #include "satellitetrackersettings.h"
 #include "satellitetrackersgp4.h"
 #include "satnogs.h"
@@ -137,6 +138,9 @@ private:
     qint64 m_tuneLastFrequency;         //!< Frequency (with Doppler) we last set channel to, or -1. Used to detect user retuning
     bool m_tuneDeviceRetuned;           //!< We changed device center frequency, which device may have rounded
     QList<int> m_tuneCompanionChannelIndexes; //!< Other channels on the same device set, kept at the same frequency
+    SatelliteTracker::TuneUplink m_tuneUplink; //!< Tx channel kept on the uplink, if any
+    qint64 m_uplinkLastFrequency;       //!< Frequency (with Doppler) we last set the uplink channel to, or -1
+    bool m_uplinkDeviceRetuned;         //!< We changed the uplink device's center frequency
 
     bool handleMessage(const Message& cmd);
     void applySettings(const SatelliteTrackerSettings& settings, const QList<QString>& settingsKeys, bool force = false);
@@ -166,7 +170,13 @@ private:
     void executeCommand(const QString &command, const QString &satelliteName);
     void enableDoppler(SatWorkerState *satWorkerState);
     void disableDoppler(SatWorkerState *satWorkerState);
-    void startTune(const QString& satellite, int deviceSetIndex, int channelIndex, qint64 frequency, bool fastDoppler, int tuneId, const QList<int>& companionChannelIndexes);
+    void startTune(const QString& satellite, int deviceSetIndex, int channelIndex, qint64 frequency, bool fastDoppler, int tuneId, const QList<int>& companionChannelIndexes,
+        const SatelliteTracker::TuneUplink& uplink);
+    qint64 uplinkFrequency() const;
+    bool checkUplinkRetuned(bool downlinkRetuned);
+    void tuneUplink(double rangeRate);
+    bool getTxCenterFrequency(DeviceSet *deviceSet, int streamIndex, double& centerFrequency, int& sampleRate);
+    bool setTxCenterFrequency(int deviceSetIndex, DeviceSet *deviceSet, int streamIndex, qint64 centerFrequency);
     void tuneCompanionChannels(int offset);
     int tuneInterval() const;
     void stopTune();

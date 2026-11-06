@@ -32,6 +32,7 @@
 #include "util/messagequeue.h"
 #include "settings/rollupstate.h"
 
+#include "satellitetracker.h"
 #include "satellitetrackersettings.h"
 #include "satnogs.h"
 #include "amsatstatus.h"
@@ -136,6 +137,12 @@ private:
     qint64 m_tuneBaseFrequency;         // Frequency sent to worker, before user retuning (includes CW tone offset)
     qint64 m_tuneOffset;                // How far user has retuned the channel from the transmitter frequency
     float m_tuneCTCSS;                  // Uplink CTCSS tone (Hz) for transmitter, or 0. For when we support Tx
+    ChannelAPI *m_uplinkChannel;        // Tx channel kept on the uplink while tracking, or nullptr. Index can change when other channels are removed
+    int m_uplinkDeviceSetIndex;
+    int m_uplinkChannelIndex;           // Its index when last sent to the worker
+    ChannelAPI *m_configuredUplink;     // Uplink channel whose sideband was last set
+    bool m_addJogWheel;                 // Add a Jog Wheel, if there isn't one, when an SSB or CW transmitter is next tuned
+    bool m_pendingJogWheel;             // Waiting for a Jog Wheel we added to be created
     struct PendingTune {                // Tune to perform once a new demodulator has been created
         bool m_active;
         QString m_satellite;
@@ -223,6 +230,13 @@ private:
     void workSatellite(const QString& satellite);
     void trackTarget(const QString& satellite);
     void getRxChannels(QList<RxChannel>& rxChannels, QList<int>& rxDeviceSets, int& selectedChannel);
+    void getTxChannels(QList<RxChannel>& txChannels, int& selectedChannel);
+    void pointJogWheel(bool add);
+    void configureJogWheel(int featureSetIndex, int featureIndex);
+    void selectUplinkChannel(const QString& uplinkChannel);
+    SatelliteTracker::TuneUplink tuneUplink(const QString& satellite, qint64 frequency, qint64 tuneFrequency, bool configure);
+    static const SatNogsTransmitter *findTransmitter(const SatNogsSatellite *satellite, qint64 frequency);
+    static QString uplinkMode(const SatNogsTransmitter *transmitter);
     void startRotators();
     void parkRotators();
     static QString availableChannelType(const QStringList& types);
@@ -268,6 +282,7 @@ private slots:
     void resumeTrack();
     void amsatStatusUpdated();
     void channelAdded(int deviceSetIndex, ChannelAPI *channel);
+    void featureAdded(int featureSetIndex, Feature *feature);
     void channelRemoved(int deviceSetIndex, ChannelAPI *channel);
     void columnSelectMenuChecked(bool checked = false);
     void on_deviceFeatureSelect_currentIndexChanged(int index);
