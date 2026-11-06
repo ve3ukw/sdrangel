@@ -358,6 +358,7 @@ const QMap<QString, QString> WebAPIUtils::m_featureTypeToSettingsKey = {
     {"APRS", "APRSSettings"},
     {"DemodAnalyzer", "DemodAnalyzerSettings"},
     {"FreqDisplay", "FreqDisplaySettings"},
+    {"JogWheel", "JogWheelSettings"},
     {"JogdialController", "JogdialControllerSettings"},
     {"GS232Controller", "GS232ControllerSettings"}, // a.k.a Rotator Controller
     {"LimeRFE", "LimeRFESettings"},
@@ -386,6 +387,7 @@ const QMap<QString, QString> WebAPIUtils::m_featureTypeToActionsKey = {
     {"MCPServer", "MCPServerActions"},
     {"SatelliteTracker", "SatelliteTrackerActions"},
     {"SimplePTT", "SimplePTTActions"},
+    {"JogWheel", "JogWheelActions"},
     {"SkyMap", "SkyMapActions"},
     {"StarTracker", "StarTrackerActions"},
     {"VORLocalizer", "VORLocalizerActions"},
@@ -401,6 +403,7 @@ const QMap<QString, QString> WebAPIUtils::m_featureURIToSettingsKey = {
     {"sdrangel.feature.aprs", "APRSSettings"},
     {"sdrangel.feature.demodanalyzer", "DemodAnalyzerSettings"},
     {"sdrangel.feature.freqdisplay", "FreqDisplaySettings"},
+    {"sdrangel.feature.jogwheel", "JogWheelSettings"},
     {"sdrangel.feature.jogdialcontroller", "JogdialControllerSettings"},
     {"sdrangel.feature.gs232controller", "GS232ControllerSettings"},
     {"sdrangel.feature.limerfe", "LimeRFESettings"},

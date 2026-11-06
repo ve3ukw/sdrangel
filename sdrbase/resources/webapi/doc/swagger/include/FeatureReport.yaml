@@ -24,6 +24,8 @@ FeatureReport:
       description: "Ambe report data for Feature."
     FreqDisplayReport:
       $ref: "/doc/swagger/include/FreqDisplay.yaml#/FreqDisplayReport"
+    JogWheelReport:
+      $ref: "/doc/swagger/include/JogWheel.yaml#/JogWheelReport"
       description: "Freq display report data for Feature."
     GS232ControllerReport:
       $ref: "/doc/swagger/include/GS232Controller.yaml#/GS232ControllerReport"

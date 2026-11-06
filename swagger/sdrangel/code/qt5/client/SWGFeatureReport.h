@@ -27,6 +27,7 @@
 #include "SWGAMBEReport.h"
 #include "SWGAPRSReport.h"
 #include "SWGFreqDisplayReport.h"
+#include "SWGJogWheelReport.h"
 #include "SWGGS232ControllerReport.h"
 #include "SWGLimeRFEReport.h"
 #include "SWGMCPServerReport.h"
@@ -79,6 +80,9 @@ public:
 
     SWGFreqDisplayReport* getFreqDisplayReport();
     void setFreqDisplayReport(SWGFreqDisplayReport* freq_display_report);
+
+    SWGJogWheelReport* getJogWheelReport();
+    void setJogWheelReport(SWGJogWheelReport* jog_wheel_report);
 
     SWGGS232ControllerReport* getGs232ControllerReport();
     void setGs232ControllerReport(SWGGS232ControllerReport* gs232_controller_report);
@@ -137,6 +141,9 @@ private:
 
     SWGFreqDisplayReport* freq_display_report;
     bool m_freq_display_report_isSet;
+
+    SWGJogWheelReport* jog_wheel_report;
+    bool m_jog_wheel_report_isSet;
 
     SWGGS232ControllerReport* gs232_controller_report;
     bool m_gs232_controller_report_isSet;

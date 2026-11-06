@@ -46,6 +46,9 @@ FeatureActions:
     SimplePTTActions:
       $ref: "http://swgserver:8081/api/swagger/include/SimplePTT.yaml#/SimplePTTActions"
       description: "Simple ptt actions configuration for Feature."
+    JogWheelActions:
+      $ref: "http://swgserver:8081/api/swagger/include/JogWheel.yaml#/JogWheelActions"
+      description: "Jog wheel actions configuration for Feature."
     SkyMapActions:
       $ref: "http://swgserver:8081/api/swagger/include/SkyMap.yaml#/SkyMapActions"
       description: "Sky map actions configuration for Feature."

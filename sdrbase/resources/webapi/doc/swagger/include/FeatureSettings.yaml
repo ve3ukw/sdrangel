@@ -39,6 +39,8 @@ FeatureSettings:
       description: "Jogdial controller settings configuration for Feature."
     FreqDisplaySettings:
       $ref: "/doc/swagger/include/FreqDisplay.yaml#/FreqDisplaySettings"
+    JogWheelSettings:
+      $ref: "/doc/swagger/include/JogWheel.yaml#/JogWheelSettings"
       description: "Freq display settings configuration for Feature."
     GS232ControllerSettings:
       $ref: "/doc/swagger/include/GS232Controller.yaml#/GS232ControllerSettings"

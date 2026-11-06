@@ -151,6 +151,12 @@ else()
     message(STATUS "Not building freqdisplay (ENABLE_FEATURE_FREQDISPLAY=${ENABLE_FEATURE_FREQDISPLAY})")
 endif()
 
+if (ENABLE_FEATURE_JOGWHEEL)
+    add_subdirectory(jogwheel)
+else()
+    message(STATUS "Not building jogwheel (ENABLE_FEATURE_JOGWHEEL=${ENABLE_FEATURE_JOGWHEEL})")
+endif()
+
 if (ENABLE_FEATURE_MCPSERVER)
     add_subdirectory(mcpserver)
 else()

@@ -52,6 +52,8 @@ SWGFeatureSettings::SWGFeatureSettings() {
     m_jogdial_controller_settings_isSet = false;
     freq_display_settings = nullptr;
     m_freq_display_settings_isSet = false;
+    jog_wheel_settings = nullptr;
+    m_jog_wheel_settings_isSet = false;
     gs232_controller_settings = nullptr;
     m_gs232_controller_settings_isSet = false;
     lime_rfe_settings = nullptr;
@@ -112,6 +114,8 @@ SWGFeatureSettings::init() {
     m_jogdial_controller_settings_isSet = false;
     freq_display_settings = new SWGFreqDisplaySettings();
     m_freq_display_settings_isSet = false;
+    jog_wheel_settings = new SWGJogWheelSettings();
+    m_jog_wheel_settings_isSet = false;
     gs232_controller_settings = new SWGGS232ControllerSettings();
     m_gs232_controller_settings_isSet = false;
     lime_rfe_settings = new SWGLimeRFESettings();
@@ -175,6 +179,9 @@ SWGFeatureSettings::cleanup() {
     }
     if(freq_display_settings != nullptr) { 
         delete freq_display_settings;
+    }
+    if(jog_wheel_settings != nullptr) { 
+        delete jog_wheel_settings;
     }
     if(gs232_controller_settings != nullptr) { 
         delete gs232_controller_settings;
@@ -255,6 +262,8 @@ SWGFeatureSettings::fromJsonObject(QJsonObject &pJson) {
     
     ::SWGSDRangel::setValue(&freq_display_settings, pJson["FreqDisplaySettings"], "SWGFreqDisplaySettings", "SWGFreqDisplaySettings");
     
+    ::SWGSDRangel::setValue(&jog_wheel_settings, pJson["JogWheelSettings"], "SWGJogWheelSettings", "SWGJogWheelSettings");
+    
     ::SWGSDRangel::setValue(&gs232_controller_settings, pJson["GS232ControllerSettings"], "SWGGS232ControllerSettings", "SWGGS232ControllerSettings");
     
     ::SWGSDRangel::setValue(&lime_rfe_settings, pJson["LimeRFESettings"], "SWGLimeRFESettings", "SWGLimeRFESettings");
@@ -334,6 +343,9 @@ SWGFeatureSettings::asJsonObject() {
     }
     if((freq_display_settings != nullptr) && (freq_display_settings->isSet())){
         toJsonValue(QString("FreqDisplaySettings"), freq_display_settings, obj, QString("SWGFreqDisplaySettings"));
+    }
+    if((jog_wheel_settings != nullptr) && (jog_wheel_settings->isSet())){
+        toJsonValue(QString("JogWheelSettings"), jog_wheel_settings, obj, QString("SWGJogWheelSettings"));
     }
     if((gs232_controller_settings != nullptr) && (gs232_controller_settings->isSet())){
         toJsonValue(QString("GS232ControllerSettings"), gs232_controller_settings, obj, QString("SWGGS232ControllerSettings"));
@@ -499,6 +511,16 @@ void
 SWGFeatureSettings::setFreqDisplaySettings(SWGFreqDisplaySettings* freq_display_settings) {
     this->freq_display_settings = freq_display_settings;
     this->m_freq_display_settings_isSet = true;
+}
+
+SWGJogWheelSettings*
+SWGFeatureSettings::getJogWheelSettings() {
+    return jog_wheel_settings;
+}
+void
+SWGFeatureSettings::setJogWheelSettings(SWGJogWheelSettings* jog_wheel_settings) {
+    this->jog_wheel_settings = jog_wheel_settings;
+    this->m_jog_wheel_settings_isSet = true;
 }
 
 SWGGS232ControllerSettings*
@@ -680,6 +702,9 @@ SWGFeatureSettings::isSet(){
             isObjectUpdated = true; break;
         }
         if(freq_display_settings && freq_display_settings->isSet()){
+            isObjectUpdated = true; break;
+        }
+        if(jog_wheel_settings && jog_wheel_settings->isSet()){
             isObjectUpdated = true; break;
         }
         if(gs232_controller_settings && gs232_controller_settings->isSet()){

@@ -1,0 +1,83 @@
+JogWheelSettings:
+  description: JogWheel
+  properties:
+    title:
+      description: "User-visible title."
+      type: string
+    rgbColor:
+      description: "Display color encoded as an RGB integer."
+      type: integer
+    target:
+      description: "What the wheel tunes. A channel, E.g. 'R0:1' (its offset is moved), or a device set, E.g. 'R0' (its centre frequency is moved)"
+      type: string
+    linkedTarget:
+      description: "Channel or device set moved along with the target, E.g. a satellite uplink. Empty for none"
+      type: string
+    linkInverted:
+      description: "Linked target moves the opposite way, for inverting linear transponders (1 for yes, 0 for no)"
+      type: integer
+    stepHz:
+      description: "Frequency change for one detent of the wheel in Hz"
+      type: integer
+    acceleration:
+      description: "Larger steps when the wheel is turned quickly (1 for yes, 0 for no)"
+      type: integer
+    udpEnabled:
+      description: "Listen for jog commands from hardware on UDP (1 for yes, 0 for no)"
+      type: integer
+    udpAddress:
+      description: "Address to listen on for UDP jog commands"
+      type: string
+    udpPort:
+      description: "UDP port to listen on for jog commands"
+      type: integer
+    useReverseAPI:
+      description: "Synchronize with reverse API (1 for yes, 0 for no)"
+      type: integer
+    reverseAPIAddress:
+      description: "IPv4 address or host name of the reverse API peer."
+      type: string
+    reverseAPIPort:
+      description: "TCP port of the reverse API peer."
+      type: integer
+    reverseAPIFeatureSetIndex:
+      description: "Feature-set index used by the reverse API peer."
+      type: integer
+    reverseAPIFeatureIndex:
+      description: "Feature index used by the reverse API peer."
+      type: integer
+    rollupState:
+      $ref: "http://swgserver:8081/api/swagger/include/RollupState.yaml#/RollupState"
+      description: "Rollup display state."
+
+JogWheelReport:
+  description: JogWheel
+  properties:
+    targetFrequency:
+      description: "Frequency of the target in Hz (channel centre frequency, or device centre frequency)"
+      type: integer
+      format: int64
+    linkedFrequency:
+      description: "Frequency of the linked target in Hz, 0 if none"
+      type: integer
+      format: int64
+    totalHz:
+      description: "Total frequency change applied by the wheel since the last reset in Hz"
+      type: integer
+      format: int64
+
+JogWheelActions:
+  description: JogWheel
+  properties:
+    jog:
+      description: "Turn the wheel by this many detents (negative to tune down). Step size and acceleration apply"
+      type: integer
+    deltaHz:
+      description: "Move the target by this many Hz, regardless of step size"
+      type: integer
+    resetTotal:
+      description: >
+        Reset the total change
+          * 0 - Do nothing
+          * 1 - Reset
+      type: integer

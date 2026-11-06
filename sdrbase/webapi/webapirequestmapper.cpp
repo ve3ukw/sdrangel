@@ -5825,6 +5825,11 @@ bool WebAPIRequestMapper::getFeatureSettings(
             featureSettings->setFreqDisplaySettings(new SWGSDRangel::SWGFreqDisplaySettings());
             featureSettings->getFreqDisplaySettings()->fromJsonObject(settingsJsonObject);
         }
+        else if (featureSettingsKey == "JogWheelSettings")
+        {
+            featureSettings->setJogWheelSettings(new SWGSDRangel::SWGJogWheelSettings());
+            featureSettings->getJogWheelSettings()->fromJsonObject(settingsJsonObject);
+        }
         else if (featureSettingsKey == "JogdialControllerSettings")
         {
             featureSettings->setJogdialControllerSettings(new SWGSDRangel::SWGJogdialControllerSettings());
@@ -5979,6 +5984,11 @@ bool WebAPIRequestMapper::getFeatureActions(
         {
             featureActions->setSimplePttActions(new SWGSDRangel::SWGSimplePTTActions());
             featureActions->getSimplePttActions()->fromJsonObject(actionsJsonObject);
+        }
+        else if (featureActionsKey == "JogWheelActions")
+        {
+            featureActions->setJogWheelActions(new SWGSDRangel::SWGJogWheelActions());
+            featureActions->getJogWheelActions()->fromJsonObject(actionsJsonObject);
         }
         else if (featureActionsKey == "SkyMapActions")
         {
@@ -6279,6 +6289,7 @@ void WebAPIRequestMapper::resetFeatureSettings(SWGSDRangel::SWGFeatureSettings& 
     featureSettings.setAntennaToolsSettings(nullptr);
     featureSettings.setAprsSettings(nullptr);
     featureSettings.setFreqDisplaySettings(nullptr);
+    featureSettings.setJogWheelSettings(nullptr);
     featureSettings.setGs232ControllerSettings(nullptr);
     featureSettings.setMapSettings(nullptr);
     featureSettings.setPerTesterSettings(nullptr);
@@ -6298,6 +6309,7 @@ void WebAPIRequestMapper::resetFeatureReport(SWGSDRangel::SWGFeatureReport& feat
     featureReport.setFeatureType(nullptr);
     featureReport.setAfcReport(nullptr);
     featureReport.setFreqDisplayReport(nullptr);
+    featureReport.setJogWheelReport(nullptr);
     featureReport.setGs232ControllerReport(nullptr);
     featureReport.setPerTesterReport(nullptr);
     featureReport.setRigCtlServerReport(nullptr);

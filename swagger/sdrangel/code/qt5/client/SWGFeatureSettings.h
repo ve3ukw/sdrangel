@@ -30,6 +30,7 @@
 #include "SWGDemodAnalyzerSettings.h"
 #include "SWGDenoiserSettings.h"
 #include "SWGFreqDisplaySettings.h"
+#include "SWGJogWheelSettings.h"
 #include "SWGGS232ControllerSettings.h"
 #include "SWGJogdialControllerSettings.h"
 #include "SWGLimeRFESettings.h"
@@ -100,6 +101,9 @@ public:
 
     SWGFreqDisplaySettings* getFreqDisplaySettings();
     void setFreqDisplaySettings(SWGFreqDisplaySettings* freq_display_settings);
+
+    SWGJogWheelSettings* getJogWheelSettings();
+    void setJogWheelSettings(SWGJogWheelSettings* jog_wheel_settings);
 
     SWGGS232ControllerSettings* getGs232ControllerSettings();
     void setGs232ControllerSettings(SWGGS232ControllerSettings* gs232_controller_settings);
@@ -182,6 +186,9 @@ private:
 
     SWGFreqDisplaySettings* freq_display_settings;
     bool m_freq_display_settings_isSet;
+
+    SWGJogWheelSettings* jog_wheel_settings;
+    bool m_jog_wheel_settings_isSet;
 
     SWGGS232ControllerSettings* gs232_controller_settings;
     bool m_gs232_controller_settings_isSet;

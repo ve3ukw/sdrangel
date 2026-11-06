@@ -700,7 +700,7 @@ QString capitalize(const QString& s)
 // request with 501 and the rest accept it and stay idle, so neither the request nor the state that
 // follows it tells them apart from a feature that is slow to start
 const QStringList passiveFeatureTypes = {
-    "AIS", "AMBE", "AntennaTools", "APRS", "FreqDisplay", "LimeRFE", "Map", "Radiosonde",
+    "AIS", "AMBE", "AntennaTools", "APRS", "FreqDisplay", "JogWheel", "LimeRFE", "Map", "Radiosonde",
     "RemoteControl", "SkyMap"
 };
 
@@ -3404,7 +3404,7 @@ void MCPTools::registerFeatureTools()
 
     add("start_feature",
         "Start a feature. Most features must be started to do anything, but the passive ones - AIS, AMBE, AntennaTools, "
-        "APRS, FreqDisplay, LimeRFE, Map, Radiosonde, RemoteControl and SkyMap - have no run state, work as soon as they "
+        "APRS, FreqDisplay, JogWheel, LimeRFE, Map, Radiosonde, RemoteControl and SkyMap - have no run state, work as soon as they "
         "are configured and always report idle. Starting one of those is answered without doing anything.",
         schema({{"featureIndex", featureIndexProp}}, {"featureIndex"}),
         [this](const QJsonObject& args) { return featureState(argInt(args, "featureIndex"), 1); });

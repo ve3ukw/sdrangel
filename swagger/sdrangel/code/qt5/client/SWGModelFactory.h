@@ -193,6 +193,8 @@
 #include "SWGFreeDVModSettings.h"
 #include "SWGFreqDisplayReport.h"
 #include "SWGFreqDisplaySettings.h"
+#include "SWGJogWheelReport.h"
+#include "SWGJogWheelSettings.h"
 #include "SWGFreqScannerActions.h"
 #include "SWGFreqScannerChannelState.h"
 #include "SWGFreqScannerFrequency.h"
@@ -394,6 +396,7 @@
 #include "SWGSigMFFileSinkReport.h"
 #include "SWGSigMFFileSinkSettings.h"
 #include "SWGSimplePTTActions.h"
+#include "SWGJogWheelActions.h"
 #include "SWGSimplePTTReport.h"
 #include "SWGSimplePTTSettings.h"
 #include "SWGSkyMapActions.h"
@@ -1357,6 +1360,16 @@ namespace SWGSDRangel {
     }
     if(QString("SWGFreqDisplaySettings").compare(type) == 0) {
       SWGFreqDisplaySettings *obj = new SWGFreqDisplaySettings();
+      obj->init();
+      return obj;
+    }
+    if(QString("SWGJogWheelReport").compare(type) == 0) {
+      SWGJogWheelReport *obj = new SWGJogWheelReport();
+      obj->init();
+      return obj;
+    }
+    if(QString("SWGJogWheelSettings").compare(type) == 0) {
+      SWGJogWheelSettings *obj = new SWGJogWheelSettings();
       obj->init();
       return obj;
     }
@@ -2362,6 +2375,11 @@ namespace SWGSDRangel {
     }
     if(QString("SWGSimplePTTActions").compare(type) == 0) {
       SWGSimplePTTActions *obj = new SWGSimplePTTActions();
+      obj->init();
+      return obj;
+    }
+    if(QString("SWGJogWheelActions").compare(type) == 0) {
+      SWGJogWheelActions *obj = new SWGJogWheelActions();
       obj->init();
       return obj;
     }

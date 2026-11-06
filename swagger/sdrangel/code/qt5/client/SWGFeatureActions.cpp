@@ -56,6 +56,8 @@ SWGFeatureActions::SWGFeatureActions() {
     m_satellite_tracker_actions_isSet = false;
     simple_ptt_actions = nullptr;
     m_simple_ptt_actions_isSet = false;
+    jog_wheel_actions = nullptr;
+    m_jog_wheel_actions_isSet = false;
     sky_map_actions = nullptr;
     m_sky_map_actions_isSet = false;
     star_tracker_actions = nullptr;
@@ -102,6 +104,8 @@ SWGFeatureActions::init() {
     m_satellite_tracker_actions_isSet = false;
     simple_ptt_actions = new SWGSimplePTTActions();
     m_simple_ptt_actions_isSet = false;
+    jog_wheel_actions = new SWGJogWheelActions();
+    m_jog_wheel_actions_isSet = false;
     sky_map_actions = new SWGSkyMapActions();
     m_sky_map_actions_isSet = false;
     star_tracker_actions = new SWGStarTrackerActions();
@@ -153,6 +157,9 @@ SWGFeatureActions::cleanup() {
     }
     if(simple_ptt_actions != nullptr) { 
         delete simple_ptt_actions;
+    }
+    if(jog_wheel_actions != nullptr) { 
+        delete jog_wheel_actions;
     }
     if(sky_map_actions != nullptr) { 
         delete sky_map_actions;
@@ -209,6 +216,8 @@ SWGFeatureActions::fromJsonObject(QJsonObject &pJson) {
     ::SWGSDRangel::setValue(&satellite_tracker_actions, pJson["SatelliteTrackerActions"], "SWGSatelliteTrackerActions", "SWGSatelliteTrackerActions");
     
     ::SWGSDRangel::setValue(&simple_ptt_actions, pJson["SimplePTTActions"], "SWGSimplePTTActions", "SWGSimplePTTActions");
+    
+    ::SWGSDRangel::setValue(&jog_wheel_actions, pJson["JogWheelActions"], "SWGJogWheelActions", "SWGJogWheelActions");
     
     ::SWGSDRangel::setValue(&sky_map_actions, pJson["SkyMapActions"], "SWGSkyMapActions", "SWGSkyMapActions");
     
@@ -277,6 +286,9 @@ SWGFeatureActions::asJsonObject() {
     }
     if((simple_ptt_actions != nullptr) && (simple_ptt_actions->isSet())){
         toJsonValue(QString("SimplePTTActions"), simple_ptt_actions, obj, QString("SWGSimplePTTActions"));
+    }
+    if((jog_wheel_actions != nullptr) && (jog_wheel_actions->isSet())){
+        toJsonValue(QString("JogWheelActions"), jog_wheel_actions, obj, QString("SWGJogWheelActions"));
     }
     if((sky_map_actions != nullptr) && (sky_map_actions->isSet())){
         toJsonValue(QString("SkyMapActions"), sky_map_actions, obj, QString("SWGSkyMapActions"));
@@ -437,6 +449,16 @@ SWGFeatureActions::setSimplePttActions(SWGSimplePTTActions* simple_ptt_actions) 
     this->m_simple_ptt_actions_isSet = true;
 }
 
+SWGJogWheelActions*
+SWGFeatureActions::getJogWheelActions() {
+    return jog_wheel_actions;
+}
+void
+SWGFeatureActions::setJogWheelActions(SWGJogWheelActions* jog_wheel_actions) {
+    this->jog_wheel_actions = jog_wheel_actions;
+    this->m_jog_wheel_actions_isSet = true;
+}
+
 SWGSkyMapActions*
 SWGFeatureActions::getSkyMapActions() {
     return sky_map_actions;
@@ -532,6 +554,9 @@ SWGFeatureActions::isSet(){
             isObjectUpdated = true; break;
         }
         if(simple_ptt_actions && simple_ptt_actions->isSet()){
+            isObjectUpdated = true; break;
+        }
+        if(jog_wheel_actions && jog_wheel_actions->isSet()){
             isObjectUpdated = true; break;
         }
         if(sky_map_actions && sky_map_actions->isSet()){
