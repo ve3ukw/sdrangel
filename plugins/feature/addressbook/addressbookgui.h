@@ -86,6 +86,7 @@ private:
     ~AddressBookGUI() override;
 
     void makeUIConnections();
+    void pointJogWheel(int deviceSetIndex, int channelIndex);
     void blockApplySettings(bool block);
     void displaySettings();
     void applySetting(const QString& settingsKey);
@@ -118,6 +119,8 @@ private slots:
     void on_edit_clicked();
     void on_remove_clicked();
     void on_tune_clicked();
+    void on_exportEntries_clicked();
+    void on_importEntries_clicked();
 };
 
 #endif // INCLUDE_FEATURE_ADDRESSBOOKGUI_H_

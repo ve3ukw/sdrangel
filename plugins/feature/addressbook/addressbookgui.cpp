@@ -16,7 +16,12 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.          //
 ///////////////////////////////////////////////////////////////////////////////////
 
+#include <QDebug>
 #include <QEvent>
+#include <QFile>
+#include <QFileDialog>
+#include <QFileInfo>
+#include <QInputDialog>
 #include <QMessageBox>
 #include <QTableWidgetItem>
 
@@ -25,6 +30,9 @@
 #include "gui/basicfeaturesettingsdialog.h"
 #include "gui/dialogpositioner.h"
 #include "feature/featureuiset.h"
+#include "feature/featurewebapiutils.h"
+#include "SWGFeatureSettings.h"
+#include "SWGJogWheelSettings.h"
 #include "maincore.h"
 #include "mainwindow.h"
 #include "device/deviceuiset.h"
@@ -34,6 +42,7 @@
 #include "ui_addressbookgui.h"
 #include "addressbook.h"
 #include "addressbookentrydialog.h"
+#include "addressbookio.h"
 #include "addressbookgui.h"
 
 // Table item that sorts on a numeric value rather than its text
@@ -87,6 +96,10 @@ bool AddressBookGUI::handleMessage(const Message& message)
         // After switching, select the channel that was tuned, so the next entry is tuned from it
         if (!result.getChannelSwitches().isEmpty() && (result.getTunedDeviceSetIndex() >= 0)) {
             selectChannel(result.getTunedDeviceSetIndex(), result.getTunedChannelIndex());
+        }
+
+        if (result.getSuccess() && (result.getTunedDeviceSetIndex() >= 0)) {
+            pointJogWheel(result.getTunedDeviceSetIndex(), result.getTunedChannelIndex());
         }
 
         return true;
@@ -660,6 +673,158 @@ void AddressBookGUI::on_tune_clicked()
     tuneEntry(selectedEntryIndex());
 }
 
+// Set the Jog Wheel, if there is one, to tune the channel that was tuned. A modulator linked to it (E.g. of a transceiver)
+// only follows changes made in the channel's GUI, so it's set as the Jog Wheel's link, so it follows the wheel too
+void AddressBookGUI::pointJogWheel(int deviceSetIndex, int channelIndex)
+{
+    int featureSetIndex = -1;
+    int featureIndex = -1;
+    Feature *jogWheel = FeatureWebAPIUtils::getFeature(featureSetIndex, featureIndex, "sdrangel.feature.jogwheel");
+    ChannelAPI *channel = MainCore::instance()->getChannel(deviceSetIndex, channelIndex);
+
+    if (!jogWheel || !channel) {
+        return;
+    }
+
+    QString linkedTarget;
+    int link;
+
+    if (ChannelWebAPIUtils::getChannelSetting(deviceSetIndex, channelIndex, "linkFrequencyOffset", link) && link)
+    {
+        QStringList linkGroupURIs = ChannelWebAPIUtils::getLinkGroupURIs(channel->getURI());
+
+        for (ChannelAPI *linkedChannel : ChannelWebAPIUtils::getLinkedChannels(channel, linkGroupURIs))
+        {
+            if (linkedChannel->getStreamType() == ChannelAPI::StreamSingleSource)
+            {
+                linkedTarget = MainCore::instance()->getChannelId(linkedChannel);
+                break;
+            }
+        }
+    }
+
+    SWGSDRangel::SWGFeatureSettings current;
+    QString errorMessage;
+
+    if ((jogWheel->webapiSettingsGet(current, errorMessage) / 100 != 2) || !current.getJogWheelSettings()) {
+        return;
+    }
+
+    SWGSDRangel::SWGJogWheelSettings *currentSettings = current.getJogWheelSettings();
+    QString currentTarget = currentSettings->getTarget() ? *currentSettings->getTarget() : QString();
+    QString currentLinkedTarget = currentSettings->getLinkedTarget() ? *currentSettings->getLinkedTarget() : QString();
+
+    SWGSDRangel::SWGFeatureSettings patch;
+    patch.setFeatureType(new QString("JogWheel"));
+    patch.setJogWheelSettings(new SWGSDRangel::SWGJogWheelSettings());
+    patch.getJogWheelSettings()->init();
+    QStringList keys;
+
+    // Only change the target if it's a different channel, as changing it resets the Jog Wheel's total
+    unsigned int targetDeviceSetIndex, targetChannelIndex;
+
+    if (!MainCore::getDeviceAndChannelIndexFromId(currentTarget, targetDeviceSetIndex, targetChannelIndex)
+        || ((int) targetDeviceSetIndex != deviceSetIndex) || ((int) targetChannelIndex != channelIndex))
+    {
+        patch.getJogWheelSettings()->setTarget(new QString(MainCore::instance()->getChannelId(channel)));
+        keys.append("target");
+    }
+
+    unsigned int linkedDeviceSetIndex, linkedChannelIndex, newLinkedDeviceSetIndex, newLinkedChannelIndex;
+    bool sameLink = (currentLinkedTarget.isEmpty() && linkedTarget.isEmpty())
+        || (MainCore::getDeviceAndChannelIndexFromId(currentLinkedTarget, linkedDeviceSetIndex, linkedChannelIndex)
+            && MainCore::getDeviceAndChannelIndexFromId(linkedTarget, newLinkedDeviceSetIndex, newLinkedChannelIndex)
+            && (linkedDeviceSetIndex == newLinkedDeviceSetIndex) && (linkedChannelIndex == newLinkedChannelIndex));
+
+    if (!sameLink)
+    {
+        patch.getJogWheelSettings()->setLinkedTarget(new QString(linkedTarget));
+        keys.append("linkedTarget");
+    }
+
+    if (!linkedTarget.isEmpty() && currentSettings->getLinkInverted())
+    {
+        // A transceiver's modulator moves the same way as its demodulator
+        patch.getJogWheelSettings()->setLinkInverted(0);
+        keys.append("linkInverted");
+    }
+
+    if (!keys.isEmpty() && (jogWheel->webapiSettingsPutPatch(false, keys, patch, errorMessage) / 100 != 2)) {
+        qWarning() << "AddressBookGUI::pointJogWheel: Failed to set Jog Wheel settings:" << errorMessage;
+    }
+}
+
+void AddressBookGUI::on_exportEntries_clicked()
+{
+    QString fileName = QFileDialog::getSaveFileName(this, "Export Address Book", "addressbook.json", "Address Book (*.json)");
+
+    if (fileName.isEmpty()) {
+        return;
+    }
+
+    QFile file(fileName);
+
+    if (!file.open(QIODevice::WriteOnly) || (file.write(AddressBookIO::toJson(m_settings.m_entries)) < 0))
+    {
+        QMessageBox::warning(this, "Address Book", QString("Failed to write %1: %2").arg(fileName).arg(file.errorString()));
+        return;
+    }
+
+    ui->status->clear();
+}
+
+void AddressBookGUI::on_importEntries_clicked()
+{
+    QString fileName = QFileDialog::getOpenFileName(this, "Import Address Book", "",
+        "Address Book or CHIRP CSV (*.json *.csv);;All files (*)");
+
+    if (fileName.isEmpty()) {
+        return;
+    }
+
+    QFile file(fileName);
+
+    if (!file.open(QIODevice::ReadOnly))
+    {
+        QMessageBox::warning(this, "Address Book", QString("Failed to read %1: %2").arg(fileName).arg(file.errorString()));
+        return;
+    }
+
+    QByteArray data = file.readAll();
+    QString group;
+
+    // CHIRP CSV has no groups, so ask which group to put the entries in
+    if (!data.trimmed().startsWith('{') && !data.trimmed().startsWith('['))
+    {
+        bool ok;
+        group = QInputDialog::getText(this, "Import Address Book", "Group for the imported entries:", QLineEdit::Normal,
+            m_settings.m_groupFilter.isEmpty() ? QFileInfo(fileName).completeBaseName() : m_settings.m_groupFilter, &ok);
+
+        if (!ok) {
+            return;
+        }
+    }
+
+    QList<AddressBookEntry> entries;
+    QString error;
+
+    if (!AddressBookIO::fromData(data, group.trimmed(), entries, error))
+    {
+        QMessageBox::warning(this, "Address Book", QString("Failed to import %1: %2").arg(fileName).arg(error));
+        return;
+    }
+
+    int added = AddressBookIO::merge(m_settings.m_entries, entries);
+    updateGroupFilter();
+    updateTable();
+    applySettings({"entries", "groupFilter"});
+    ui->status->clear();
+    QMessageBox::information(this, "Address Book", QString("Imported %1 entries from %2.%3")
+        .arg(added)
+        .arg(QFileInfo(fileName).fileName())
+        .arg(added < entries.size() ? QString(" %1 already in the address book were skipped.").arg(entries.size() - added) : QString()));
+}
+
 void AddressBookGUI::makeUIConnections()
 {
     connect(ui->channels, qOverload<int>(&QComboBox::currentIndexChanged), this, &AddressBookGUI::on_channels_currentIndexChanged);
@@ -671,4 +836,6 @@ void AddressBookGUI::makeUIConnections()
     connect(ui->edit, &QToolButton::clicked, this, &AddressBookGUI::on_edit_clicked);
     connect(ui->remove, &QToolButton::clicked, this, &AddressBookGUI::on_remove_clicked);
     connect(ui->tune, &QToolButton::clicked, this, &AddressBookGUI::on_tune_clicked);
+    connect(ui->exportEntries, &QToolButton::clicked, this, &AddressBookGUI::on_exportEntries_clicked);
+    connect(ui->importEntries, &QToolButton::clicked, this, &AddressBookGUI::on_importEntries_clicked);
 }

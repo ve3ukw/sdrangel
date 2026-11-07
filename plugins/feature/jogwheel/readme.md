@@ -27,6 +27,12 @@ so the uplink isn't moved twice.
 
 The Link is for when the uplink isn't tuned by the Satellite Tracker, such as on a satellite it doesn't have uplink frequencies for.
 
+<h3>With the Address Book</h3>
+
+When an entry is tuned in the [Address Book](../addressbook/readme.md), the Jog Wheel is set to tune that channel. If the channel is linked to a
+modulator (its link button is on, E.g. a transceiver's NFM demodulator and modulator), Link is set to that modulator, moving the Same way, so the
+transmit frequency follows the wheel and a repeater shift is kept. Otherwise Link is set to None.
+
 <h2>Interface</h2>
 
 The window has two sections, Settings (Tune to UDP) and Jog Wheel (frequencies, total change and knob). Once set up, Settings can be

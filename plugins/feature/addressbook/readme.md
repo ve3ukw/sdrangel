@@ -6,6 +6,7 @@ The Address Book feature stores frequencies and the settings that go with them, 
 and tunes a receive channel to them.
 
 Entries are saved with the feature's settings, so they are part of configurations.
+Use Export and Import (9, 10) to back them up or copy them to another configuration.
 
 <h2>Interface</h2>
 
@@ -66,6 +67,9 @@ Tunes the channel to the selected entry:
   switched on if the entry has a tone and off if it doesn't.
 * If the entry has an azimuth, the first GS-232 Rotator Controller feature is switched out of tracking and its azimuth
   is set to the entry's azimuth, so the antenna is pointed at the station. The elevation is left unchanged.
+* If there is a [Jog Wheel](../jogwheel/readme.md) feature, it's set to tune the channel that was tuned. If the channel's link button is on,
+  the Jog Wheel's link is set to the linked modulator (moving the same way), as linked channels only follow changes made in the channel's
+  window, so the transmit frequency follows the wheel too, keeping any repeater shift. Otherwise the Jog Wheel's link is set to None.
 
 <h3>5: Add</h3>
 
@@ -82,3 +86,21 @@ Opens a dialog to edit the selected entry.
 <h3>8: Delete</h3>
 
 Deletes the selected entry.
+
+<h3>9: Export</h3>
+
+Saves all entries to a JSON file, with all their fields. Use it for a backup, or to copy the entries to another configuration with Import.
+
+<h3>10: Import</h3>
+
+Adds entries from a file. Entries already in the address book (with the same name and frequency) are skipped, so importing the same file twice
+doesn't duplicate them. Two formats are read:
+
+* JSON, as saved by Export.
+* CHIRP CSV, as saved by CHIRP, or by [RepeaterBook](https://www.repeaterbook.com) from a search (E.g. by callsign or city), with its export to CHIRP.
+  You're asked for the group to put the entries in. From the CHIRP columns:
+  * Frequency, Name (or the start of Comment, if there's no name) and Comment (as the notes).
+  * Duplex and Offset give the repeater shift: + or - Offset, or split (Offset is the transmit frequency). Off is noted as receive only.
+  * Tone gives the CTCSS tone: rToneFreq for Tone (and Cross Tone->), cToneFreq for TSQL. DCS isn't supported, so its code is put in the notes.
+  * Mode: FM is narrowband FM, so becomes NFM, tuned with an NFM demodulator. AM, WFM, USB, LSB and CW are tuned with AM, WFM and SSB demodulators.
+    DV and DN become D-STAR and C4FM, with a channel type of Any.

@@ -3,6 +3,7 @@ project(addressbook)
 set(addressbook_SOURCES
     addressbook.cpp
     addressbookentry.cpp
+    addressbookio.cpp
     addressbooksettings.cpp
     addressbookplugin.cpp
 )
@@ -10,6 +11,7 @@ set(addressbook_SOURCES
 set(addressbook_HEADERS
     addressbook.h
     addressbookentry.h
+    addressbookio.h
     addressbooksettings.h
     addressbookplugin.h
     addressbookwebapiadapter.h

@@ -259,6 +259,26 @@
        </widget>
       </item>
       <item>
+       <widget class="QToolButton" name="exportEntries">
+        <property name="toolTip">
+         <string>Export all entries to a JSON file, E.g. for a backup or to copy them to another configuration</string>
+        </property>
+        <property name="text">
+         <string>Export...</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QToolButton" name="importEntries">
+        <property name="toolTip">
+         <string>Import entries from a JSON file exported by the Address Book, or a CHIRP CSV file (E.g. exported by RepeaterBook from a search). Entries already in the address book (same name and frequency) are skipped</string>
+        </property>
+        <property name="text">
+         <string>Import...</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QLabel" name="status">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
